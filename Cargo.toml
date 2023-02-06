@@ -1,0 +1,8 @@
+[package]
+name = "authzen"
+description = "Policy representation and execution bindings."
+version = "0.1.0"
+edition = "2021"
+authors = ["Trey Lowerison"]
+
+[dependencies]

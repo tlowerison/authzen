@@ -1,0 +1,25 @@
+[package]
+name = "authzen-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+async-trait.workspace = true
+cfg-if.workspace = true
+derivative.workspace = true
+derive-getters.workspace = true
+derive_more.workspace = true
+futures = "0"
+serde.workspace = true
+serde_with.workspace = true
+typed-builder.workspace = true
+
+diesel = { workspace = true, optional = true }
+diesel-async = { workspace = true, optional = true }
+diesel-util = { workspace = true, optional = true }
+
+[features]
+diesel-storage-backend = ["diesel", "diesel-async", "diesel-util"]
+diesel-mysql = ["diesel/mysql", "diesel-async/mysql", "diesel-util/mysql"]
+diesel-postgres = ["diesel/postgres", "diesel-async/postgres", "diesel-util/postgres"]

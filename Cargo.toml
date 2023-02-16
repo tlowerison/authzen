@@ -1,8 +1,31 @@
-[package]
-name = "authzen"
+[workspace]
+members = [
+  "authzen",
+  "core",
+  "proc-macros",
+]
+exclude = ["examples"]
+
+[workspace.package]
 description = "Policy representation and execution bindings."
 version = "0.1.0"
 edition = "2021"
 authors = ["Trey Lowerison"]
 
-[dependencies]
+[workspace.dependencies]
+async-trait = "0"
+cfg-if = "1"
+derivative = "2"
+derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "177c12a" }
+derive_more = { git = "https://github.com/tlowerison/derive_more", rev = "81eaa77" }
+diesel = "2"
+diesel-async = "0.2"
+diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bfd6354" }
+proc-macro2 = "1"
+proc-macro-util = { git = "https://github.com/tlowerison/proc-macro-util", rev = "533c8ad" }
+quote = "1"
+serde = { version = "1", features = ["derive"] }
+serde_with = "2"
+syn = "1"
+typed-builder = "0"
+

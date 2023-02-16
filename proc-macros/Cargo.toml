@@ -1,0 +1,12 @@
+[package]
+name = "authzen-proc-macros"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+core = { package = "authzen-proc-macros-core", path = "core" }
+proc-macro-util.workspace = true
+
+[lib]
+proc-macro = true

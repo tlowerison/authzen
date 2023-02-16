@@ -1,0 +1,16 @@
+[package]
+name = "authzen"
+version.workspace = true
+description.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+core = { package = "authzen-core", path = "../core" }
+proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
+
+[features]
+diesel-storage-backend = ["core/diesel-storage-backend"]
+diesel-mysql = ["core/diesel-mysql"]
+diesel-postgres = ["core/diesel-postgres"]
+

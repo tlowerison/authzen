@@ -1,0 +1,11 @@
+[package]
+name = "authzen-proc-macros-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+proc-macro2.workspace = true
+proc-macro-util.workspace = true
+quote.workspace = true
+syn.workspace = true

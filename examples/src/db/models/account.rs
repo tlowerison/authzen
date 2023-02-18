@@ -1,14 +1,17 @@
 use crate::db::schema::*;
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use diesel_util::*;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, TypedBuilder)]
 pub struct DbAccount {
     pub id: Uuid,
+    #[builder(default = Utc::now().naive_utc(), setter(skip))]
     pub created_at: NaiveDateTime,
+    #[builder(default = Utc::now().naive_utc(), setter(skip))]
     pub updated_at: NaiveDateTime,
+    #[builder(default, setter(skip))]
     pub deleted_at: Option<NaiveDateTime>,
     #[serde(flatten)]
     pub identifier: Identifier,

@@ -1,0 +1,13 @@
+[package]
+name = "diesel-util-proc-macros"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+core = { path = "core", package = "diesel-util-proc-macros-core" }
+proc-macro2.workspace = true
+syn.workspace = true
+
+[lib]
+proc-macro = true

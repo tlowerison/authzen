@@ -1,0 +1,68 @@
+[package]
+name = "service-util"
+version = "0.1.0"
+authors = ["Trey Lowerison"]
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+async-backtrace.workspace = true
+cfg-if.workspace = true
+derivative.workspace = true
+hyper.workspace = true
+lazy_static.workspace = true
+log.workspace = true
+paste.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+async-graphql = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+axum-core = { workspace = true, optional = true }
+cookie = { workspace = true, optional = true }
+concat-string = { workspace = true, optional = true }
+data-encoding = { workspace = true, optional = true }
+derive_more = { git = "https://github.com/tlowerison/derive_more", optional = true }
+diesel = { workspace = true, optional = true }
+diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bc7d164", optional = true }
+futures = { workspace = true, optional = true }
+mongodb = { workspace = true, optional = true }
+opentelemetry = { workspace = true, optional = true }
+opentelemetry-jaeger = { workspace = true, optional = true }
+ring = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+serde_qs = { workspace = true, optional = true }
+session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee5b2", features = ["account-session"], optional = true }
+tonic = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["signal"], optional = true }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, features = ["request-id"], optional = true }
+tower-layer = { workspace = true, optional = true }
+tower-service = { workspace = true, optional = true }
+tracing-error = { workspace = true, optional = true }
+tracing-log = { workspace = true, optional = true }
+tracing-opentelemetry = { workspace = true, optional = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
+tracing-tree = { workspace = true, optional = true }
+uuid = { workspace = true, features = ["serde", "v4"], optional = true }
+
+axum-05 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
+axum-06 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
+
+[features]
+default = ["http1", "max-allowed-request-body-size-medium"]
+axum-05 = ["dep:axum-05", "session-util/axum-core-02"]
+axum-06 = ["dep:axum-06", "session-util/axum-core-03"]
+client = ["async-trait", "concat-string", "futures", "hyper/client", "serde", "serde_json", "serde_qs", "trace"]
+db = ["diesel", "diesel-util", "serde"]
+graphql = ["async-graphql", "diesel", "diesel-util", "serde"]
+grpc = ["tonic"]
+http1 = ["hyper/http1"]
+http2 = ["hyper/http2"]
+log_error = []
+max-allowed-request-body-size-large = []
+max-allowed-request-body-size-medium = []
+max-allowed-request-body-size-small = []
+server = ["derive_more", "futures", "opentelemetry/rt-tokio", "serde", "serde_json", "session-util", "tokio", "tokio/macros", "tower", "tower/timeout", "trace", "uuid"]
+trace = ["opentelemetry", "opentelemetry-jaeger/rt-tokio", "tower-http", "tracing-error", "tracing-log", "tracing-opentelemetry", "tracing-subscriber", "tracing-tree", "uuid"]

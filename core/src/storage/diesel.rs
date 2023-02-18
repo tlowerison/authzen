@@ -12,6 +12,7 @@ use diesel::{Insertable, Table};
 use diesel_async::methods::*;
 use diesel_util::*;
 use std::fmt::Debug;
+use std::hash::Hash;
 
 impl<B> StorageBackend for B where B: Backend {}
 
@@ -29,7 +30,7 @@ impl<C: _Db> StorageClient for C {
 #[async_trait]
 impl<'query, 'v, E, B, I, C, O> StorageAction<C, I> for action::Create<O>
 where
-    O: HasStorageObject<B, StorageObject = E>,
+    O: AsStorage<B, StorageObject = E>,
     E: DbInsert,
     B: Backend,
     I: IntoIterator<Item = E::PostHelper<'v>> + Send,
@@ -68,7 +69,7 @@ where
 #[async_trait]
 impl<'query, 'v, E, B, I, C, F, O> StorageAction<C, I> for action::Delete<O>
 where
-    O: HasStorageObject<B, StorageObject = E>,
+    O: AsStorage<B, StorageObject = E>,
     E: DbDelete,
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
@@ -100,7 +101,7 @@ where
 #[async_trait]
 impl<E, B, I, C, F, O> StorageAction<C, I> for action::Read<O>
 where
-    O: HasStorageObject<B, StorageObject = E>,
+    O: AsStorage<B, StorageObject = E>,
     E: DbEntity,
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
@@ -132,7 +133,7 @@ where
 #[async_trait]
 impl<'query, 'v, E, B, I, C, F, O> StorageAction<C, I> for action::Update<O>
 where
-    O: HasStorageObject<B, StorageObject = E>,
+    O: AsStorage<B, StorageObject = E>,
     E: DbUpdate,
     B: Backend,
     I: IntoIterator<Item = E::PatchHelper<'v>> + Send + 'v,

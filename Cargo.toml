@@ -2,7 +2,11 @@
 members = [
   "authzen",
   "core",
+  "diesel-util",
+  "opa-util",
   "proc-macros",
+  "proc-macro-util",
+  "service-util",
 ]
 exclude = ["examples"]
 
@@ -13,19 +17,80 @@ edition = "2021"
 authors = ["Trey Lowerison"]
 
 [workspace.dependencies]
-async-trait = "0"
+
+# authzen specific crates
+authzen-proc-macros.path = "proc-macros"
+async-trait = "^0.1"
+convert_case = "^0.6"
 cfg-if = "1"
 derivative = "2"
 derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "177c12a" }
 derive_more = { git = "https://github.com/tlowerison/derive_more", rev = "81eaa77" }
 diesel = "2"
-diesel-async = "0.2"
-diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bfd6354" }
+diesel-async = "^0.2"
+diesel-util = { path = "diesel-util" }
+hyper = "0"
+opa-util = { path = "opa-util" }
 proc-macro2 = "1"
-proc-macro-util = { git = "https://github.com/tlowerison/proc-macro-util", rev = "533c8ad" }
+proc-macro-util = { path = "proc-macro-util" }
 quote = "1"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 serde_with = "2"
+service-util = { path = "service-util" }
 syn = "1"
-typed-builder = "0"
+typed-builder = "^0.12"
 
+# diesel-util
+anyhow = "1"
+async-backtrace = "^0.2"
+chrono = "^0.4"
+diesel_migrations = "2"
+either = "1"
+futures = "^0.3"
+itertools = "^0.10"
+lazy_static = "1"
+mobc = "^0.7"
+paste = "1"
+scoped-futures = "^0.1"
+thiserror = "1"
+tokio = { version = "1", features = ["rt", "sync"] }
+tracing = "^0.1"
+uuid = { version = "1", features = ["serde", "v4"] }
+
+# opa-util
+async-recursion = "1"
+diesel-dynamic-schema = "0"
+float-cmp = "0"
+hyper-rustls = { version = "0", features = ["webpki-roots"] }
+mongodb = { version = "2", features = ["bson-chrono-0_4"] }
+opentelemetry = "0"
+session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee5b2", features = ["account-session"] }
+tracing-opentelemetry = "0"
+
+# proc-macro-util
+prettyplease = "0"
+
+# service-util
+log = "0"
+
+async-graphql = "4"
+axum-core = "0"
+cookie = "0"
+concat-string = "1"
+data-encoding = "2"
+opentelemetry-jaeger = "0"
+ring = "0"
+serde_qs = "0"
+tonic = "0"
+tower = "0"
+tower-http = "0"
+tower-layer = "0"
+tower-service = "0"
+tracing-error = "0"
+tracing-log = "0"
+tracing-subscriber = "0"
+tracing-tree = "0"
+
+axum-05 = { package = "axum", version = "0.5", default-features = false, features = ["headers"] }
+axum-06 = { package = "axum", version = "0.6", default-features = false, features = ["headers"] }

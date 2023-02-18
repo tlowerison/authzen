@@ -7,10 +7,35 @@ authors.workspace = true
 
 [dependencies]
 core = { package = "authzen-core", path = "../core" }
+derivative.workspace = true
+diesel-util.workspace = true
+opa-util.workspace = true
 proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
+proc-macro-util.workspace = true
+service-util.workspace = true
 
 [features]
 diesel-storage-backend = ["core/diesel-storage-backend"]
-diesel-mysql = ["core/diesel-mysql"]
-diesel-postgres = ["core/diesel-postgres"]
+diesel-mysql = ["core/diesel-mysql", "diesel-util/mysql"]
+diesel-postgres = ["core/diesel-postgres", "diesel-util/postgres"]
+extra-traits = ["core/extra-traits"]
+opa-decision-maker = ["core/opa-decision-maker"]
 
+diesel-util-bb8 = ["diesel-util/bb8"]
+diesel-util-deadpool = ["diesel-util/deadpool"]
+diesel-util-mobc = ["diesel-util/mobc"]
+
+service-util-axum-05 = ["service-util/axum-05"]
+service-util-axum-06 = ["service-util/axum-06"]
+service-util-client = ["service-util/client"]
+service-util-db = ["service-util/db"]
+service-util-graphql = ["service-util/graphql"]
+service-util-grpc = ["service-util/grpc"]
+service-util-http1 = ["service-util/http1"]
+service-util-http2 = ["service-util/http2"]
+service-util-log_error = ["service-util/log_error"]
+service-util-max-allowed-request-body-size-large = ["service-util/max-allowed-request-body-size-large"]
+service-util-max-allowed-request-body-size-medium = ["service-util/max-allowed-request-body-size-medium"]
+service-util-max-allowed-request-body-size-small = ["service-util/max-allowed-request-body-size-small"]
+service-util-server = ["service-util/server"]
+service-util-trace = ["service-util/trace"]

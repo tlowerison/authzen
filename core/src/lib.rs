@@ -1,46 +1,43 @@
 #[macro_use]
 extern crate async_trait;
 #[macro_use]
-extern crate derivative;
-#[macro_use]
 extern crate derive_more;
 #[macro_use]
 extern crate serde_with;
 
-pub mod storage;
+mod decision_makers;
+mod storage;
+
+#[cfg(feature = "extra-traits")]
+mod extra_traits;
 
 use ::serde::{Deserialize, Serialize};
 use derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
-use futures::future::{BoxFuture, FutureExt};
 use std::fmt::Debug;
-use std::hash::Hash;
 use std::marker::PhantomData;
 use typed_builder::TypedBuilder;
 
-pub trait Id: Debug + for<'de> Deserialize<'de> + Hash + Eq + Serialize {}
-
-impl<T> Id for T where T: Debug + for<'de> Deserialize<'de> + Hash + Eq + Serialize {}
-
-pub trait Subject {
-    type Id: Id;
-}
-
+/// Compile time information about an action.
 pub trait ActionType {
+    /// The type name of this action.
     const TYPE: &'static str;
 }
 
+/// An action which requires authorization.
+#[doc(hidden)]
 #[async_trait]
-pub trait Action<C: ?Sized, DM: ?Sized, Subject, Object: ?Sized, Input, Context>:
+pub trait TryAct<C, DM, Subject, Object, Input, Context>:
     Into<Event<Subject, Self::Action, Object, Input, Context>>
 where
-    C: StorageClient + Send + Sync,
-    DM: DecisionMaker + Sync,
+    C: ?Sized + StorageClient + Send + Sync,
+    DM: ?Sized + DecisionMaker<Subject, Self::Action, Object, Input, Context> + Sync,
     Subject: Send + Sync,
-    Object: Send + Sync,
+    Object: ?Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
 {
-    type Action: StorageAction<C, Input> + Send + Sync;
+    /// Action to be authorized and performed.
+    type Action: ActionType + StorageAction<C, Input> + Send + Sync;
 
     async fn try_act(
         self,
@@ -48,46 +45,63 @@ where
         storage_client: &C,
     ) -> Result<
         <Self::Action as StorageAction<C, Input>>::Ok,
-        Error<<DM as DecisionMaker>::Error, <Self::Action as StorageAction<C, Input>>::Error>,
+        ActionError<
+            <DM as DecisionMaker<Subject, Self::Action, Object, Input, Context>>::Error,
+            <Self::Action as StorageAction<C, Input>>::Error,
+        >,
     >
     where
         C: 'async_trait,
         Input: 'async_trait,
     {
         let event = self.into();
-        decision_maker.can_act(&event).await.map_err(Error::authz)?;
+        decision_maker.can_act(&event).await.map_err(ActionError::authz)?;
         Ok(Self::Action::act(storage_client, event.input)
             .await
-            .map_err(Error::storage)?)
+            .map_err(ActionError::storage)?)
     }
 }
 
 #[async_trait]
-impl<C: ?Sized, DM: ?Sized, Subject, A, Object: ?Sized, Input, Context> Action<C, DM, Subject, Object, Input, Context>
+impl<C, DM, Subject, A, Object, Input, Context> TryAct<C, DM, Subject, Object, Input, Context>
     for Event<Subject, A, Object, Input, Context>
 where
-    C: StorageClient + Send + Sync,
-    DM: DecisionMaker + Sync,
+    C: ?Sized + StorageClient + Send + Sync,
+    DM: ?Sized + DecisionMaker<Subject, A, Object, Input, Context> + Sync,
     Subject: Send + Sync,
-    Object: Send + Sync,
+    Object: ?Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
 
-    A: StorageAction<C, Input> + Send + Sync,
+    A: ActionType + StorageAction<C, Input> + Send + Sync,
 {
     type Action = A;
 }
 
+/// Compile time information about an object.
 pub trait ObjectType {
+    /// The service this object belongs to.
     const SERVICE: &'static str;
+    /// The type name of this object.
     const TYPE: &'static str;
-    type Id: Id;
 }
 
+/// The unit of work in an authorization query, which will either be accepted or rejected by a decision maker.
+///
+/// The components of an event are:
+/// - `Subject`: the entity performing the action; typically links back to a user / account;
+/// could be represented with an account id, a jwt, or even more information if necessary
+/// - `Action`: the action which the subject is trying to perform; typically this will be a
+/// struct dervied from the [`action`] macro (e.g. `Create<MyObject>`)
+/// - `Object`: the object wich the subject is attempting to act upon; note that this parameter
+/// is only used as a specification of the object's type and service it belongs to
+/// - `Input`: the data provided which uniquely identifies the object(s) being acted upon; the
+/// type used here can be anything which is recognized as valid input for the specific action (see
+/// [`StorageAction`] to see how actions specify their acceptable inputs)
+/// - `Context`: any additional data which should or must be provided in order to fulfill the
+/// authorization decision; use this for any data which is not referring to objects being acted on
 #[skip_serializing_none]
-#[derive(
-    Clone, Debug, Deserialize, Dissolve, DissolveMut, DissolveRef, Eq, Getters, PartialEq, Serialize, TypedBuilder,
-)]
+#[derive(Clone, Deserialize, Dissolve, DissolveMut, DissolveRef, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
 #[serde(bound(
     serialize = "Subject: Serialize, Action: ActionType, Object: ObjectType, Input: Serialize, Context: Serialize",
     deserialize = "Subject: Deserialize<'de>, Action: ActionType, Object: ObjectType, Input: Deserialize<'de>, Context: Deserialize<'de>",
@@ -102,6 +116,24 @@ pub struct Event<Subject, Action: ?Sized, Object: ?Sized, Input, Context = ()> {
     pub context: Context,
 }
 
+impl<Subject, Action, Object, Input, Context> Debug for Event<Subject, Action, Object, Input, Context>
+where
+    Subject: Debug,
+    Action: ?Sized + ActionType,
+    Object: ?Sized + ObjectType,
+    Input: Debug,
+    Context: Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Event")
+            .field("subject", &self.subject)
+            .field("action", &Action::TYPE)
+            .field("object", &fmt::DebugObject(self.object))
+            .field("subject", &self.subject)
+            .finish()
+    }
+}
+
 impl<Subject, A, Objects, Context> ActionType for Event<Subject, A, Objects, Context>
 where
     A: ActionType,
@@ -109,19 +141,37 @@ where
     const TYPE: &'static str = A::TYPE;
 }
 
+/// Represents a unique backend on which actions are performed. An example would be postgres,
+/// mysql, or your own custom implementation of an API.
 pub trait StorageBackend {}
 
+/// A client for communicating with a storage backend. Typically this should be implemented for
+/// connection or client implementations for that backend, e.g. diesel_async::AsyncPgConnection.
 pub trait StorageClient {
+    /// The backend this client will act upon.
     type Backend: StorageBackend;
 }
 
-pub trait HasStorageObject<Backend>: ObjectType + Send + Sync {
-    type Constructor<'a>: HasStorageObject<Backend>;
+/// Connects an object with its backend representation for a specific backend.
+pub trait AsStorage<Backend>: ObjectType {
+    /// A type method of producing this type with a narrower lifetime. If Self has no lifetime
+    /// parameters, this type should be `Self`. Otherwise say you have an object with one lifetime
+    /// parameter, `MyObject<'a>`, then a concrete `Constructor` implementation would look like
+    /// ```rs
+    /// impl<'a> AsStorage<MyBackend> for MyObject<'a> {
+    ///     type Constructor<'v> = MyObject<'v>;
+    /// }
+    /// ```
+    type Constructor<'a>: AsStorage<Backend>;
+    /// This object's storage representation for the specified `Backend`.
     type StorageObject: StorageObject<Backend> + Send + Sync;
 }
 
+/// An object's representation specific to a particular backend. Often this will only be
+/// implemented once unless an object is stored in multipled different backends.
 pub trait StorageObject<Backend> {}
 
+/// Encapsulates the actual performance of a specific action given a suitable client and input.
 #[async_trait]
 pub trait StorageAction<Client: ?Sized, Input>
 where
@@ -130,26 +180,48 @@ where
     type Ok: Send;
     type Error: Debug + Send;
 
+    /// Carries out the intended action in the storage backend of `Client`.
     async fn act(client: &Client, input: Input) -> Result<Self::Ok, Self::Error>
     where
         Client: 'async_trait,
         Input: 'async_trait;
 }
 
+/// Represents a policy decision point (could be astracted over an in-process memory, a remote api,
+/// etc.) which is capable of making authorization decisions using the provided [`Event`].
 #[async_trait]
-pub trait DecisionMaker {
+pub trait DecisionMaker<Subject, Action, Object, Input, Context>
+where
+    Event<Subject, Action, Object, Input, Context>: Send + Sync,
+    Action: ?Sized,
+    Object: ?Sized,
+{
     type Ok: Debug + Send;
     type Error: Debug + Send;
-    async fn can_act<Subject, Action, Object: ?Sized, Input, Context>(
-        &self,
-        event: &Event<Subject, Action, Object, Input, Context>,
-    ) -> Result<Self::Ok, Self::Error>;
+    async fn can_act(&self, event: &Event<Subject, Action, Object, Input, Context>) -> Result<Self::Ok, Self::Error>;
 }
 
-/// wraps all components of an authorization decision
-/// which can be expected to be carried around in an
-/// application context
-pub trait Context<DM, SC> {
+#[async_trait]
+impl<Subject, Action, Object, Input, Context, T> DecisionMaker<Subject, Action, Object, Input, Context> for &T
+where
+    Event<Subject, Action, Object, Input, Context>: Send + Sync,
+    Subject: Serialize,
+    Action: ?Sized + ActionType,
+    Object: ?Sized + ObjectType,
+    Input: Serialize,
+    Context: Serialize,
+    T: ?Sized + DecisionMaker<Subject, Action, Object, Input, Context> + Send + Sync,
+{
+    type Ok = T::Ok;
+    type Error = T::Error;
+    async fn can_act(&self, event: &Event<Subject, Action, Object, Input, Context>) -> Result<Self::Ok, Self::Error> {
+        (**self).can_act(event).await
+    }
+}
+
+/// Wraps only the authorization decision making
+/// component of an action requiring authorization.
+pub trait AuthorizationContext<DM> {
     /// decision context
     type Context<'a>: Send + Sync
     where
@@ -162,16 +234,31 @@ pub trait Context<DM, SC> {
     fn context(&self) -> Self::Context<'_>;
     fn subject(&self) -> Self::Subject<'_>;
     fn decision_maker(&self) -> &DM;
+}
+
+/// Wraps all components of an action requiring authorization
+/// which can be expected to be carried around in an
+/// application context.
+pub trait TryActionContext<DM, SC>: AuthorizationContext<DM> {
     fn storage_client(&self) -> &SC;
 }
 
+/// Represents the possible sources of error when performing
+/// an action which requires authorization.
 #[derive(AsVariant, AsVariantMut, Clone, Copy, Debug, Error, IsVariant, Unwrap)]
-pub enum Error<E1, E2> {
+pub enum ActionError<E1, E2> {
+    /// Wraps an error returned from a [`DecisionMaker`] when the subject is either not authorized to
+    /// perform an action or some other issue occurs while communicating with the
+    /// [`DecisionMaker`].
     Authz(E1),
+    /// Wraps an error returned from a [`StorageClient`] when the subject has been authorized to
+    /// perform an action but there an error occurs while actually performing the error. Examples
+    /// of this include network errors while communicating with an api or database, unique
+    /// constraint violations raised by a database, etc.
     Storage(E2),
 }
 
-impl<E1, E2> Error<E1, E2> {
+impl<E1, E2> ActionError<E1, E2> {
     pub fn authz(err: E1) -> Self {
         Self::Authz(err)
     }
@@ -180,230 +267,20 @@ impl<E1, E2> Error<E1, E2> {
     }
 }
 
+/// Standard actions which are useful across many applications.
+///
+/// Custom actions can be generated using [`proc_macros::action`].
 pub mod action {
     use super::*;
+    use authzen_proc_macros::*;
 
-    #[derive(Derivative)]
-    #[derivative(Clone(bound = ""), Copy(bound = ""), Debug, Default(bound = ""))]
-    pub struct Create<O: ?Sized>(#[derivative(Debug = "ignore")] PhantomData<O>);
-
-    #[derive(Derivative)]
-    #[derivative(Clone(bound = ""), Copy(bound = ""), Debug, Default(bound = ""))]
-    pub struct Delete<O: ?Sized>(#[derivative(Debug = "ignore")] PhantomData<O>);
-
-    #[derive(Derivative)]
-    #[derivative(Clone(bound = ""), Copy(bound = ""), Debug, Default(bound = ""))]
-    pub struct Read<O: ?Sized>(#[derivative(Debug = "ignore")] PhantomData<O>);
-
-    #[derive(Derivative)]
-    #[derivative(Clone(bound = ""), Copy(bound = ""), Debug, Default(bound = ""))]
-    pub struct Update<O: ?Sized>(#[derivative(Debug = "ignore")] PhantomData<O>);
-
-    impl<O: ?Sized> ActionType for Create<O> {
-        const TYPE: &'static str = "create";
-    }
-
-    impl<O: ?Sized> ActionType for Delete<O> {
-        const TYPE: &'static str = "delete";
-    }
-
-    impl<O: ?Sized> ActionType for Read<O> {
-        const TYPE: &'static str = "read";
-    }
-
-    impl<O: ?Sized> ActionType for Update<O> {
-        const TYPE: &'static str = "update";
-    }
-
-    pub trait TryCreate<Ctx, DM, SC, I>: HasStorageObject<<SC as StorageClient>::Backend> + Sync
-    where
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Create<Self>: StorageAction<SC, I>,
-    {
-        fn try_create<'life0, 'async_trait>(
-            ctx: &'life0 Ctx,
-            input: I,
-        ) -> BoxFuture<
-            'async_trait,
-            Result<
-                <Create<Self> as StorageAction<SC, I>>::Ok,
-                Error<DM::Error, <Create<Self> as StorageAction<SC, I>>::Error>,
-            >,
-        >
-        where
-            'life0: 'async_trait,
-            Self: 'async_trait,
-            SC: 'async_trait,
-            DM: 'async_trait,
-            I: 'async_trait,
-        {
-            let event = Event {
-                context: ctx.context(),
-                subject: ctx.subject(),
-                action: PhantomData::<Create<Self>>::default(),
-                object: PhantomData::<Self>::default(),
-                input,
-            };
-            event.try_act(ctx.decision_maker(), ctx.storage_client()).boxed()
-        }
-    }
-
-    pub trait TryDelete<Ctx, DM, SC, I>: HasStorageObject<<SC as StorageClient>::Backend> + Sync
-    where
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Delete<Self>: StorageAction<SC, I>,
-    {
-        fn try_delete<'life0, 'async_trait>(
-            ctx: &'life0 Ctx,
-            input: I,
-        ) -> BoxFuture<
-            'async_trait,
-            Result<
-                <Delete<Self> as StorageAction<SC, I>>::Ok,
-                Error<DM::Error, <Delete<Self> as StorageAction<SC, I>>::Error>,
-            >,
-        >
-        where
-            'life0: 'async_trait,
-            Self: 'async_trait,
-            SC: 'async_trait,
-            DM: 'async_trait,
-            I: 'async_trait,
-        {
-            let event = Event {
-                context: ctx.context(),
-                subject: ctx.subject(),
-                action: PhantomData::<Delete<Self>>::default(),
-                object: PhantomData::<Self>::default(),
-                input,
-            };
-            event.try_act(ctx.decision_maker(), ctx.storage_client()).boxed()
-        }
-    }
-
-    pub trait TryRead<Ctx, DM, SC, I>: HasStorageObject<<SC as StorageClient>::Backend> + Sync
-    where
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Read<Self>: StorageAction<SC, I>,
-    {
-        fn try_read<'life0, 'async_trait>(
-            ctx: &'life0 Ctx,
-            input: I,
-        ) -> BoxFuture<
-            'async_trait,
-            Result<
-                <Read<Self> as StorageAction<SC, I>>::Ok,
-                Error<DM::Error, <Read<Self> as StorageAction<SC, I>>::Error>,
-            >,
-        >
-        where
-            'life0: 'async_trait,
-            Self: 'async_trait,
-            SC: 'async_trait,
-            DM: 'async_trait,
-            I: 'async_trait,
-        {
-            let event = Event {
-                context: ctx.context(),
-                subject: ctx.subject(),
-                action: PhantomData::<Read<Self>>::default(),
-                object: PhantomData::<Self>::default(),
-                input,
-            };
-            event.try_act(ctx.decision_maker(), ctx.storage_client()).boxed()
-        }
-    }
-
-    pub trait TryUpdate<Ctx, DM, SC, I>: HasStorageObject<<SC as StorageClient>::Backend> + Sync
-    where
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Update<Self>: StorageAction<SC, I>,
-    {
-        fn try_read<'life0, 'async_trait>(
-            ctx: &'life0 Ctx,
-            input: I,
-        ) -> BoxFuture<
-            'async_trait,
-            Result<
-                <Update<Self> as StorageAction<SC, I>>::Ok,
-                Error<DM::Error, <Update<Self> as StorageAction<SC, I>>::Error>,
-            >,
-        >
-        where
-            'life0: 'async_trait,
-            Self: 'async_trait,
-            SC: 'async_trait,
-            DM: 'async_trait,
-            I: 'async_trait,
-        {
-            let event = Event {
-                context: ctx.context(),
-                subject: ctx.subject(),
-                action: PhantomData::<Update<Self>>::default(),
-                object: PhantomData::<Self>::default(),
-                input,
-            };
-            event.try_act(ctx.decision_maker(), ctx.storage_client()).boxed()
-        }
-    }
-
-    impl<Ctx, DM, SC, T, I> TryCreate<Ctx, DM, SC, I> for T
-    where
-        Self: HasStorageObject<<SC as StorageClient>::Backend> + Sync,
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Create<Self>: StorageAction<SC, I>,
-    {
-    }
-
-    impl<Ctx, DM, SC, T, I> TryDelete<Ctx, DM, SC, I> for T
-    where
-        Self: HasStorageObject<<SC as StorageClient>::Backend> + Sync,
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Delete<Self>: StorageAction<SC, I>,
-    {
-    }
-
-    impl<Ctx, DM, SC, T, I> TryRead<Ctx, DM, SC, I> for T
-    where
-        Self: HasStorageObject<<SC as StorageClient>::Backend> + Sync,
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Read<Self>: StorageAction<SC, I>,
-    {
-    }
-
-    impl<Ctx, DM, SC, T, I> TryUpdate<Ctx, DM, SC, I> for T
-    where
-        Self: HasStorageObject<<SC as StorageClient>::Backend> + Sync,
-        DM: DecisionMaker + Sync,
-        SC: StorageClient + Send + Sync,
-        Ctx: Context<DM, SC> + Sync,
-        I: Send + Sync,
-        Update<Self>: StorageAction<SC, I>,
-    {
-    }
+    action!(__authzen_internal, Create);
+    action!(__authzen_internal, Delete);
+    action!(__authzen_internal, Read);
+    action!(__authzen_internal, Update);
 }
 
+#[doc(hidden)]
 pub mod serde {
     use super::*;
 
@@ -529,6 +406,23 @@ pub mod serde {
                     _ => Err(A::Error::custom("could not deserialize object details")),
                 }
             }
+        }
+    }
+}
+
+#[doc(hidden)]
+pub mod fmt {
+    use super::*;
+
+    #[derive(Clone, Copy, From, Into)]
+    pub struct DebugObject<O: ?Sized>(pub PhantomData<O>);
+
+    impl<O: ?Sized + ObjectType> Debug for DebugObject<O> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.debug_map()
+                .entry(&"service", &O::SERVICE)
+                .entry(&"type", &O::TYPE)
+                .finish()
         }
     }
 }

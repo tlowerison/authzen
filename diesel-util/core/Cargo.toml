@@ -1,0 +1,35 @@
+[package]
+name = "diesel-util-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-backtrace.workspace = true
+async-trait.workspace = true
+cfg-if.workspace = true
+derivative.workspace = true
+derive_more.workspace = true
+diesel.workspace = true
+diesel-async.workspace = true
+either.workspace = true
+futures.workspace = true
+itertools.workspace = true
+lazy_static.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+scoped-futures.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+mobc = { version = "^0.7", optional = true }
+
+[features]
+bb8 = ["diesel-async/bb8"]
+deadpool = ["diesel-async/deadpool"]
+mobc = ["diesel-async/mobc", "dep:mobc"]
+mysql = ["diesel/mysql", "diesel-async/mysql"]
+postgres = ["diesel/postgres", "diesel-async/postgres"]

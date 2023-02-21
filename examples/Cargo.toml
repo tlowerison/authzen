@@ -12,9 +12,9 @@ chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }
 diesel-async = { version = "0.2", features = ["postgres"] }
-diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bc7d164", features = ["postgres"] }
-opa-util = { path = "/Users/tlowerison/code/opa-util/opa-util" }
+diesel-util = { path = "../diesel-util", features = ["postgres"] }
+opa-util = { path = "../opa-util" }
 serde = { version = "1", features = ["derive"] }
-service-util = { git = "https://github.com/tlowerison/service-util", rev = "5cc73b5", features = ["db"] }
+service-util = { path = "../service-util", features = ["db"] }
 typed-builder = "0.11.0"
 uuid = { version = "1", features = ["serde", "v4"] }

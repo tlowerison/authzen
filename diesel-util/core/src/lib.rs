@@ -1,3 +1,4 @@
+#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 #![allow(incomplete_features)]
 #![feature(associated_type_defaults, specialization, trait_alias)]
 

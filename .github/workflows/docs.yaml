@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -17,8 +17,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: rustup-toolchain
+      run: rustup toolchain install nightly
+
     - name:
-      run: cargo doc --verbose
+      run: cargo +nightly doc \
+        --verbose \
+        --color always
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2

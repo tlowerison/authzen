@@ -1,3 +1,4 @@
+#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 #![cfg_attr(feature = "client", allow(incomplete_features))]
 #![cfg_attr(
     feature = "client",

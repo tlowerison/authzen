@@ -24,7 +24,7 @@ concat-string = { workspace = true, optional = true }
 data-encoding = { workspace = true, optional = true }
 derive_more = { git = "https://github.com/tlowerison/derive_more", optional = true }
 diesel = { workspace = true, optional = true }
-diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bc7d164", optional = true }
+diesel-util = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }
@@ -47,13 +47,17 @@ tracing-subscriber = { workspace = true, features = ["env-filter"], optional = t
 tracing-tree = { workspace = true, optional = true }
 uuid = { workspace = true, features = ["serde", "v4"], optional = true }
 
-axum-05 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
-axum-06 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
+axum-05 = { package = "axum", workspace = true, default-features = false, optional = true }
+axum-06 = { package = "axum", workspace = true, default-features = false, optional = true }
+headers = { workspace = true, optional = true }
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [features]
 default = ["http1", "max-allowed-request-body-size-medium"]
-axum-05 = ["dep:axum-05", "session-util/axum-core-02"]
-axum-06 = ["dep:axum-06", "session-util/axum-core-03"]
+axum-05 = ["dep:axum-05", "dep:headers", "session-util/axum-core-02"]
+axum-06 = ["dep:axum-06", "dep:headers", "session-util/axum-core-03"]
 client = ["async-trait", "concat-string", "futures", "hyper/client", "serde", "serde_json", "serde_qs", "trace"]
 db = ["diesel", "diesel-util", "serde"]
 graphql = ["async-graphql", "diesel", "diesel-util", "serde"]

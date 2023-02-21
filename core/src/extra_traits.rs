@@ -1,14 +1,14 @@
-use crate::Error;
+use crate::ActionError;
 
-impl<DecisionMakerError, StorageError> From<Error<DecisionMakerError, StorageError>> for service_util::Error
+impl<DecisionMakerError, StorageError> From<ActionError<DecisionMakerError, StorageError>> for service_util::Error
 where
     DecisionMakerError: std::fmt::Display,
     StorageError: Into<service_util::Error>,
 {
-    fn from(value: Error<DecisionMakerError, StorageError>) -> Self {
+    fn from(value: ActionError<DecisionMakerError, StorageError>) -> Self {
         match value {
-            Error::Authz(err) => Self::bad_request_details(err),
-            Error::Storage(err) => err.into(),
+            ActionError::Authz(err) => Self::bad_request_details(err),
+            ActionError::Storage(err) => err.into(),
         }
     }
 }

@@ -1,3 +1,5 @@
+#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
+
 use proc_macro2::{Span, TokenStream};
 use proc_macro_util::{add_bounds_to_generics, find_field_attribute_in_struct, MatchedAttribute};
 use quote::quote;

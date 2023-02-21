@@ -19,6 +19,9 @@ uuid.workspace = true
 core = { path = "core", package = "diesel-util-core" }
 proc-macros = { path = "proc-macros", package = "diesel-util-proc-macros" }
 
+[build-dependencies]
+rustc_version.workspace = true
+
 [features]
 bb8 = ["core/bb8"]
 deadpool = ["core/deadpool"]

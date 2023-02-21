@@ -1,8 +1,8 @@
 use crate::set_trace_parent;
 use derive_more::*;
+use hyper::body::Body;
 use hyper::header::{HeaderName, FORWARDED};
 use hyper::http::Request;
-use hyper::Body;
 use serde::{Deserialize, Serialize};
 use session_util::AccountSessionSubject;
 use std::fmt::{Debug, Display};
@@ -11,21 +11,43 @@ use tower_http::request_id::MakeRequestId;
 use tracing::{info, Span};
 use uuid::Uuid;
 
-#[cfg(feature = "axum-05")]
-use axum_05::{extract::RawBody, BoxError};
+type BoxError = Box<dyn std::error::Error + Sync + Send + 'static>;
 
-#[cfg(feature = "axum-06")]
-use axum_06::{extract::RawBody, BoxError};
+#[derive(Debug, From)]
+pub enum RawBody<B = Body> {
+    #[cfg(feature = "axum-05")]
+    Axum05(axum_05::extract::RawBody<B>),
+    #[cfg(feature = "axum-06")]
+    Axum06(axum_06::extract::RawBody<B>),
+}
+
+impl RawBody {
+    pub fn size_hint(&self) -> hyper::body::SizeHint {
+        match self {
+            #[cfg(feature = "axum-05")]
+            Self::Axum05(raw_body) => hyper::body::HttpBody::size_hint(&raw_body.0),
+            #[cfg(feature = "axum-06")]
+            Self::Axum06(raw_body) => hyper::body::HttpBody::size_hint(&raw_body.0),
+        }
+    }
+}
 
 #[cfg(feature = "max-allowed-request-body-size-small")]
 #[allow(dead_code)]
 const MAX_ALLOWED_REQUEST_BODY_SIZE: u64 = 102_400; // 100 KB
 
-#[cfg(feature = "max-allowed-request-body-size-medium")]
+#[cfg(all(
+    not(feature = "max-allowed-request-body-size-small"),
+    feature = "max-allowed-request-body-size-medium"
+))]
 #[allow(dead_code)]
 const MAX_ALLOWED_REQUEST_BODY_SIZE: u64 = 1_048_576; // 1 MB
 
-#[cfg(feature = "max-allowed-request-body-size-large")]
+#[cfg(all(
+    not(feature = "max-allowed-request-body-size-small"),
+    not(feature = "max-allowed-request-body-size-medium"),
+    feature = "max-allowed-request-body-size-large"
+))]
 #[allow(dead_code)]
 const MAX_ALLOWED_REQUEST_BODY_SIZE: u64 = 10_485_760; // 10 MB
 
@@ -49,7 +71,6 @@ impl Debug for RequestId {
     }
 }
 
-#[cfg(any(feature = "axum-05", feature = "axum-06"))]
 #[framed]
 pub async fn handle_middleware_error(err: BoxError) -> crate::Error {
     if err.is::<tower::timeout::error::Elapsed>() {
@@ -84,13 +105,21 @@ pub async fn shutdown_signal() {
 }
 
 #[cfg(any(feature = "axum-05", feature = "axum-06"))]
-pub async fn from_body<T: serde::de::DeserializeOwned>(RawBody(body): RawBody) -> Result<T, crate::Error> {
-    use hyper::body::HttpBody;
+pub async fn from_body<T: serde::de::DeserializeOwned>(raw_body: impl Into<RawBody>) -> Result<T, crate::Error> {
+    let raw_body = raw_body.into();
 
-    let content_length = body.size_hint().upper().unwrap_or(MAX_ALLOWED_REQUEST_BODY_SIZE + 1);
+    let content_length = raw_body
+        .size_hint()
+        .upper()
+        .unwrap_or(MAX_ALLOWED_REQUEST_BODY_SIZE + 1);
     if content_length < MAX_ALLOWED_REQUEST_BODY_SIZE {
-        hyper::body::to_bytes(body)
-            .await
+        let bytes = match raw_body {
+            #[cfg(feature = "axum-05")]
+            RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            #[cfg(feature = "axum-06")]
+            RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+        };
+        bytes
             .map_err(|_| crate::Error::bad_request_msg("invalid request body"))
             .and_then(|bytes| {
                 serde_json::from_slice(&bytes)
@@ -104,13 +133,21 @@ pub async fn from_body<T: serde::de::DeserializeOwned>(RawBody(body): RawBody) -
 }
 
 #[cfg(any(feature = "axum-05", feature = "axum-06"))]
-pub async fn body_bytes(RawBody(body): RawBody) -> Result<Vec<u8>, crate::Error> {
-    use hyper::body::HttpBody;
+pub async fn body_bytes(raw_body: impl Into<RawBody>) -> Result<Vec<u8>, crate::Error> {
+    let raw_body = raw_body.into();
 
-    let content_length = body.size_hint().upper().unwrap_or(MAX_ALLOWED_REQUEST_BODY_SIZE + 1);
+    let content_length = raw_body
+        .size_hint()
+        .upper()
+        .unwrap_or(MAX_ALLOWED_REQUEST_BODY_SIZE + 1);
     if content_length < MAX_ALLOWED_REQUEST_BODY_SIZE {
-        hyper::body::to_bytes(body)
-            .await
+        let bytes = match raw_body {
+            #[cfg(feature = "axum-05")]
+            RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            #[cfg(feature = "axum-06")]
+            RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+        };
+        bytes
             .map(|bytes| bytes.to_vec())
             .map_err(|_| crate::Error::bad_request_msg("invalid request body"))
     } else {
@@ -225,8 +262,8 @@ impl MakeRequestId for RequestId {
     }
 }
 
-#[cfg(feature = "axum-05")]
-impl axum_05::headers::Header for RequestId {
+#[cfg(any(feature = "axum-05", feature = "axum-06"))]
+impl headers::Header for RequestId {
     fn name() -> &'static HeaderName {
         &_X_REQUEST_ID
     }
@@ -241,35 +278,6 @@ impl axum_05::headers::Header for RequestId {
         match Uuid::parse_str(value) {
             Ok(request_id) => Ok(Self(request_id)),
             Err(_) => Err(axum_05::headers::Error::invalid()),
-        }
-    }
-
-    fn encode<E>(&self, values: &mut E)
-    where
-        E: Extend<hyper::header::HeaderValue>,
-    {
-        let value =
-            hyper::header::HeaderValue::from_str(self.0.as_simple().encode_lower(&mut Uuid::encode_buffer())).unwrap();
-        values.extend(std::iter::once(value));
-    }
-}
-
-#[cfg(feature = "axum-06")]
-impl axum_06::headers::Header for RequestId {
-    fn name() -> &'static HeaderName {
-        &_X_REQUEST_ID
-    }
-
-    fn decode<'i, I>(values: &mut I) -> Result<Self, axum_06::headers::Error>
-    where
-        I: Iterator<Item = &'i hyper::header::HeaderValue>,
-    {
-        let value = values.next().ok_or_else(axum_06::headers::Error::invalid)?;
-
-        let value = value.to_str().map_err(|_| axum_06::headers::Error::invalid())?;
-        match Uuid::parse_str(value) {
-            Ok(request_id) => Ok(Self(request_id)),
-            Err(_) => Err(axum_06::headers::Error::invalid()),
         }
     }
 

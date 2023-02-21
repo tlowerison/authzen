@@ -11,3 +11,6 @@ prettyplease.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
 syn = { workspace = true, default-features = false, features = ["clone-impls", "derive", "extra-traits", "parsing", "printing"] }
+
+[build-dependencies]
+rustc_version.workspace = true

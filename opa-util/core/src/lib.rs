@@ -1,3 +1,4 @@
+#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 #![feature(associated_type_defaults)]
 
 #[macro_use]

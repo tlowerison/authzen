@@ -50,6 +50,9 @@ uuid = { workspace = true, features = ["serde", "v4"], optional = true }
 axum-05 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
 axum-06 = { package = "axum", workspace = true, default-features = false, features = ["headers"], optional = true }
 
+[build-dependencies]
+rustc_version.workspace = true
+
 [features]
 default = ["http1", "max-allowed-request-body-size-medium"]
 axum-05 = ["dep:axum-05", "session-util/axum-core-02"]

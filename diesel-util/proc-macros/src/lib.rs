@@ -1,3 +1,4 @@
+#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 #![feature(proc_macro_span)]
 
 use proc_macro::TokenStream;

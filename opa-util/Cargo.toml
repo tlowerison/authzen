@@ -11,6 +11,9 @@ session-util.workspace = true
 core = { path = "core", package = "opa-util-core" }
 proc-macros = { path = "proc-macros", package = "opa-util-proc-macros" }
 
+[build-dependencies]
+rustc_version.workspace = true
+
 [features]
 db = ["core/db"]
 db-filter = ["core/db-filter"]

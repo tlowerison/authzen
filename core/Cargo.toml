@@ -23,6 +23,9 @@ diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
 diesel-util = { workspace = true, optional = true }
 
+[build-dependencies]
+rustc_version.workspace = true
+
 [features]
 diesel-storage-backend = ["diesel", "diesel-async", "diesel-util"]
 diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "diesel-util/mysql"]

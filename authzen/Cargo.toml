@@ -14,6 +14,9 @@ proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
 proc-macro-util.workspace = true
 service-util.workspace = true
 
+[build-dependencies]
+rustc_version.workspace = true
+
 [features]
 diesel-storage-backend = ["core/diesel-storage-backend"]
 diesel-mysql = ["core/diesel-mysql", "diesel-util/mysql"]

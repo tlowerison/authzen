@@ -8,7 +8,7 @@ extern crate derive_more;
 extern crate serde_with;
 
 mod decision_makers;
-mod storage;
+mod storage_backends;
 
 #[cfg(feature = "extra-traits")]
 mod extra_traits;
@@ -89,19 +89,6 @@ pub trait ObjectType {
 }
 
 /// The unit of work in an authorization query, which will either be accepted or rejected by a decision maker.
-///
-/// The components of an event are:
-/// - `Subject`: the entity performing the action; typically links back to a user / account;
-/// could be represented with an account id, a jwt, or even more information if necessary
-/// - `Action`: the action which the subject is trying to perform; typically this will be a
-/// struct dervied from the [`action`] macro (e.g. `Create<MyObject>`)
-/// - `Object`: the object wich the subject is attempting to act upon; note that this parameter
-/// is only used as a specification of the object's type and service it belongs to
-/// - `Input`: the data provided which uniquely identifies the object(s) being acted upon; the
-/// type used here can be anything which is recognized as valid input for the specific action (see
-/// [`StorageAction`] to see how actions specify their acceptable inputs)
-/// - `Context`: any additional data which should or must be provided in order to fulfill the
-/// authorization decision; use this for any data which is not referring to objects being acted on
 #[skip_serializing_none]
 #[derive(Clone, Deserialize, Dissolve, DissolveMut, DissolveRef, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
 #[serde(bound(
@@ -109,12 +96,25 @@ pub trait ObjectType {
     deserialize = "Subject: Deserialize<'de>, Action: ActionType, Object: ObjectType, Input: Deserialize<'de>, Context: Deserialize<'de>",
 ))]
 pub struct Event<Subject, Action: ?Sized, Object: ?Sized, Input, Context = ()> {
+    /// the entity performing the action; typically links back to a user / account;
+    /// could be represented with an account id, a jwt, or even more information if necessary
     pub subject: Subject,
+    /// the action which the subject is trying to perform; typically this will be a
+    /// struct dervied from the [`action`](macro.action.html) macro (e.g. `Create<MyObject>`)
+    #[getter(skip)]
     #[serde(with = "serde::action")]
     pub action: PhantomData<Action>,
+    /// the object wich the subject is attempting to act upon; note that this parameter
+    /// is only used as a specification of the object's type and service it belongs to
+    #[getter(skip)]
     #[serde(with = "serde::object")]
     pub object: PhantomData<Object>,
+    /// the data provided which uniquely identifies the object(s) being acted upon; the
+    /// type used here can be anything which is recognized as valid input for the specific action (see
+    /// [`StorageAction`] to see how actions specify their acceptable inputs)
     pub input: Input,
+    /// any additional data which should or must be provided in order to fulfill the
+    /// authorization decision; use this for any data which is not referring to objects being acted on
     pub context: Context,
 }
 
@@ -271,8 +271,8 @@ impl<E1, E2> ActionError<E1, E2> {
 
 /// Standard actions which are useful across many applications.
 ///
-/// Custom actions can be generated using [`action`](proc_macros::action).
-pub mod action {
+/// Custom actions can be generated using the [`action`](authzen_proc_macros::action) macro.
+pub mod actions {
     use super::*;
     use authzen_proc_macros::*;
 

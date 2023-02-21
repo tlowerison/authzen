@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"opa_util_core":[["impl <a class=\"trait\" href=\"service_util/client/trait.ClientBaseUri.html\" title=\"trait service_util::client::ClientBaseUri\">ClientBaseUri</a> for <a class=\"struct\" href=\"opa_util_core/struct.OPAClient.html\" title=\"struct opa_util_core::OPAClient\">OPAClient</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,5 +1,5 @@
-use diesel_util::*;
-use opa_util::OPAClient;
+use authzen::decision_makers::opa::OPAClient;
+use authzen::storage_backends::diesel::*;
 use uuid::Uuid;
 
 #[derive(authzen::Context, Clone, Copy, Debug, Db)]

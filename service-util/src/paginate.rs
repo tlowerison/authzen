@@ -1,6 +1,6 @@
 #[cfg(feature = "graphql")]
 use async_graphql::*;
-use diesel_util::{Page, MAX_PAGINATE_COUNT};
+use authzen_diesel::paginate::{Page, MAX_PAGINATE_COUNT};
 use serde::{Deserialize, Serialize};
 
 /// useful for unwrapping pages

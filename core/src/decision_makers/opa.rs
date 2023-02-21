@@ -1,6 +1,6 @@
 use crate::{ActionType, DecisionMaker, Event, ObjectType};
+use authzen_opa::OPAClient;
 use hyper::{body::Bytes, http::header::*, Body, Method};
-use opa_util::OPAClient;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use service_util::*;

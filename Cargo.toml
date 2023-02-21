@@ -2,11 +2,11 @@
 members = [
   "authzen",
   "core",
-  "diesel-util",
-  "opa-util",
+  "decision-makers/*",
   "proc-macros",
   "proc-macro-util",
   "service-util",
+  "storage-backends/*",
 ]
 exclude = ["examples"]
 
@@ -17,9 +17,13 @@ edition = "2021"
 authors = ["Trey Lowerison"]
 
 [workspace.dependencies]
+authzen-diesel.path = "storage-backends/diesel"
+authzen-opa.path = "decision-makers/opa"
+authzen-proc-macros.path = "proc-macros"
+service-util = { path = "service-util", package = "authzen-service-util" }
+proc-macro-util = { path = "proc-macro-util", package = "authzen-proc-macro-util" }
 
 # authzen specific crates
-authzen-proc-macros.path = "proc-macros"
 async-trait = "^0.1"
 convert_case = "^0.6"
 cfg-if = "1"
@@ -28,20 +32,16 @@ derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "
 derive_more = { git = "https://github.com/tlowerison/derive_more", rev = "81eaa77" }
 diesel = "2"
 diesel-async = "^0.2"
-diesel-util = { path = "diesel-util" }
 hyper = "0"
-opa-util = { path = "opa-util" }
 proc-macro2 = "1"
-proc-macro-util = { path = "proc-macro-util" }
 quote = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_with = "2"
-service-util = { path = "service-util" }
 syn = { version = "1", default-features = false }
 typed-builder = "^0.12"
 
-# diesel-util
+# authzen-diesel
 anyhow = "1"
 async-backtrace = "^0.2"
 chrono = "^0.4"
@@ -58,8 +58,7 @@ tokio = { version = "1", features = ["rt", "sync"] }
 tracing = "^0.1"
 uuid = { version = "1", features = ["serde", "v4"] }
 
-# opa-util
-async-recursion = "1"
+# authzen-opa
 diesel-dynamic-schema = "0"
 float-cmp = "0"
 hyper-rustls = { version = "0", features = ["webpki-roots"] }
@@ -70,6 +69,7 @@ tracing-opentelemetry = "0"
 
 # proc-macro-util
 prettyplease = "0"
+doc-comment = "0.3"
 
 # service-util
 headers = "0"

@@ -1,6 +1,6 @@
+use authzen::storage_backends::diesel::connection::Db as _Db;
 use diesel::pg::Pg;
 use diesel_async::AsyncPgConnection;
-use diesel_util::_Db;
 
 pub mod models;
 pub mod schema;

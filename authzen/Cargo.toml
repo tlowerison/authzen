@@ -4,29 +4,32 @@ version.workspace = true
 description.workspace = true
 edition.workspace = true
 authors.workspace = true
+build = "../build.rs"
 
 [dependencies]
-core = { package = "authzen-core", path = "../core" }
-derivative.workspace = true
-diesel-util.workspace = true
-opa-util.workspace = true
-proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
 proc-macro-util.workspace = true
 service-util.workspace = true
+core = { package = "authzen-core", path = "../core" }
+derivative.workspace = true
+proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
+
+authzen-diesel = { workspace = true, optional = true }
+authzen-opa = { workspace = true, optional = true }
 
 [build-dependencies]
 rustc_version.workspace = true
 
 [features]
-diesel-storage-backend = ["core/diesel-storage-backend"]
-diesel-mysql = ["core/diesel-mysql", "diesel-util/mysql"]
-diesel-postgres = ["core/diesel-postgres", "diesel-util/postgres"]
-extra-traits = ["core/extra-traits"]
-opa-decision-maker = ["core/opa-decision-maker"]
+diesel-storage-backend = ["authzen-diesel", "core/diesel-storage-backend"]
+diesel-mysql = ["diesel-storage-backend", "core/diesel-mysql", "authzen-diesel/mysql"]
+diesel-postgres = ["diesel-storage-backend", "core/diesel-postgres", "authzen-diesel/postgres"]
+diesel-bb8 = ["diesel-storage-backend", "authzen-diesel/bb8"]
+diesel-deadpool = ["diesel-storage-backend", "authzen-diesel/deadpool"]
+diesel-mobc = ["diesel-storage-backend", "authzen-diesel/mobc"]
 
-diesel-util-bb8 = ["diesel-util/bb8"]
-diesel-util-deadpool = ["diesel-util/deadpool"]
-diesel-util-mobc = ["diesel-util/mobc"]
+extra-traits = ["core/extra-traits"]
+
+opa-decision-maker = ["authzen-opa", "core/opa-decision-maker"]
 
 service-util-axum-05 = ["service-util/axum-05"]
 service-util-axum-06 = ["service-util/axum-06"]

@@ -9,6 +9,7 @@ pub struct CartItem<'a>(pub Cow<'a, DbCartItem>);
 // separated custom actions into a separate module for clarity
 pub use actions::*;
 pub mod actions {
+    use authzen::storage_backends::diesel::prelude::*;
     use authzen::*;
     use diesel::backend::Backend;
     use diesel::expression::Expression;
@@ -20,7 +21,6 @@ pub mod actions {
     use diesel::{query_builder::*, Identifiable};
     use diesel::{Insertable, Table};
     use diesel_async::methods::*;
-    use diesel_util::*;
     use std::fmt::Debug;
 
     // produces an action struct called `DoAThing`
@@ -46,7 +46,7 @@ pub mod actions {
         E: DbInsert,
         B: Backend,
         I: IntoIterator<Item = E::PostHelper<'v>> + Send,
-        C: _Db<Backend = B>,
+        C: authzen::storage_backends::diesel::connection::Db<Backend = B>,
 
         // DbEntity bounds
         <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,

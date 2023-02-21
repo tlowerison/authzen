@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"opa_util_core":[["impl&lt;T&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/ops/index/trait.Index.html\" title=\"trait core::ops::index::Index\">Index</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.usize.html\">usize</a>&gt; for <a class=\"enum\" href=\"opa_util_core/enum.CowSlice.html\" title=\"enum opa_util_core::CowSlice\">CowSlice</a>&lt;'_, T&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

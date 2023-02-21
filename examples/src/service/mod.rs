@@ -3,9 +3,9 @@ pub mod context;
 pub use context::*;
 
 use crate::*;
-use authzen::action::*;
+use authzen::actions::*;
+use authzen::storage_backends::diesel::prelude::*;
 use authzen::*;
-use diesel_util::*;
 use service_util::Error;
 use uuid::Uuid;
 
@@ -28,21 +28,22 @@ pub async fn add_item_to_cart_explicitly<D: Db>(
     item_id: Uuid,
 ) -> Result<DbCartItem, Error> {
     let db_cart_item = DbCartItem::builder().cart_id(cart_id).item_id(item_id).build();
-    CartItem::can_create::<&opa_util::OPAClient>(&ctx, &[&db_cart_item]).await?;
-    CartItem::try_create::<&opa_util::OPAClient, D>(&ctx, [db_cart_item]).await?;
+    CartItem::can_create::<&authzen::decision_makers::opa::OPAClient>(&ctx, &[&db_cart_item]).await?;
+    CartItem::try_create::<&authzen::decision_makers::opa::OPAClient, D>(&ctx, [db_cart_item]).await?;
     todo!()
 }
 
 pub async fn do_things<D: Db>(ctx: Ctx<'_, D>, cart_id: Uuid, item_id: Uuid) -> Result<DbCartItem, Error> {
     let db_cart_item = DbCartItem::builder().cart_id(cart_id).item_id(item_id).build();
 
-    CartItem::can_do_a_thing::<&opa_util::OPAClient>(&ctx, &[&db_cart_item]).await?;
+    CartItem::can_do_a_thing::<&authzen::decision_makers::opa::OPAClient>(&ctx, &[&db_cart_item]).await?;
     // CartItem::try_create_then_delete(&ctx, [db_cart_item]).await?;
     DbCartItem::delete(&ctx, [Uuid::default()]).await?;
     todo!()
 }
 
 mod foo {
+    use authzen::storage_backends::diesel::prelude::*;
     use diesel::associations::HasTable;
     use diesel::dsl::SqlTypeOf;
     use diesel::expression::{AsExpression, Expression};
@@ -54,7 +55,6 @@ mod foo {
     use diesel::{query_builder::*, Identifiable};
     use diesel_async::methods::*;
     use diesel_async::AsyncConnection;
-    use diesel_util::*;
     use std::fmt::Debug;
     use std::hash::Hash;
 

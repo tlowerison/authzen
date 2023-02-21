@@ -1,0 +1,43 @@
+[package]
+name = "authzen-opa-core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+build = "../../../build.rs"
+
+[dependencies]
+anyhow.workspace = true
+async-backtrace.workspace = true
+async-trait.workspace = true
+service-util = { workspace = true, features = ["client"] }
+cfg-if.workspace = true
+derive_more.workspace = true
+derivative.workspace = true
+float-cmp.workspace = true
+futures.workspace = true
+hyper.workspace = true
+hyper-rustls.workspace = true
+lazy_static.workspace = true
+opentelemetry.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_with.workspace = true
+session-util.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "sync", "time"] }
+tracing.workspace = true
+tracing-opentelemetry.workspace = true
+typed-builder.workspace = true
+uuid.workspace = true
+
+authzen-diesel = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+diesel = { workspace = true, optional = true }
+diesel-async = { workspace = true, optional = true }
+diesel-dynamic-schema = { workspace = true, optional = true }
+mongodb = { workspace = true, optional = true }
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[features]
+mongodb-tx-cache-backend = ["dep:chrono", "dep:mongodb"]

@@ -3,6 +3,7 @@ name = "authzen-core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+build = "../build.rs"
 
 [dependencies]
 async-trait.workspace = true
@@ -11,24 +12,24 @@ cfg-if.workspace = true
 derivative.workspace = true
 derive-getters.workspace = true
 derive_more.workspace = true
-hyper = { workspace = true, optional = true }
 serde.workspace = true
-serde_json = { workspace = true, optional = true }
 serde_with.workspace = true
-service-util = { workspace = true, features = ["client"], optional = true }
-opa-util = { workspace = true, optional = true }
 typed-builder.workspace = true
 
+authzen-diesel = { workspace = true, optional = true }
+authzen-opa = { workspace = true, optional = true }
+service-util = { workspace = true, features = ["client"], optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
-diesel-util = { workspace = true, optional = true }
+hyper = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 
 [build-dependencies]
 rustc_version.workspace = true
 
 [features]
-diesel-storage-backend = ["diesel", "diesel-async", "diesel-util"]
-diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "diesel-util/mysql"]
-diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/postgres", "diesel-util/postgres"]
+diesel-storage-backend = ["authzen-diesel", "diesel", "diesel-async"]
+diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
+diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
 extra-traits = ["service-util"]
-opa-decision-maker = ["opa-util", "hyper", "serde_json", "service-util"]
+opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "service-util"]

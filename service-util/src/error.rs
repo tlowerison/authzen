@@ -275,8 +275,8 @@ mod db {
     use super::*;
 
     use async_backtrace::{backtrace, Location};
+    use authzen_diesel::prelude::{DbEntityError, TxCleanupError};
     use diesel::result::DatabaseErrorKind;
-    use diesel_util::{DbEntityError, TxCleanupError};
     use std::fmt::{Debug, Display};
 
     /// DbError is a simplified representation of a diesel Error

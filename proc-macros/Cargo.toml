@@ -3,10 +3,12 @@ name = "authzen-proc-macros"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+build = "../build.rs"
 
 [dependencies]
 core = { package = "authzen-proc-macros-core", path = "core" }
-proc-macro-util.workspace = true
+doc-comment.workspace = true
+proc-macro-util = { package = "proc-macro-util", workspace = true }
 
 [build-dependencies]
 rustc_version.workspace = true

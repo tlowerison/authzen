@@ -1,8 +1,9 @@
 [package]
-name = "proc-macro-util"
-version = "0.1.0"
-authors = ["Trey Lowerison"]
-edition = "2021"
+name = "authzen-proc-macro-util"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+build = "../build.rs"
 
 [dependencies]
 derivative.workspace = true

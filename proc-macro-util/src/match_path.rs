@@ -7,7 +7,7 @@ use crate::*;
 ///
 /// # Example
 /// ```
-/// use proc_macro_util::{match_path, match_paths, UnmatchedPathPrefix};
+/// use authzen_proc_macro_util::{match_path, match_paths, UnmatchedPathPrefix};
 /// use quote::quote;
 ///
 /// assert_eq!(

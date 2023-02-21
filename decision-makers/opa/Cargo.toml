@@ -1,0 +1,19 @@
+[package]
+name = "authzen-opa"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+build = "../../build.rs"
+
+[dependencies]
+async-trait.workspace = true
+serde.workspace = true
+session-util.workspace = true
+core = { path = "core", package = "authzen-opa-core" }
+proc-macros = { path = "proc-macros", package = "authzen-opa-proc-macros" }
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[features]
+mongodb-tx-cache-backend = ["core/mongodb-tx-cache-backend"]

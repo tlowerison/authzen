@@ -150,7 +150,7 @@ pub fn is_param_exact_field_type(param: &syn::GenericParam, field: &syn::Field) 
 ///
 /// # Example
 /// ```
-/// use proc_macro_util::add_bounds_to_generics;
+/// use authzen_proc_macro_util::add_bounds_to_generics;
 /// use quote::quote;
 /// use syn::parse2;
 ///

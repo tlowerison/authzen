@@ -1,8 +1,9 @@
 [package]
-name = "service-util"
-version = "0.1.0"
-authors = ["Trey Lowerison"]
-edition = "2021"
+name = "authzen-service-util"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+build = "../build.rs"
 
 [dependencies]
 anyhow.workspace = true
@@ -19,12 +20,12 @@ tracing.workspace = true
 async-graphql = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
 axum-core = { workspace = true, optional = true }
+authzen-diesel = { workspace = true, optional = true }
 cookie = { workspace = true, optional = true }
 concat-string = { workspace = true, optional = true }
 data-encoding = { workspace = true, optional = true }
 derive_more = { git = "https://github.com/tlowerison/derive_more", optional = true }
 diesel = { workspace = true, optional = true }
-diesel-util = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }
@@ -59,8 +60,8 @@ default = ["http1", "max-allowed-request-body-size-medium"]
 axum-05 = ["dep:axum-05", "dep:headers", "session-util/axum-core-02"]
 axum-06 = ["dep:axum-06", "dep:headers", "session-util/axum-core-03"]
 client = ["async-trait", "concat-string", "futures", "hyper/client", "serde", "serde_json", "serde_qs", "trace"]
-db = ["diesel", "diesel-util", "serde"]
-graphql = ["async-graphql", "diesel", "diesel-util", "serde"]
+db = ["authzen-diesel", "diesel", "serde"]
+graphql = ["async-graphql", "authzen-diesel", "diesel", "serde"]
 grpc = ["tonic"]
 http1 = ["hyper/http1"]
 http2 = ["hyper/http2"]

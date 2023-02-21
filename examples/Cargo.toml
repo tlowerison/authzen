@@ -7,14 +7,11 @@ authors = ["Trey Lowerison"]
 [dependencies]
 anyhow = "1"
 async-trait = "0"
-authzen = { path = "../authzen", features = ["diesel-postgres", "extra-traits", "opa-decision-maker"] }
+authzen = { path = "../authzen", features = ["diesel-postgres", "extra-traits", "opa-decision-maker", "service-util-db"] }
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }
 diesel-async = { version = "0.2", features = ["postgres"] }
-diesel-util = { path = "../diesel-util", features = ["postgres"] }
-opa-util = { path = "../opa-util" }
 serde = { version = "1", features = ["derive"] }
-service-util = { path = "../service-util", features = ["db"] }
 typed-builder = "0.11.0"
 uuid = { version = "1", features = ["serde", "v4"] }

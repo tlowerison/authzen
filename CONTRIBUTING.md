@@ -14,11 +14,12 @@ cargo install cargo-watch
 cargo watch \
   -w authzen \
   -w core \
-  -w diesel-util \
-  -w opa-util \
+  -w decision-makers \
   -w proc-macro-util \
   -w proc-macros \
   -w service-util \
+  -w storage-backends \
   -w Cargo.toml \
-  -x doc
+  -- \
+  cargo +nightly doc --workspace --no-deps --all-features
 ```

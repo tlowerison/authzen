@@ -1,7 +1,7 @@
 use crate::db::schema::*;
+use authzen::storage_backends::diesel::prelude::*;
 use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
-use diesel_util::*;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, TypedBuilder)]

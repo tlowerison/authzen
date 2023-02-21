@@ -146,7 +146,7 @@ where
 pub trait StorageBackend {}
 
 /// A client for communicating with a storage backend. Typically this should be implemented for
-/// connection or client implementations for that backend, e.g. diesel_async::AsyncPgConnection.
+/// connection or client implementations for that backend, e.g. [`diesel_async::AsyncPgConnection`](https://docs.rs/diesel-async/latest/diesel_async/pg/struct.AsyncPgConnection.html).
 pub trait StorageClient {
     /// The backend this client will act upon.
     type Backend: StorageBackend;
@@ -269,7 +269,7 @@ impl<E1, E2> ActionError<E1, E2> {
 
 /// Standard actions which are useful across many applications.
 ///
-/// Custom actions can be generated using [`proc_macros::action`].
+/// Custom actions can be generated using [`action`](proc_macros::action).
 pub mod action {
     use super::*;
     use authzen_proc_macros::*;

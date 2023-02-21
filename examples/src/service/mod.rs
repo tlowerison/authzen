@@ -3,6 +3,7 @@ pub mod context;
 pub use context::*;
 
 use crate::*;
+use authzen::action::*;
 use authzen::*;
 use diesel_util::*;
 use service_util::Error;

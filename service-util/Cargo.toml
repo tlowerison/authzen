@@ -24,7 +24,7 @@ concat-string = { workspace = true, optional = true }
 data-encoding = { workspace = true, optional = true }
 derive_more = { git = "https://github.com/tlowerison/derive_more", optional = true }
 diesel = { workspace = true, optional = true }
-diesel-util = { git = "https://github.com/tlowerison/diesel-util", rev = "bc7d164", optional = true }
+diesel-util = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }

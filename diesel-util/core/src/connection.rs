@@ -90,67 +90,75 @@ impl From<TxCleanupError> for Error {
 }
 
 cfg_if! {
-    if #[cfg(feature = "bb8")] {
-        use diesel_async::pooled_connection::bb8::PooledConnection;
-
-        pub type DbConnOwned<'r, C> = DbConnection<C, PooledConnection<'r, C>>;
-
-        impl<'a, C: PoolableConnection + 'static> From<PooledConnection<'a, C>> for DbConnOwned<'a, C> {
-            fn from(connection: PooledConnection<'a, C>) -> Self {
-                DbConnection {
-                    tx_id: None,
-                    connection: Arc::new(RwLock::new(connection)),
-                    tx_cleanup: Arc::new(Mutex::new(vec![])),
-                }
-            }
-        }
-    }
-}
-
-cfg_if! {
-    if #[cfg(feature = "deadpool")] {
-        use diesel_async::pooled_connection::deadpool::Object;
-
-        type PooledConnection<'a, C> = Object<C>;
-        pub type DbConnOwned<'r, C> = DbConnection<C, Object<C>>;
-
-        impl<'a, C: PoolableConnection + 'static> From<PooledConnection<'a, C>> for DbConnOwned<'a, C> {
-            fn from(connection: PooledConnection<'a, C>) -> Self {
-                DbConnection {
-                    tx_id: None,
-                    connection: Arc::new(RwLock::new(connection)),
-                    tx_cleanup: Arc::new(Mutex::new(vec![])),
-                }
-            }
-        }
-
-    }
-}
-
-cfg_if! {
-    if #[cfg(feature = "mobc")] {
-        use diesel_async::pooled_connection::AsyncDieselConnectionManager;
-        use mobc::Connection;
-
-        type PooledConnection<'a, C> = Connection<AsyncDieselConnectionManager<C>>;
-        pub type DbConnOwned<'r, C> = DbConnection<C, Connection<AsyncDieselConnectionManager<C>>>;
-
-        impl<'a, C: PoolableConnection + 'static> From<PooledConnection<'a, C>> for DbConnOwned<'a, C> {
-            fn from(connection: PooledConnection<'a, C>) -> Self {
-                DbConnection {
-                    tx_id: None,
-                    connection: Arc::new(RwLock::new(connection)),
-                    tx_cleanup: Arc::new(Mutex::new(vec![])),
-                }
-            }
-        }
-    }
-}
-
-cfg_if! {
     if #[cfg(any(feature = "bb8", feature = "deadpool", feature = "mobc"))] {
-        use diesel_async::pooled_connection::PoolableConnection;
+        use diesel_async::pooled_connection::{self as pc, PoolableConnection};
+        use std::marker::PhantomData;
         use std::ops::DerefMut;
+
+        pub type DbConnOwned<'a, C> = DbConnection<C, PooledConnection<'a, C>>;
+
+        #[derive(Derivative)]
+        #[derivative(Debug)]
+        pub enum PooledConnection<'a, C: PoolableConnection + 'static> {
+            #[cfg(feature = "bb8")]
+            Bb8(
+                #[derivative(Debug = "ignore")]
+                pc::bb8::PooledConnection<'a, C>,
+            ),
+            #[cfg(feature = "deadpool")]
+            Deadpool(
+                #[derivative(Debug = "ignore")]
+                pc::deadpool::Object<C>,
+                #[derivative(Debug = "ignore")]
+                PhantomData<&'a ()>,
+            ),
+            #[cfg(feature = "mobc")]
+            Mobc(
+                #[derivative(Debug = "ignore")]
+                mobc::Connection<pc::AsyncDieselConnectionManager<C>>,
+                #[derivative(Debug = "ignore")]
+                PhantomData<&'a ()>,
+            ),
+        }
+
+        impl<'a, C: AsyncConnection + PoolableConnection + 'static> Deref for PooledConnection<'a, C> {
+            type Target = C;
+            fn deref(&self) -> &Self::Target {
+                match self {
+                    #[cfg(feature = "bb8")]
+                    Self::Bb8(conn) => conn.deref(),
+                    #[cfg(feature = "deadpool")]
+                    Self::Deadpool(conn, _) => conn.deref(),
+                    #[cfg(feature = "mobc")]
+                    Self::Mobc(conn, _) => conn.deref(),
+                }
+            }
+        }
+
+        impl<'a, C: AsyncConnection + PoolableConnection + 'static> DerefMut for PooledConnection<'a, C> {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                match self {
+                    #[cfg(feature = "bb8")]
+                    Self::Bb8(conn) => conn.deref_mut(),
+                    #[cfg(feature = "deadpool")]
+                    Self::Deadpool(conn, _) => conn.deref_mut(),
+                    #[cfg(feature = "mobc")]
+                    Self::Mobc(conn, _) => conn.deref_mut(),
+                }
+            }
+        }
+
+        impl<'a, C: PoolableConnection + 'static> PoolableConnection for PooledConnection<'a, C> {}
+
+        impl<'a, C: PoolableConnection + 'static> From<PooledConnection<'a, C>> for DbConnOwned<'a, C> {
+            fn from(connection: PooledConnection<'a, C>) -> Self {
+                DbConnection {
+                    tx_id: None,
+                    connection: Arc::new(RwLock::new(connection)),
+                    tx_cleanup: Arc::new(Mutex::new(vec![])),
+                }
+            }
+        }
     }
 }
 
@@ -675,7 +683,7 @@ cfg_if! {
         #[async_trait]
         impl<'d, C> _Db for DbConnOwned<'d, C>
         where
-            C: AsyncConnection + PoolableConnection + Sync + 'static,
+            C: AsyncConnection + PoolableConnection + Send + Sync + 'static,
         {
             type Backend = <C as AsyncConnection>::Backend;
             type AsyncConnection = C;
@@ -759,19 +767,10 @@ cfg_if! {
                 self.with_tx_connection(move |mut conn| async move {
                     let value = callback(conn).await?;
 
-                    #[cfg(feature = "bb8")]
-                    let connection = Arc::new(RwLock::new(conn.deref_mut()));
-
-                    #[cfg(feature = "deadpool")]
-                    let connection = Arc::new(RwLock::new(conn));
-
-                    #[cfg(feature = "mobc")]
-                    let connection = Arc::new(RwLock::new(conn.deref_mut()));
-
                     let db_connection = DbConnection {
                         tx_id: Some(Uuid::new_v4()),
                         tx_cleanup: tx_cleanup.clone(),
-                        connection,
+                        connection: Arc::new(RwLock::new(conn.deref_mut())),
                     };
                     let mut tx_cleanup = tx_cleanup.lock().await;
                     for tx_cleanup_fn in tx_cleanup.drain(..) {
@@ -955,19 +954,10 @@ cfg_if! {
 
                     let tx_cleanup = TxCleanup::default();
 
-                    #[cfg(feature = "bb8")]
-                    let connection = Arc::new(RwLock::new(conn.deref_mut()));
-
-                    #[cfg(feature = "deadpool")]
-                    let connection = Arc::new(RwLock::new(conn));
-
-                    #[cfg(feature = "mobc")]
-                    let connection = Arc::new(RwLock::new(conn.deref_mut()));
-
                     let db_connection = DbConnection {
                         tx_id: Some(Uuid::new_v4()),
                         tx_cleanup: tx_cleanup.clone(),
-                        connection,
+                        connection: Arc::new(RwLock::new(conn.deref_mut())),
                     };
                     let mut tx_cleanup = tx_cleanup.lock().await;
                     for tx_cleanup_fn in tx_cleanup.drain(..) {

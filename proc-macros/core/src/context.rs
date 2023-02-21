@@ -105,7 +105,7 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
 
     let tokens = quote! {
         #(
-            impl #impl_generics authzen::CanContext<#decision_maker_field_types> for #ident #ty_generics #where_clause {
+            impl #impl_generics authzen::AuthorizationContext<#decision_maker_field_types> for #ident #ty_generics #where_clause {
                 type Context<#gat_lifetime> = #context_field_gat where Self: #gat_lifetime;
                 type Subject<#gat_lifetime> = #subject_field_gat where Self: #gat_lifetime;
 
@@ -120,7 +120,7 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
                 }
             }
             #(
-                impl #impl_generics authzen::TryContext<#decision_maker_field_types, #storage_client_field_types> for #ident #ty_generics #where_clause {
+                impl #impl_generics authzen::TryActionContext<#decision_maker_field_types, #storage_client_field_types> for #ident #ty_generics #where_clause {
                     fn storage_client(&self) -> &#storage_client_field_types {
                         &self.#storage_client_field_accessors
                     }

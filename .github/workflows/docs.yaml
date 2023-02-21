@@ -27,7 +27,7 @@ jobs:
       run: rustup toolchain install nightly
 
     - name: Build docs
-      run: cargo +nightly doc --verbose --color always
+      run: cargo +nightly doc --workspace --no-deps --verbose --color always
 
     - name: Create html redirect to correct doc subdirectory
       run: 'echo "<meta http-equiv=\"refresh\" content=\"0; url=authzen\">" > target/doc/index.html'
@@ -36,7 +36,7 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         name: github-pages
-        path: target/doc/authzen/**
+        path: target/doc/**
 
     - name: Deploy GitHub Pages site
       uses: actions/deploy-pages@v1.2.4

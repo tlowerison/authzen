@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":["CanCreate","CanDelete","CanRead","CanUpdate","TryCreate","TryDelete","TryRead","TryUpdate"]};

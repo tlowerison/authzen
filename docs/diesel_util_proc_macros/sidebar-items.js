@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["soft_delete"],"derive":["Audit","Db","Enum","IncludesChanges","SoftDelete"],"macro":["db_filter","dynamic_schema"]};

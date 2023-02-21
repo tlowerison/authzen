@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["authzen","authzen_core","authzen_proc_macros","authzen_proc_macros_core","diesel_util","diesel_util_core","diesel_util_proc_macros","diesel_util_proc_macros_core","opa_util","opa_util_core","opa_util_proc_macros","opa_util_proc_macros_core","proc_macro_util","service_util"];

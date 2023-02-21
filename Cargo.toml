@@ -72,6 +72,7 @@ tracing-opentelemetry = "0"
 prettyplease = "0"
 
 # service-util
+headers = "0"
 log = "0"
 
 async-graphql = "4"

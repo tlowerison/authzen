@@ -37,6 +37,6 @@ diesel-util = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 
 [features]
-db = ["diesel", "diesel-async", "diesel-util", "service-util/db"]
-db-filter = ["db", "diesel-dynamic-schema"]
+# db = ["diesel", "diesel-async", "diesel-util", "service-util/db"]
+# db-filter = ["db", "diesel-dynamic-schema"]
 mongodb-tx-cache-backend = ["dep:chrono", "dep:mongodb"]

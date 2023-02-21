@@ -15,6 +15,6 @@ proc-macros = { path = "proc-macros", package = "opa-util-proc-macros" }
 rustc_version.workspace = true
 
 [features]
-db = ["core/db"]
-db-filter = ["core/db-filter"]
+# db = ["core/db"]
+# db-filter = ["core/db-filter"]
 mongodb-tx-cache-backend = ["core/mongodb-tx-cache-backend"]

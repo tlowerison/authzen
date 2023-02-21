@@ -32,13 +32,13 @@ jobs:
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: artifact # default
+        name: github-pages
         path: target/doc/authzen/**
 
     - name: Deploy GitHub Pages site
       uses: actions/deploy-pages@v1.2.4
       with:
-        artifact_name: github-pages # default
+        artifact_name: github-pages
         # timeout: # default is 600000
         # error_count: # Maximum number of status report errors before cancelling a deployment (default: 10)
         # reporting_interval: # Time in milliseconds between two deployment status report (default: 5000)

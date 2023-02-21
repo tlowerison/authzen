@@ -23,11 +23,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: rustup-toolchain
+    - name: Install nightly rust toolchain
       run: rustup toolchain install nightly
 
-    - name:
+    - name: Build docs
       run: cargo +nightly doc --verbose --color always
+
+    - name: Create html redirect to correct doc subdirectory
+      run: 'echo "<meta http-equiv=\"refresh\" content=\"0; url=authzen\">" > target/doc/index.html'
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3.1.2

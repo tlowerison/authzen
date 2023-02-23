@@ -15,11 +15,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  checkout:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
+  ruby-setup:
+    runs-on: ubuntu-latest
+    defaults:
+      working-directory: ./docs # necessary because 3rd party actions cannot specify directory
+    steps:
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       working-directory: ./docs
@@ -28,8 +33,10 @@ jobs:
         bundler-cache: true # runs "bundle install" and caches installed gems automatically
         cache-version: 0 # Increment this number if you need to re-download cached gems
 
+  build:
+    runs-on: ubuntu-latest
+    steps:
     - name: Setup Pages
-      id: pages
       uses: actions/configure-pages@v3
 
     - name: Install nightly rust toolchain

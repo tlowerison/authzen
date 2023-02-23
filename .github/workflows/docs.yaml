@@ -15,15 +15,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  checkout:
+  build:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
 
-  setup:
-    needs: checkout
-    runs-on: ubuntu-latest
-    steps:
     - id: ruby-env
       run: echo ::set-output docs_dir="$GITHUB_WORKSPACE/docs"
 
@@ -38,13 +35,6 @@ jobs:
     - name: Install nightly rust toolchain
       run: rustup toolchain install nightly
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v3
-
-  build:
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
     - name: Build docs
       run: cargo +nightly doc --workspace --no-deps --verbose --color always
 
@@ -77,6 +67,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+
     - name: Deploy GitHub Pages site
       uses: actions/deploy-pages@v1
       with:

@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"authzen_diesel_core":[["impl <a class=\"trait\" href=\"https://docs.rs/lazy_static/1.4.0/lazy_static/trait.LazyStatic.html\" title=\"trait lazy_static::LazyStatic\">LazyStatic</a> for <a class=\"struct\" href=\"authzen_diesel_core/paginate/struct.MAX_PAGINATE_COUNT.html\" title=\"struct authzen_diesel_core::paginate::MAX_PAGINATE_COUNT\">MAX_PAGINATE_COUNT</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

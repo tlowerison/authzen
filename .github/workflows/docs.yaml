@@ -24,7 +24,7 @@ jobs:
       run: echo "DOCS_DIR=\"$GITHUB_WORKSPACE/docs\"" >> $GITHUB_OUTPUT
 
     - name: List all files in docs
-      run: ls docs && exit 1
+      run: cd docs && bundle install && exit 1
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1

@@ -1,5 +1,4 @@
 # Contributing
-I just made this a separate doc to document local development.
 
 ## Documentation
 Documentation hot reloading on file changes can be run in the background using cargo watch.

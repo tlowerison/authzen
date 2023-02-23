@@ -199,6 +199,18 @@
 <a href="#199" id="199">199</a>
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::<span class="kw-2">*</span>;
 <span class="kw">use </span>::serde::{de::DeserializeOwned, Serialize};
 <span class="kw">use </span>authzen_diesel::{connection::Db, prelude::<span class="kw-2">*</span>};
@@ -224,6 +236,18 @@
     </span>E: DbEntity,
     B: Backend,
 {
+}
+
+<span class="kw">impl </span>StorageError <span class="kw">for </span>diesel::result::Error {
+    <span class="kw">fn </span>not_found() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::NotFound
+    }
+}
+
+<span class="kw">impl</span>&lt;E&gt; StorageError <span class="kw">for </span>DbEntityError&lt;E&gt; {
+    <span class="kw">fn </span>not_found() -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>::Db(diesel::result::Error::NotFound)
+    }
 }
 
 <span class="kw">impl</span>&lt;C: Db&gt; StorageClient <span class="kw">for </span>C {

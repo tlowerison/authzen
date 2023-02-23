@@ -340,7 +340,8 @@ pub mod operations {
             <Self::Raw as TryInto<Self>>::Error: Send,
 
             // Insertable bounds
-            [Self::Post<'v>; 1]: HasTable + Insertable<Self::Table> + Send,
+            Self::Post<'v>: HasTable,
+            [Self::Post<'v>; 1]: Insertable<Self::Table> + Send,
             <[Self::Post<'v>; 1] as Insertable<Self::Table>>::Values: Send + 'query,
             <Self::Table as QuerySource>::FromClause: Send,
 
@@ -547,6 +548,66 @@ pub mod operations {
                     .map(TryInto::try_into)
                     .collect::<Result<_, _>>()
                     .map_err(DbEntityError::conversion)
+            })
+        }
+
+        #[framed]
+        #[instrument(skip_all)]
+        async fn delete_one<'query, 'v, D, I>(
+            db: &D,
+            id: I,
+        ) -> Result<Self, DbEntityError<<Self::Raw as TryInto<Self>>::Error>>
+        where
+            D: Db + 'query,
+
+            I: Send,
+
+            // Id bounds
+            Self::Id: Debug + Send,
+            for<'a> &'a Self::Raw: Identifiable<Id = &'a Self::Id>,
+            <Self::Table as Table>::PrimaryKey: Expression + ExpressionMethods,
+            <<Self::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
+
+            Self::Raw: Deletable<
+                'query,
+                D::AsyncConnection,
+                Self::Table,
+                [I; 1],
+                Self::Id,
+                Self::DeletedAt,
+                Self::DeletePatch<'v>,
+            >,
+        {
+            db.raw_tx(move |conn| {
+                async move {
+                    let ids = [id];
+                    match Self::Raw::maybe_soft_delete(conn, ids).await {
+                        Either::Left(ids) => Self::Raw::hard_delete(conn, ids).await,
+                        Either::Right(result) => result,
+                    }
+                }
+                .scope_boxed()
+            })
+            .map(|result| match result {
+                Ok(records) => Ok(records),
+                Err(err) => {
+                    let err = err;
+                    error!(target: module_path!(), error = %err);
+                    Err(err)
+                }
+            })
+            .await
+            .map_err(DbEntityError::from)
+            .and_then(|records| {
+                let mut records = records
+                    .into_iter()
+                    .map(TryInto::try_into)
+                    .collect::<Result<Vec<_>, _>>()
+                    .map_err(DbEntityError::conversion)?;
+                if records.is_empty() {
+                    return Err(DbEntityError::Db(Error::NotFound));
+                }
+                Ok(records.pop().unwrap())
             })
         }
     }

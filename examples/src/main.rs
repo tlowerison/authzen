@@ -29,7 +29,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let redis_port = env::redis_port()?;
     let session_secret = env::session_secret()?;
 
-    let (db, account_session_store, tx_cache_client) = try_join_safe!(
+    let (db, session_store, tx_cache_client) = try_join_safe!(
         async { db().await.map_err(anyhow::Error::from) },
         redis_store(
             RedisStoreConfig {
@@ -76,7 +76,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 .allow_origin(allowed_origins),
         )
         .layer(SessionLayer::<AccountSession, _, _, _>::encoded(
-            account_session_store.clone(),
+            session_store.clone(),
             env::session_jwt_public_certificate()?,
             service::SESSION_JWT_VALIDATION.clone(),
         ))
@@ -108,7 +108,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let app = router
         .layer(Extension(Clients {
-            account_session_store,
             db: db.clone(),
             opa_client: OPAClient::new(
                 &env::opa_scheme()?,
@@ -117,6 +116,7 @@ async fn main() -> Result<(), anyhow::Error> {
                 &env::opa_data_path()?,
                 &env::opa_query()?,
             )?,
+            session_store,
             tx_cache_client,
         }))
         .layer(app_middleware);

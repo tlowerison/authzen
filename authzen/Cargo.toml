@@ -11,6 +11,7 @@ proc-macro-util.workspace = true
 service-util.workspace = true
 core = { package = "authzen-core", path = "../core" }
 derivative.workspace = true
+futures.workspace = true
 proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
 
 authzen-diesel = { workspace = true, optional = true }

@@ -7,6 +7,8 @@ pub use proc_macros;
 
 #[doc(hidden)]
 pub use derivative;
+#[doc(hidden)]
+pub use futures;
 
 #[doc(alias = "authzen_service_util")]
 pub use service_util;

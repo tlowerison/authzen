@@ -25,6 +25,18 @@ where
 {
 }
 
+impl StorageError for diesel::result::Error {
+    fn not_found() -> Self {
+        Self::NotFound
+    }
+}
+
+impl<E> StorageError for DbEntityError<E> {
+    fn not_found() -> Self {
+        Self::Db(diesel::result::Error::NotFound)
+    }
+}
+
 impl<C: Db> StorageClient for C {
     type Backend = <C as Db>::Backend;
     type TransactionId<'a> = Uuid where Self: 'a;

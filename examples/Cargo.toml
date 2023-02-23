@@ -9,6 +9,7 @@ anyhow = "1"
 async-trait = "0"
 authzen = { path = "../authzen", features = ["diesel-bb8", "diesel-postgres", "extra-traits", "mongodb-tx-cache", "opa-decision-maker", "service-util-axum-06", "service-util-db", "service-util-server"] }
 axum = "0.6"
+axum-macros = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }

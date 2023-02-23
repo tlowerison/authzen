@@ -51,6 +51,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
 
     let try_trait_name = format_ident!("Try{name}");
     let try_fn_name = format_ident!("try_{snake_name}");
+    let try_one_fn_name = format_ident!("try_{snake_name}_one");
 
     let can_fn_doc = format!("Query whether the subject is authorized to {ty} the specified object(s).");
 
@@ -68,7 +69,9 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
         "#
     );
     let try_fn_doc =
-        format!("Query whether the subject is authorized to {ty} the specified object(s). If so, perform the action.");
+        format!("Query whether the subject is authorized to {ty} the specified objects. If so, perform the action.");
+    let try_one_fn_doc =
+        format!("Query whether the subject is authorized to {ty} the specified object. If so, perform the action. Expects the return type of the storage action to implement [`IntoIterator`].");
 
     let tokens = quote! {
         #[doc(hidden)]
@@ -81,13 +84,12 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
         }
 
         #[doc = #try_trait_doc]
-        pub trait #try_trait_name<'subject, 'context, 'input, Ctx, I>: Send + Sync
+        pub trait #try_trait_name<'subject, 'context, 'input, Ctx>: Send + Sync
         where
             Ctx: Sync + 'subject + 'context,
-            I: Send + Sync,
         {
             #[doc = #can_fn_doc]
-            fn #can_fn_name<'life0, 'async_trait, DM, SC, TC>(
+            fn #can_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
                 ctx: &'life0 Ctx,
                 input: &'input I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
@@ -120,6 +122,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync + #source_mod TransactionCache<SC>,
                 Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
+                I: Send + Sync,
 
                 'subject: 'async_trait,
                 'context: 'async_trait + 'input,
@@ -142,7 +145,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
             }
 
             #[doc = #try_fn_doc]
-            fn #try_fn_name<'life0, 'async_trait, DM, SC, TC>(
+            fn #try_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
                 ctx: &'life0 Ctx,
                 input: I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
@@ -176,6 +179,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     + #source_mod TransactionCacheAction<#name<Self>, SC, I>,
                 Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
                 #name<Self>: #source_mod StorageAction<SC, I>,
+                I: Send + Sync,
 
                 'subject: 'async_trait,
                 'context: 'async_trait,
@@ -199,13 +203,82 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 };
                 Box::pin(event.try_act(ctx.decision_maker(), ctx.storage_client(), ctx.transaction_cache()))
             }
+
+            #[doc = #try_one_fn_doc]
+            fn #try_one_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
+                ctx: &'life0 Ctx,
+                input: I,
+            ) -> std::pin::Pin<Box<dyn std::future::Future<
+                Output = Result<
+                    <<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok as IntoIterator>::Item,
+                    #source_mod ActionError<
+                        <DM as #source_mod DecisionMaker<
+                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                            #name<Self>,
+                            Self,
+                            [I; 1],
+                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        >>::Error,
+                        <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error,
+                        <TC as #source_mod TransactionCache<SC>>::Error,
+                    >,
+                >,
+            > + Send + 'async_trait>>
+            where
+                Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
+                DM: #source_mod DecisionMaker<
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                        #name<Self>,
+                        Self,
+                        [I; 1],
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                    > + Sync,
+                SC: #source_mod StorageClient + Send + Sync,
+                TC: Send + Sync
+                    + #source_mod TransactionCache<SC>
+                    + #source_mod TransactionCacheAction<#name<Self>, SC, [I; 1]>,
+                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
+                #name<Self>: #source_mod StorageAction<SC, [I; 1]>,
+                I: Send + Sync,
+
+                <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok: IntoIterator,
+                <<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok as IntoIterator>::Item: Send,
+
+                'subject: 'async_trait,
+                'context: 'async_trait,
+                'input: 'async_trait,
+                'life0: 'async_trait + 'subject + 'context,
+                Self: 'async_trait,
+                DM: 'async_trait,
+                SC: 'async_trait,
+                TC: 'async_trait,
+                I: 'async_trait,
+            {
+                use #source_mod futures::future::{ready, TryFutureExt};
+                use #source_mod AuthorizationContext;
+                use #source_mod TransactionCache;
+                use #source_mod TryAct;
+                let event = #source_mod Event {
+                    context: ctx.context(),
+                    subject: ctx.subject(),
+                    action: std::marker::PhantomData::<#name<Self>>::default(),
+                    object: std::marker::PhantomData::<Self>::default(),
+                    input: [input],
+                };
+                Box::pin(
+                    event.try_act(ctx.decision_maker(), ctx.storage_client(), ctx.transaction_cache())
+                        .and_then(|ok| {
+                            let mut iter = ok.into_iter();
+                            ready(iter.next().ok_or_else(|| ActionError::storage(<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error::not_found())))
+                        })
+                )
+            }
         }
 
-        impl<'subject, 'context, 'input, Ctx, T, I> #try_trait_name<'subject, 'context, 'input, Ctx, I> for T
+        impl<'subject, 'context, 'input, Ctx, T> #try_trait_name<'subject, 'context, 'input, Ctx> for T
         where
             Self: Send + Sync,
             Ctx: Sync + 'subject + 'context,
-            I: Send + Sync,
         {
         }
     };

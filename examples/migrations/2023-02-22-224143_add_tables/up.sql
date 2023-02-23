@@ -7,6 +7,9 @@ create table if not exists account (
   email       varchar(256)
 );
 
+create unique index account_unique_username on account (username, coalesce(deleted_at, timestamp '0001-01-01 00:00:00'));
+create unique index account_unique_email on account (email, coalesce(deleted_at, timestamp '0001-01-01 00:00:00'));
+
 create table if not exists account_audit (
   id          uuid          primary key,
   account_id  uuid          not null,

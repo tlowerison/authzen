@@ -213,13 +213,17 @@ where
     Client: StorageClient + Send,
 {
     type Ok: Send + Sync;
-    type Error: Debug + Send;
+    type Error: Debug + Send + StorageError;
 
     /// Carries out the intended action in the storage backend of `Client`.
     async fn act(client: &Client, input: Input) -> Result<Self::Ok, Self::Error>
     where
         Client: 'async_trait,
         Input: 'async_trait;
+}
+
+pub trait StorageError {
+    fn not_found() -> Self;
 }
 
 /// Represents a policy decision point (could be astracted over an in-process memory, a remote api,
@@ -638,7 +642,7 @@ pub mod actions {
 }
 
 #[doc(hidden)]
-pub mod serde {
+mod serde {
     use super::*;
 
     pub mod action {

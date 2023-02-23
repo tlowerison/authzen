@@ -6,6 +6,22 @@ use uuid::Uuid;
 pub type AccountId = Uuid;
 pub type AccountSession = session_util::AccountSession<AccountId, ()>;
 
+#[derive(authzen::Context, Clone, Copy, Debug, Db)]
+pub struct Context<D, S, C, M> {
+    #[subject]
+    pub session: S,
+    #[db]
+    #[storage_client]
+    pub db: D,
+    #[decision_maker]
+    pub opa_client: C,
+    #[transaction_cache]
+    pub mongodb_client: M,
+}
+
+pub type Ctx<'a, D> = Context<D, &'a AccountSession, &'a OPAClient, &'a MongodbTxCollection>;
+pub type CtxOptSession<'a, D> = Context<D, Option<&'a AccountSession>, &'a OPAClient, &'a MongodbTxCollection>;
+
 pub static SESSION_ISSUER: &'static str = "authzen_examples";
 pub const SESSION_JWT_ALGORITHM: jsonwebtoken::Algorithm = jsonwebtoken::Algorithm::RS512;
 lazy_static! {
@@ -25,20 +41,5 @@ lazy_static! {
         validation.set_required_spec_claims(&["exp", "iss", "sub"]);
         validation
     };
+    pub static ref SESSION_JWT_HEADER: jsonwebtoken::Header = jsonwebtoken::Header::new(SESSION_JWT_ALGORITHM);
 }
-
-#[derive(authzen::Context, Clone, Copy, Debug, Db)]
-pub struct Context<D, S, C, M> {
-    #[subject]
-    pub session: S,
-    #[db]
-    #[storage_client]
-    pub db: D,
-    #[decision_maker]
-    pub opa_client: C,
-    #[transaction_cache]
-    pub mongodb_client: M,
-}
-
-pub type Ctx<'a, D> = Context<D, &'a AccountSession, &'a OPAClient, &'a MongodbTxCollection>;
-pub type CtxOptSession<'a, D> = Context<D, Option<&'a AccountSession>, &'a OPAClient, &'a MongodbTxCollection>;

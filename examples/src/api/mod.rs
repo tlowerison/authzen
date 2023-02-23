@@ -3,19 +3,26 @@ use crate::service::{AccountSession, Ctx, CtxOptSession};
 use authzen::service_util::{from_body, Error};
 use axum::extract::{Extension, RawBody};
 use axum::routing::method_routing::post;
-use axum::Router;
+use axum::{Json, Router};
+use http::response::Parts;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 pub fn router() -> Router {
-    Router::new().nest("/api", Router::new().route("/cart-item", post(add_item_to_cart)))
+    Router::new().nest(
+        "/api",
+        Router::new()
+            .route("/item", post(create_item))
+            .route("/add-cart-item", post(add_item_to_cart))
+            .route("/sign-up", post(sign_up)),
+    )
 }
 
 #[derive(Clone, Debug)]
 pub struct Clients {
-    pub account_session_store: session_util::DynAccountSessionStore,
     pub db: crate::DbPool,
     pub opa_client: authzen::decision_makers::opa::OPAClient,
+    pub session_store: session_util::DynAccountSessionStore,
     pub tx_cache_client: ApiTxCacheClient,
 }
 
@@ -26,6 +33,7 @@ pub struct ApiTxCacheClient {
 }
 
 impl Clients {
+    #[allow(unused)]
     fn ctx<'a>(&'a self, session: &'a AccountSession) -> Ctx<'a, &'a DbPool> {
         Ctx {
             session,
@@ -45,6 +53,52 @@ impl Clients {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SignUpPost {
+    Email(String),
+    Username(String),
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Account {
+    pub id: Uuid,
+}
+
+async fn sign_up(
+    Extension(session): Extension<Option<AccountSession>>,
+    Extension(clients): Extension<Clients>,
+    raw_body: RawBody,
+) -> Result<(Parts, Json<Account>), Error> {
+    let sign_up_post: SignUpPost = from_body(raw_body).await?;
+    let identifier = match sign_up_post {
+        SignUpPost::Email(email) => crate::db::Identifier::Email(email),
+        SignUpPost::Username(username) => crate::db::Identifier::Username(username),
+    };
+    let (parts, db_account) =
+        crate::service::sign_up(clients.ctx_opt_session(&session), &clients.session_store, identifier).await?;
+    Ok((parts, Json(Account { id: db_account.id })))
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename = "camelCase")]
+pub struct CreateItemPost {
+    pub name: String,
+    pub description: Option<String>,
+}
+
+async fn create_item(
+    Extension(session): Extension<Option<AccountSession>>,
+    Extension(clients): Extension<Clients>,
+    raw_body: RawBody,
+) -> Result<(), Error> {
+    let CreateItemPost { name, description } = from_body(raw_body).await?;
+    crate::service::create_item(clients.ctx_opt_session(&session), name, description).await?;
+    Ok(())
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename = "camelCase")]
 pub struct CartItemPost {
     pub cart_id: Uuid,
     pub item_id: Uuid,

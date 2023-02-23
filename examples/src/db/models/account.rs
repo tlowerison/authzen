@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, TypedBuilder)]
 pub struct DbAccount {
+    #[builder(default = Uuid::new_v4())]
     pub id: Uuid,
     #[builder(default = Utc::now().naive_utc(), setter(skip))]
     pub created_at: NaiveDateTime,

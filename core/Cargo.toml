@@ -12,6 +12,7 @@ cfg-if.workspace = true
 derivative.workspace = true
 derive-getters.workspace = true
 derive_more.workspace = true
+futures.workspace = true
 serde.workspace = true
 serde_with.workspace = true
 typed-builder.workspace = true
@@ -22,7 +23,6 @@ authzen-opa = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
-futures = { workspace = true, optional = true }
 hyper = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
@@ -37,5 +37,5 @@ diesel-storage-backend = ["authzen-diesel", "diesel", "diesel-async", "uuid"]
 diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
 diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
 extra-traits = ["service-util"]
-mongodb-tx-cache = ["anyhow", "chrono", "futures", "mongodb", "service-util/client"]
+mongodb-tx-cache = ["anyhow", "chrono", "mongodb", "service-util/client"]
 opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "service-util/trace"]

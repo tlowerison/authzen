@@ -156,6 +156,12 @@ impl Default for Error {
     }
 }
 
+impl From<std::convert::Infallible> for Error {
+    fn from(_: std::convert::Infallible) -> Self {
+        unreachable!()
+    }
+}
+
 impl From<EnvError> for Error {
     #[framed]
     fn from(err: EnvError) -> Self {

@@ -11,23 +11,36 @@ use typed_builder::TypedBuilder;
 impl<Subject, Action, Object, Input, Context> DecisionMaker<Subject, Action, Object, Input, Context> for OPAClient
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
-    Subject: Debug + Serialize,
-    Action: ?Sized + ActionType,
-    Object: ?Sized + ObjectType,
-    Input: Debug + Serialize,
-    Context: Debug + Serialize,
+    Subject: Debug + Send + Serialize + Sync,
+    Action: ?Sized + ActionType + Send + Sync,
+    Object: ?Sized + ObjectType + Send + Sync,
+    Input: Debug + Serialize + Send + Sync,
+    Context: Debug + Send + Serialize + Sync,
 {
     type Ok = ();
     type Error = service_util::Error;
 
-    async fn can_act(&self, event: &Event<Subject, Action, Object, Input, Context>) -> Result<Self::Ok, Self::Error> {
+    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    where
+        Subject: 'async_trait,
+        Action: 'async_trait,
+        Object: 'async_trait,
+        Input: 'async_trait,
+        Context: 'async_trait,
+    {
         let result: OPAQueryResult = OPAQuery {
             config: OPAQueryConfig::builder()
                 .data_path(&*self.data_path)
                 .query(&*self.query)
                 .build(),
             data: None,
-            input: event,
+            input: Event {
+                action: std::marker::PhantomData::<Action>,
+                object: std::marker::PhantomData::<Object>,
+                subject,
+                input,
+                context,
+            },
         }
         .query(self)
         .await?;

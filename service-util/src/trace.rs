@@ -17,10 +17,10 @@ use tracing_tree::HierarchicalLayer;
 #[macro_export]
 macro_rules! instrument_field {
     ($ident:ident) => {
-        tracing::Span::current().record(stringify!($ident), &&*format!("{:?}", $ident));
+        $crate::tracing::Span::current().record(stringify!($ident), &&*format!("{:?}", $ident));
     };
     ($name:literal, $expr:expr) => {
-        tracing::Span::current().record($name, &&*format!("{:?}", $expr));
+        $crate::tracing::Span::current().record($name, &&*format!("{:?}", $expr));
     };
 }
 

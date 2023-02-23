@@ -88,7 +88,6 @@ impl From<TxCleanupError> for Error {
 cfg_if! {
     if #[cfg(any(feature = "bb8", feature = "deadpool", feature = "mobc"))] {
         use diesel_async::pooled_connection::{self as pc, PoolableConnection};
-        use std::marker::PhantomData;
         use std::ops::DerefMut;
 
         pub(crate) type DbConnOwned<'a, C> = DbConnection<C, PooledConnection<'a, C>>;
@@ -106,14 +105,14 @@ cfg_if! {
                 #[derivative(Debug = "ignore")]
                 pc::deadpool::Object<C>,
                 #[derivative(Debug = "ignore")]
-                PhantomData<&'a ()>,
+                std::marker::PhantomData<&'a ()>,
             ),
             #[cfg(feature = "mobc")]
             Mobc(
                 #[derivative(Debug = "ignore")]
                 mobc::Connection<pc::AsyncDieselConnectionManager<C>>,
                 #[derivative(Debug = "ignore")]
-                PhantomData<&'a ()>,
+                std::marker::PhantomData<&'a ()>,
             ),
         }
 

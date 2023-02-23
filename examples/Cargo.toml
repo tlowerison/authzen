@@ -7,11 +7,29 @@ authors = ["Trey Lowerison"]
 [dependencies]
 anyhow = "1"
 async-trait = "0"
-authzen = { path = "../authzen", features = ["diesel-postgres", "extra-traits", "opa-decision-maker", "service-util-db"] }
+authzen = { path = "../authzen", features = ["diesel-bb8", "diesel-postgres", "extra-traits", "mongodb-tx-cache", "opa-decision-maker", "service-util-axum-06", "service-util-db", "service-util-server"] }
+axum = "0.6"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }
 diesel-async = { version = "0.2", features = ["postgres"] }
+diesel_migrations = "2"
+dotenv = "0.15"
+futures = "0.3"
+http = "0.2"
+hyper = "0.14"
+lazy_static = "1.4.0"
+mongodb = "2.3"
+jsonwebtoken = "8.2"
 serde = { version = "1", features = ["derive"] }
+session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee5b2", features = ["account-session", "redis-backend"] }
+tokio = { version = "1", features = ["rt"] }
+tower = { version = "0.4", features = ["limit", "timeout"] }
+tower-cookies = "0.6"
+tower-http = { version = "0.3", features = ["auth", "catch-panic", "compression-gzip", "cors", "request-id", "trace", "util"] }
+tower-layer = "0.3"
+tower-service = "0.3"
+tracing = "0.1"
 typed-builder = "0.11.0"
+url = "2.3"
 uuid = { version = "1", features = ["serde", "v4"] }

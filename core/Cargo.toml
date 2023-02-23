@@ -16,20 +16,26 @@ serde.workspace = true
 serde_with.workspace = true
 typed-builder.workspace = true
 
+anyhow = { workspace = true, optional = true }
 authzen-diesel = { workspace = true, optional = true }
 authzen-opa = { workspace = true, optional = true }
-service-util = { workspace = true, features = ["client"], optional = true }
+chrono = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 hyper = { workspace = true, optional = true }
+mongodb = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+service-util = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
 
 [build-dependencies]
 rustc_version.workspace = true
 
 [features]
-diesel-storage-backend = ["authzen-diesel", "diesel", "diesel-async"]
+diesel-storage-backend = ["authzen-diesel", "diesel", "diesel-async", "uuid"]
 diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
 diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
 extra-traits = ["service-util"]
-opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "service-util"]
+mongodb-tx-cache = ["anyhow", "chrono", "futures", "mongodb", "service-util/client"]
+opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "service-util/trace"]

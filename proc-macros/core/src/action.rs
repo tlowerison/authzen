@@ -47,20 +47,11 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
 
     let source_mod = if internal { quote!() } else { quote!(authzen::) };
 
-    let can_trait_name = format_ident!("Can{name}");
     let can_fn_name = format_ident!("can_{snake_name}");
 
     let try_trait_name = format_ident!("Try{name}");
     let try_fn_name = format_ident!("try_{snake_name}");
 
-    let can_trait_doc = format!(
-        r#"
-        Represents a query whether the action with type `"{ty}"` can be performed
-        given the provided input and context (which must provide information about
-        the event's subject, context and decision maker). Automatically implmented
-        for any object which can be queried with the given [`DecisionMaker`].
-        "#
-    );
     let can_fn_doc = format!("Query whether the subject is authorized to {ty} the specified object(s).");
 
     let try_trait_doc = format!(
@@ -89,74 +80,69 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
             const TYPE: &'static str = #ty;
         }
 
-        #[doc = #can_trait_doc]
-        pub trait #can_trait_name<'subject, 'context, 'input, Ctx, I>: Send + Sync
+        #[doc = #try_trait_doc]
+        pub trait #try_trait_name<'subject, 'context, 'input, Ctx, I>: Send + Sync
         where
             Ctx: Sync + 'subject + 'context,
-            I: Send + Sync + 'input,
+            I: Send + Sync,
         {
             #[doc = #can_fn_doc]
-            fn #can_fn_name<'life0, 'async_trait, DM>(
+            fn #can_fn_name<'life0, 'async_trait, DM, SC, TC>(
                 ctx: &'life0 Ctx,
                 input: &'input I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
                 Output = Result<
                     <DM as #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Subject<'subject>,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
-                        &'input I,
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Context<'context>,
+                        I,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                     >>::Ok,
                     <DM as #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Subject<'subject>,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
-                        &'input I,
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Context<'context>,
+                        I,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                     >>::Error,
                 >,
-            > + 'async_trait>>
+            > + Send + 'async_trait>>
             where
-                Ctx: #source_mod AuthorizationContext<DM>,
+                Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
                 DM: #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Subject<'subject>,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
-                        &'input I,
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Context<'context>,
+                        I,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                     > + Sync,
+                SC: #source_mod StorageClient + Send + Sync,
+                TC: Send + Sync + #source_mod TransactionCache<SC>,
+                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
 
                 'subject: 'async_trait,
-                'context: 'async_trait,
+                'context: 'async_trait + 'input,
                 'input: 'async_trait,
-                'life0: 'async_trait + 'subject + 'context + 'input,
+                'life0: 'async_trait + 'subject + 'context,
                 Self: 'async_trait,
                 DM: 'async_trait,
+                SC: 'async_trait,
+                TC: 'async_trait,
                 I: 'async_trait,
             {
                 use #source_mod AuthorizationContext;
-                let fut: std::pin::Pin<Box<dyn std::future::Future<Output = _> + 'async_trait>> = Box::pin(async move {
-                    ctx.decision_maker().can_act(&#source_mod Event {
-                        context: ctx.context(),
-                        subject: ctx.subject(),
-                        action: std::marker::PhantomData::<#name<Self>>::default(),
-                        object: std::marker::PhantomData::<Self>::default(),
-                        input,
-                    }).await
-                });
-                fut
+                Box::pin(<DM as DecisionMaker<
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                        #name<Self>,
+                        Self,
+                        I,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                    >>::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context()))
             }
-        }
 
-        #[doc = #try_trait_doc]
-        pub trait #try_trait_name<'subject, 'context, Ctx, I>: Send + Sync
-        where
-            Ctx: Sync + 'subject + 'context,
-            I: Send + Sync,
-        {
             #[doc = #try_fn_doc]
-            fn #try_fn_name<'life0, 'async_trait, DM, SC>(
+            fn #try_fn_name<'life0, 'async_trait, DM, SC, TC>(
                 ctx: &'life0 Ctx,
                 input: I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
@@ -164,39 +150,46 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     <#name<Self> as #source_mod StorageAction<SC, I>>::Ok,
                     #source_mod ActionError<
                         <DM as #source_mod DecisionMaker<
-                            <Ctx as #source_mod AuthorizationContext<DM>>::Subject<'subject>,
+                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
                             #name<Self>,
                             Self,
                             I,
-                            <Ctx as #source_mod AuthorizationContext<DM>>::Context<'context>,
+                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                         >>::Error,
                         <#name<Self> as #source_mod StorageAction<SC, I>>::Error,
+                        <TC as #source_mod TransactionCache<SC>>::Error,
                     >,
                 >,
-            > + 'async_trait>>
+            > + Send + 'async_trait>>
             where
                 Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
                 DM: #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Subject<'subject>,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM>>::Context<'context>,
+                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
-                Ctx: #source_mod TryActionContext<DM, SC>,
+                TC: Send + Sync
+                    + #source_mod TransactionCache<SC>
+                    + #source_mod TransactionCacheAction<#name<Self>, SC, I>,
+                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
                 #name<Self>: #source_mod StorageAction<SC, I>,
 
                 'subject: 'async_trait,
                 'context: 'async_trait,
+                'input: 'async_trait,
                 'life0: 'async_trait + 'subject + 'context,
                 Self: 'async_trait,
-                SC: 'async_trait,
                 DM: 'async_trait,
+                SC: 'async_trait,
+                TC: 'async_trait,
                 I: 'async_trait,
             {
+                use #source_mod AuthorizationContext;
+                use #source_mod TransactionCache;
                 use #source_mod TryAct;
-                use #source_mod TryActionContext;
                 let event = #source_mod Event {
                     context: ctx.context(),
                     subject: ctx.subject(),
@@ -204,19 +197,11 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     object: std::marker::PhantomData::<Self>::default(),
                     input,
                 };
-                Box::pin(event.try_act(ctx.decision_maker(), ctx.storage_client()))
+                Box::pin(event.try_act(ctx.decision_maker(), ctx.storage_client(), ctx.transaction_cache()))
             }
         }
 
-        impl<'subject, 'context, 'input, Ctx, T, I> #can_trait_name<'subject, 'context, 'input, Ctx, I> for T
-        where
-            Self: Send + Sync,
-            Ctx: Sync + 'subject + 'context,
-            I: Send + Sync + 'input,
-        {
-        }
-
-        impl<'subject, 'context, Ctx, T, I> #try_trait_name<'subject, 'context, Ctx, I> for T
+        impl<'subject, 'context, 'input, Ctx, T, I> #try_trait_name<'subject, 'context, 'input, Ctx, I> for T
         where
             Self: Send + Sync,
             Ctx: Sync + 'subject + 'context,

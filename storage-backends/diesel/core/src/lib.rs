@@ -34,7 +34,7 @@ pub mod schema;
 mod _operations;
 
 #[cfg(any(feature = "bb8", feature = "deadpool", feature = "mobc"))]
-mod pool;
+pub mod pool;
 
 pub use _operations::operations;
 

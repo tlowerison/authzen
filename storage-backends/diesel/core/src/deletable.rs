@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
 
-pub trait Deletable<'query, C, Tab, I, F, DeletedAt, DeletePatch>: Sized {
+pub trait Deletable<'query, C, Tab, I, Id, DeletedAt, DeletePatch>: Sized {
     fn hard_delete<'life0, 'async_trait>(
         conn: &'life0 mut C,
         ids: I,
@@ -42,24 +42,27 @@ pub trait SoftDeletable {
     type DeletedAt: Default + Column<SqlType = Nullable<Timestamp>> + ExpressionMethods;
 }
 
-impl<'query, C, Tab, I, F, DeletedAt, DeletePatch, T> Deletable<'query, C, Tab, I, F, DeletedAt, DeletePatch> for T
+impl<'query, C, Tab, I, Id, F1, F2, DeletedAt, DeletePatch, T> Deletable<'query, C, Tab, I, Id, DeletedAt, DeletePatch>
+    for T
 where
     C: AsyncConnection + 'static,
 
     // Id bounds
     I: IntoIterator + Send + Sized + 'query,
-    I::Item: Clone + Debug + Hash + Eq + Send + Sync + AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
-    for<'a> &'a Self: Identifiable<Id = &'a <I as IntoIterator>::Item>,
+    I::Item: Clone + Debug + Eq + Hash + Send + Sync + AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
+    Id: AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
 
+    // table bounds
     Tab: Table + QueryId + Send,
     Tab::PrimaryKey: Expression + ExpressionMethods,
     <Tab::PrimaryKey as Expression>::SqlType: SqlType,
-
     Self: Send + HasTable<Table = Tab>,
-    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, Vec<I::Item>>, Output = F>,
-    F: IntoUpdateTarget + Send + 'query,
 
-    DeleteStatement<F::Table, F::WhereClause>:
+    // delete bounds
+    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, I>, Output = F1>,
+    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, Vec<Id>>, Output = F2>,
+    F1: IntoUpdateTarget + Send + 'query,
+    DeleteStatement<F1::Table, F1::WhereClause>:
         LoadQuery<'query, C, Self> + QueryFragment<C::Backend> + QueryId + Send + 'query,
 
     // Audit bounds
@@ -99,7 +102,8 @@ where
     }
 }
 
-impl<'query, C, Tab, I, F, DeletedAt, DeletePatch, T> Deletable<'query, C, Tab, I, F, DeletedAt, DeletePatch> for T
+impl<'query, C, Tab, I, Id, F1, F2, DeletedAt, DeletePatch, T> Deletable<'query, C, Tab, I, Id, DeletedAt, DeletePatch>
+    for T
 where
     T: SoftDeletable,
 
@@ -107,39 +111,47 @@ where
 
     // Id bounds
     I: IntoIterator + Send + Sized + 'query,
-    I::Item: Clone + Debug + Hash + Eq + Send + Sync + AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
-    for<'a> &'a Self: Identifiable<Id = &'a <I as IntoIterator>::Item>,
+    I::Item: Clone + Debug + Eq + Hash + Send + Sync + AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
+    Id: AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
 
+    // table bounds
     Tab: Table + QueryId + Send + 'query,
     Tab::PrimaryKey: Expression + ExpressionMethods,
     <Tab::PrimaryKey as Expression>::SqlType: SqlType,
-
     Self: Send + HasTable<Table = Tab>,
-    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, Vec<I::Item>>, Output = F>,
-    F: IntoUpdateTarget + Send + 'query,
 
-    DeleteStatement<F::Table, F::WhereClause>:
+    // delete bounds
+    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, Vec<I::Item>>, Output = F1>,
+    Tab: FilterDsl<ht::EqAny<Tab::PrimaryKey, Vec<Id>>, Output = F2>,
+    F1: IntoUpdateTarget + Send + 'query,
+    DeleteStatement<F1::Table, F1::WhereClause>:
         LoadQuery<'query, C, Self> + QueryFragment<C::Backend> + QueryId + Send + 'query,
 
     // Audit bounds
     Self: MaybeAudit<'query, C>,
 
+    // specialization
+    Id: Clone + Eq + Hash + Send + Sync + 'query,
+
+    for<'a> &'a Self: Identifiable<Id = &'a Id>,
+
+    for<'a> &'a DeletePatch: HasTable<Table = Tab> + Identifiable<Id = &'a Id> + IntoUpdateTarget,
+    for<'a> <&'a DeletePatch as IntoUpdateTarget>::WhereClause: Send,
+
     I::Item: Into<DeletePatch>,
     DeletePatch: AsChangeset<Target = Tab> + Debug + HasTable<Table = Tab> + IncludesChanges + Send + Sync + 'query,
     DeletePatch::Changeset: Send,
-    for<'a> &'a DeletePatch: HasTable<Table = Tab> + Identifiable<Id = &'a I::Item> + IntoUpdateTarget,
-    for<'a> <&'a DeletePatch as IntoUpdateTarget>::WhereClause: Send,
 
     <Tab as QuerySource>::FromClause: Send,
 
     // UpdateStatement bounds
-    Tab: FindDsl<I::Item>,
-    ht::Find<Tab, I::Item>: HasTable<Table = Tab> + IntoUpdateTarget + Send,
-    <ht::Find<Tab, I::Item> as IntoUpdateTarget>::WhereClause: Send,
-    ht::Update<ht::Find<Tab, I::Item>, DeletePatch>: AsQuery + LoadQuery<'query, C, Self> + Send,
+    Tab: FindDsl<Id>,
+    ht::Find<Tab, Id>: HasTable<Table = Tab> + IntoUpdateTarget + Send,
+    <ht::Find<Tab, Id> as IntoUpdateTarget>::WhereClause: Send,
+    ht::Update<ht::Find<Tab, Id>, DeletePatch>: AsQuery + LoadQuery<'query, C, Self> + Send,
 
     // Filter bounds for records whose changesets do not include any changes
-    F: IsNotDeleted<'query, C, Self, Self>,
+    F2: IsNotDeleted<'query, C, Self, Self>,
 {
     default fn maybe_soft_delete<'life0, 'async_trait>(
         conn: &'life0 mut C,
@@ -150,11 +162,11 @@ where
         'life0: 'async_trait,
         Self: 'async_trait,
     {
-        let patches = ids.into_iter().map(Into::into).collect::<Vec<DeletePatch>>();
-        let ids = patches.iter().map(|patch| patch.id().clone()).collect::<Vec<_>>();
-
         Box::pin(async move {
             let result = (move || async move {
+                let patches = ids.into_iter().map(Into::into).collect::<Vec<DeletePatch>>();
+                let ids = patches.iter().map(|patch| patch.id().clone()).collect::<Vec<_>>();
+
                 let no_change_patch_ids = patches
                     .iter()
                     .filter_map(
@@ -190,7 +202,7 @@ where
                 let mut all_records = unchanged_records
                     .into_iter()
                     .chain(all_updated.into_iter())
-                    .map(|record| (record.id().clone(), record))
+                    .map(|record| (record.id().to_owned(), record))
                     .collect::<HashMap<_, _>>();
 
                 Ok(ids.iter().map(|id| all_records.remove(id).unwrap()).collect::<Vec<_>>())

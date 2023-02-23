@@ -17,6 +17,8 @@ pub(crate) use std::fmt::Debug;
 pub(crate) use std::str::FromStr;
 pub(crate) use syn::{punctuated::Punctuated, Error};
 
+use std::borrow::Cow;
+
 #[macro_export]
 macro_rules! ok_or_return_compile_error {
     ($expr:expr) => {
@@ -33,9 +35,9 @@ macro_rules! ok_or_return_compile_error {
 #[derive(Clone, Debug)]
 pub struct MatchedAttribute<'a> {
     /// The entire attribute which was matched for based on its path.
-    pub attr: &'a syn::Attribute,
+    pub attr: Cow<'a, syn::Attribute>,
     /// The field on which the matched attribute is found.
-    pub field: &'a syn::Field,
+    pub field: Cow<'a, syn::Field>,
     /// The token stream representation of the accessor to be used in dot notation for accessing this
     /// matched field in its parent struct. Has type [`proc_macro2::TokenStream`] instead of
     /// [`syn::Type`] in order to handle the case of unnamed fields, where the tokens are just an
@@ -85,8 +87,8 @@ pub fn find_field_attribute_in_struct<'a>(
     };
 
     Ok(MatchedAttribute {
-        attr,
-        field,
+        attr: Cow::Borrowed(attr),
+        field: Cow::Borrowed(field),
         field_accessor,
     })
 }
@@ -117,8 +119,8 @@ pub fn find_field_attributes_in_struct<'a>(
                 None => TokenStream::from_str(&format!("{field_index}")).unwrap().into(),
             };
             MatchedAttribute {
-                attr,
-                field,
+                attr: Cow::Borrowed(attr),
+                field: Cow::Borrowed(field),
                 field_accessor,
             }
         })

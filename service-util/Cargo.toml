@@ -38,7 +38,7 @@ session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee
 tonic = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["signal"], optional = true }
 tower = { workspace = true, optional = true }
-tower-http = { workspace = true, features = ["request-id"], optional = true }
+tower-http = { workspace = true, features = ["cors", "request-id"], optional = true }
 tower-layer = { workspace = true, optional = true }
 tower-service = { workspace = true, optional = true }
 tracing-error = { workspace = true, optional = true }

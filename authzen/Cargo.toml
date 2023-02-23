@@ -29,6 +29,8 @@ diesel-mobc = ["diesel-storage-backend", "authzen-diesel/mobc"]
 
 extra-traits = ["core/extra-traits"]
 
+mongodb-tx-cache = ["core/mongodb-tx-cache"]
+
 opa-decision-maker = ["authzen-opa", "core/opa-decision-maker"]
 
 service-util-axum-05 = ["service-util/axum-05"]

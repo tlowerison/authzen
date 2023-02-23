@@ -1,4 +1,5 @@
 use crate::*;
+use ::serde::{de::DeserializeOwned, Serialize};
 use authzen_diesel::{connection::Db, prelude::*};
 use diesel::associations::HasTable;
 use diesel::backend::Backend;
@@ -13,6 +14,7 @@ use diesel::{Insertable, Table};
 use diesel_async::methods::*;
 use std::fmt::Debug;
 use std::hash::Hash;
+use uuid::Uuid;
 
 impl<B> StorageBackend for B where B: Backend {}
 
@@ -25,13 +27,30 @@ where
 
 impl<C: Db> StorageClient for C {
     type Backend = <C as Db>::Backend;
+    type TransactionId<'a> = Uuid where Self: 'a;
+
+    fn transaction_id(&self) -> Option<Self::TransactionId<'_>> {
+        self.tx_id()
+    }
+}
+
+impl<T, Id> crate::Identifiable for T
+where
+    for<'a> &'a T: Identifiable<Id = &'a Id>,
+    Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static,
+{
+    type Id = Id;
+
+    fn id(&self) -> &Self::Id {
+        <&Self as Identifiable>::id(self)
+    }
 }
 
 #[async_trait]
 impl<'query, 'v, E, B, I, C, O> StorageAction<C, I> for actions::Create<O>
 where
-    O: AsStorage<B, StorageObject = E>,
-    E: DbInsert,
+    O: ?Sized + AsStorage<B, StorageObject = E>,
+    E: DbInsert + Sync,
     B: Backend,
     I: IntoIterator<Item = E::PostHelper<'v>> + Send,
     C: Db<Backend = B>,
@@ -67,10 +86,10 @@ where
 }
 
 #[async_trait]
-impl<'query, 'v, E, B, I, C, F, O> StorageAction<C, I> for actions::Delete<O>
+impl<'query, 'v, E, B, I, C, O> StorageAction<C, I> for actions::Delete<O>
 where
-    O: AsStorage<B, StorageObject = E>,
-    E: DbDelete,
+    O: ?Sized + AsStorage<B, StorageObject = E>,
+    E: DbDelete + Sync,
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
     C: Db<Backend = B> + 'query,
@@ -82,9 +101,8 @@ where
     E::Id: Debug + Send,
     for<'a> &'a E::Raw: Identifiable<Id = &'a E::Id>,
     <E::Table as Table>::PrimaryKey: Expression + ExpressionMethods,
-    E::Table: FilterDsl<ht::EqAny<<E::Table as Table>::PrimaryKey, Vec<E::Id>>, Output = F>,
 
-    E::Raw: Deletable<'query, C::AsyncConnection, E::Table, I, F, E::DeletedAt, E::DeletePatch<'v>>,
+    E::Raw: Deletable<'query, C::AsyncConnection, E::Table, I, E::Id, E::DeletedAt, E::DeletePatch<'v>>,
 {
     type Ok = Vec<E>;
     type Error = DbEntityError<<E::Raw as TryInto<E>>::Error>;
@@ -101,8 +119,8 @@ where
 #[async_trait]
 impl<E, B, I, C, F, O> StorageAction<C, I> for actions::Read<O>
 where
-    O: AsStorage<B, StorageObject = E>,
-    E: DbEntity,
+    O: ?Sized + AsStorage<B, StorageObject = E>,
+    E: DbEntity + Sync,
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
     C: Db<Backend = B>,
@@ -133,8 +151,8 @@ where
 #[async_trait]
 impl<'query, 'v, E, B, I, C, F, O> StorageAction<C, I> for actions::Update<O>
 where
-    O: AsStorage<B, StorageObject = E>,
-    E: DbUpdate,
+    O: ?Sized + AsStorage<B, StorageObject = E>,
+    E: DbUpdate + Sync,
     B: Backend,
     I: IntoIterator<Item = E::PatchHelper<'v>> + Send + 'v,
     C: Db<Backend = B> + 'query,

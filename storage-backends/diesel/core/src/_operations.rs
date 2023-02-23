@@ -504,7 +504,7 @@ pub mod operations {
 
         #[framed]
         #[instrument(skip_all)]
-        async fn delete<'query, 'v, D, F, I>(
+        async fn delete<'query, 'v, D, I>(
             db: &D,
             ids: I,
         ) -> Result<Vec<Self>, DbEntityError<<Self::Raw as TryInto<Self>>::Error>>
@@ -519,7 +519,8 @@ pub mod operations {
             <Self::Table as Table>::PrimaryKey: Expression + ExpressionMethods,
             <<Self::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
 
-            Self::Raw: Deletable<'query, D::AsyncConnection, Self::Table, I, F, Self::DeletedAt, Self::DeletePatch<'v>>,
+            Self::Raw:
+                Deletable<'query, D::AsyncConnection, Self::Table, I, Self::Id, Self::DeletedAt, Self::DeletePatch<'v>>,
         {
             db.raw_tx(move |conn| {
                 async move {

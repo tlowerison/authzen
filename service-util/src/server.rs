@@ -19,6 +19,8 @@ pub enum RawBody<B = Body> {
     Axum05(axum_05::extract::RawBody<B>),
     #[cfg(feature = "axum-06")]
     Axum06(axum_06::extract::RawBody<B>),
+    #[doc(hidden)]
+    Empty(std::marker::PhantomData<B>),
 }
 
 impl RawBody {
@@ -28,6 +30,7 @@ impl RawBody {
             Self::Axum05(raw_body) => hyper::body::HttpBody::size_hint(&raw_body.0),
             #[cfg(feature = "axum-06")]
             Self::Axum06(raw_body) => hyper::body::HttpBody::size_hint(&raw_body.0),
+            Self::Empty(_) => unreachable!(),
         }
     }
 }
@@ -118,6 +121,7 @@ pub async fn from_body<T: serde::de::DeserializeOwned>(raw_body: impl Into<RawBo
             RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
             #[cfg(feature = "axum-06")]
             RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            RawBody::Empty(_) => unreachable!(),
         };
         bytes
             .map_err(|_| crate::Error::bad_request_msg("invalid request body"))
@@ -146,6 +150,7 @@ pub async fn body_bytes(raw_body: impl Into<RawBody>) -> Result<Vec<u8>, crate::
             RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
             #[cfg(feature = "axum-06")]
             RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            RawBody::Empty(_) => unreachable!(),
         };
         bytes
             .map(|bytes| bytes.to_vec())
@@ -268,16 +273,16 @@ impl headers::Header for RequestId {
         &_X_REQUEST_ID
     }
 
-    fn decode<'i, I>(values: &mut I) -> Result<Self, axum_05::headers::Error>
+    fn decode<'i, I>(values: &mut I) -> Result<Self, headers::Error>
     where
         I: Iterator<Item = &'i hyper::header::HeaderValue>,
     {
-        let value = values.next().ok_or_else(axum_05::headers::Error::invalid)?;
+        let value = values.next().ok_or_else(headers::Error::invalid)?;
 
-        let value = value.to_str().map_err(|_| axum_05::headers::Error::invalid())?;
+        let value = value.to_str().map_err(|_| headers::Error::invalid())?;
         match Uuid::parse_str(value) {
             Ok(request_id) => Ok(Self(request_id)),
-            Err(_) => Err(axum_05::headers::Error::invalid()),
+            Err(_) => Err(headers::Error::invalid()),
         }
     }
 

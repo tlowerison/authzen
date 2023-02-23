@@ -3,20 +3,28 @@
 #[macro_use]
 extern crate async_trait;
 #[macro_use]
+extern crate cfg_if;
+#[macro_use]
 extern crate derive_more;
 #[macro_use]
 extern crate serde_with;
 
 mod decision_makers;
 mod storage_backends;
+pub mod transaction_caches;
 
 #[cfg(feature = "extra-traits")]
 mod extra_traits;
 
-use ::serde::{Deserialize, Serialize};
+use ::serde::{de::DeserializeOwned, Deserialize, Serialize};
 use derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
+use std::borrow::Borrow;
+use std::collections::HashMap;
 use std::fmt::Debug;
+use std::future::Future;
+use std::hash::Hash;
 use std::marker::PhantomData;
+use std::pin::Pin;
 use typed_builder::TypedBuilder;
 
 /// Compile time information about an action.
@@ -28,54 +36,68 @@ pub trait ActionType {
 /// An action which requires authorization.
 #[doc(hidden)]
 #[async_trait]
-pub trait TryAct<C, DM, Subject, Object, Input, Context>:
+pub trait TryAct<SC, DM, Subject, Object, Input, Context, TC>:
     Into<Event<Subject, Self::Action, Object, Input, Context>>
 where
-    C: ?Sized + StorageClient + Send + Sync,
+    SC: ?Sized + StorageClient + Send + Sync,
     DM: ?Sized + DecisionMaker<Subject, Self::Action, Object, Input, Context> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
+    TC: Send + Sync + TransactionCache<SC> + TransactionCacheAction<Self::Action, SC, Input>,
 {
     /// Action to be authorized and performed.
-    type Action: ActionType + StorageAction<C, Input> + Send + Sync;
+    type Action: ActionType + StorageAction<SC, Input> + Send + Sync;
 
     async fn try_act(
         self,
         decision_maker: &DM,
-        storage_client: &C,
+        storage_client: &SC,
+        transaction_cache: &TC,
     ) -> Result<
-        <Self::Action as StorageAction<C, Input>>::Ok,
+        <Self::Action as StorageAction<SC, Input>>::Ok,
         ActionError<
             <DM as DecisionMaker<Subject, Self::Action, Object, Input, Context>>::Error,
-            <Self::Action as StorageAction<C, Input>>::Error,
+            <Self::Action as StorageAction<SC, Input>>::Error,
+            TC::Error,
         >,
     >
     where
-        C: 'async_trait,
+        DM: 'async_trait,
+        SC: 'async_trait,
+        TC: 'async_trait,
         Input: 'async_trait,
     {
         let event = self.into();
-        decision_maker.can_act(&event).await.map_err(ActionError::authz)?;
-        Ok(Self::Action::act(storage_client, event.input)
+        decision_maker
+            .can_act(event.subject, &event.input, event.context)
             .await
-            .map_err(ActionError::storage)?)
+            .map_err(ActionError::authz)?;
+        let ok = Self::Action::act(storage_client, event.input)
+            .await
+            .map_err(ActionError::storage)?;
+        transaction_cache
+            .handle_success(&storage_client, &ok)
+            .await
+            .map_err(ActionError::transaction_cache)?;
+        Ok(ok)
     }
 }
 
 #[async_trait]
-impl<C, DM, Subject, A, Object, Input, Context> TryAct<C, DM, Subject, Object, Input, Context>
+impl<SC, DM, Subject, A, Object, Input, Context, TC> TryAct<SC, DM, Subject, Object, Input, Context, TC>
     for Event<Subject, A, Object, Input, Context>
 where
-    C: ?Sized + StorageClient + Send + Sync,
-    DM: ?Sized + DecisionMaker<Subject, A, Object, Input, Context> + Sync,
+    SC: ?Sized + StorageClient + Send + Sync,
+    DM: ?Sized + for<'a> DecisionMaker<Subject, A, Object, Input, Context> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
+    TC: Send + Sync + TransactionCache<SC> + TransactionCacheAction<A, SC, Input>,
 
-    A: ActionType + StorageAction<C, Input> + Send + Sync,
+    A: ActionType + StorageAction<SC, Input> + Send + Sync,
 {
     type Action = A;
 }
@@ -152,6 +174,17 @@ pub trait StorageBackend {}
 pub trait StorageClient {
     /// The backend this client will act upon.
     type Backend: StorageBackend;
+    /// The type for ids associated with transactions used by this client.
+    /// If this client does not support transactions just set this value to `()`.
+    type TransactionId<'a>: Clone + Eq + Hash + Send + Serialize + Sync
+    where
+        Self: 'a;
+
+    /// Returns the current transaction id if there is one available
+    /// for this client. Must return Some for clients which expect
+    /// to use a transaction cache to assist a decision maker. If
+    /// this client does not support transactions just return `None`.
+    fn transaction_id(&self) -> Option<Self::TransactionId<'_>>;
 }
 
 /// Connects an object with its backend representation for a specific backend.
@@ -179,7 +212,7 @@ pub trait StorageAction<Client: ?Sized, Input>
 where
     Client: StorageClient + Send,
 {
-    type Ok: Send;
+    type Ok: Send + Sync;
     type Error: Debug + Send;
 
     /// Carries out the intended action in the storage backend of `Client`.
@@ -200,30 +233,351 @@ where
 {
     type Ok: Debug + Send;
     type Error: Debug + Send;
-    async fn can_act(&self, event: &Event<Subject, Action, Object, Input, Context>) -> Result<Self::Ok, Self::Error>;
+    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    where
+        Subject: 'async_trait,
+        Action: 'async_trait,
+        Object: 'async_trait,
+        Input: 'async_trait,
+        Context: 'async_trait;
 }
 
 #[async_trait]
 impl<Subject, Action, Object, Input, Context, T> DecisionMaker<Subject, Action, Object, Input, Context> for &T
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
-    Subject: Serialize,
-    Action: ?Sized + ActionType,
-    Object: ?Sized + ObjectType,
-    Input: Serialize,
-    Context: Serialize,
+    Subject: Send + Serialize,
+    Action: ?Sized + ActionType + Sync,
+    Object: ?Sized + ObjectType + Sync,
+    Input: Serialize + Sync,
+    Context: Send + Serialize,
     T: ?Sized + DecisionMaker<Subject, Action, Object, Input, Context> + Send + Sync,
 {
     type Ok = T::Ok;
     type Error = T::Error;
-    async fn can_act(&self, event: &Event<Subject, Action, Object, Input, Context>) -> Result<Self::Ok, Self::Error> {
-        (**self).can_act(event).await
+    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    where
+        Subject: 'async_trait,
+        Action: 'async_trait,
+        Object: 'async_trait,
+        Input: 'async_trait,
+        Context: 'async_trait,
+    {
+        <T as DecisionMaker<Subject, Action, Object, Input, Context>>::can_act(*self, subject, input, context).await
     }
 }
 
-/// Wraps only the authorization decision making
-/// component of an action requiring authorization.
-pub trait AuthorizationContext<DM> {
+pub trait Identifiable {
+    type Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static;
+    fn id(&self) -> &Self::Id;
+}
+
+pub trait TransactionCache<SC: ?Sized + StorageClient> {
+    type Error: Debug + Send;
+
+    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+    ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone;
+
+    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        ids: &'life2 [T::Id],
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone;
+
+    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize;
+
+    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize;
+}
+
+impl<SC: ?Sized + StorageClient> TransactionCache<SC> for () {
+    type Error = std::convert::Infallible;
+
+    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+        &'life0 self,
+        _: SC::TransactionId<'life1>,
+    ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone,
+    {
+        Box::pin(async { Ok(Default::default()) })
+    }
+
+    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        _: SC::TransactionId<'life1>,
+        _: &'life2 [T::Id],
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone,
+    {
+        Box::pin(async { Ok(Default::default()) })
+    }
+
+    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        _: SC::TransactionId<'life1>,
+        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize,
+    {
+        Box::pin(async { Ok(Default::default()) })
+    }
+
+    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        _: SC::TransactionId<'life1>,
+        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize,
+    {
+        Box::pin(async { Ok(Default::default()) })
+    }
+}
+
+impl<SC: ?Sized + StorageClient, TC: TransactionCache<SC>> TransactionCache<SC> for &TC {
+    type Error = TC::Error;
+
+    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+    ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone,
+    {
+        (*self).get_entities::<O, T>(transaction_id)
+    }
+
+    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        ids: &'life2 [T::Id],
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: DeserializeOwned + Identifiable + Send,
+        T::Id: Clone,
+    {
+        (*self).get_by_ids::<O, T>(transaction_id, ids)
+    }
+
+    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize,
+    {
+        (*self).upsert::<O, T>(transaction_id, entities)
+    }
+
+    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+
+        O: ?Sized + ObjectType,
+        T: Identifiable + Serialize,
+        SC::TransactionId<'life1>: Clone + Serialize,
+    {
+        (*self).mark_deleted::<O, T>(transaction_id, entities)
+    }
+}
+
+pub trait TransactionCacheAction<A, SC, I>: TransactionCache<SC>
+where
+    SC: ?Sized + StorageClient + Send + Sync,
+    A: StorageAction<SC, I> + Send,
+{
+    fn handle_success<'life0, 'life1, 'life2, 'async_trait>(
+        &'life0 self,
+        storage_client: &'life1 SC,
+        ok: &'life1 A::Ok,
+    ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
+    where
+        Self: Sync,
+        Self: 'async_trait,
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+    {
+        if let Some(transaction_id) = storage_client.transaction_id() {
+            self.manage_cache(transaction_id, ok)
+        } else {
+            Box::pin(async { Ok(()) })
+        }
+    }
+
+    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        ok: &'life2 A::Ok,
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    where
+        Self: Sync,
+        Self: 'async_trait,
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait;
+}
+
+impl<A, SC, I> TransactionCacheAction<A, SC, I> for ()
+where
+    SC: ?Sized + StorageClient + Send + Sync,
+    A: StorageAction<SC, I> + Send,
+{
+    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+        &'life0 self,
+        _: SC::TransactionId<'life1>,
+        _: &'life2 A::Ok,
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    where
+        Self: Sync,
+        Self: 'async_trait,
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+    {
+        Box::pin(async { Ok(()) })
+    }
+}
+
+impl<A, SC, I, TCA> TransactionCacheAction<A, SC, I> for &TCA
+where
+    SC: ?Sized + StorageClient + Send + Sync,
+    A: StorageAction<SC, I> + Send,
+    TCA: TransactionCacheAction<A, SC, I> + Sync,
+{
+    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+        &'life0 self,
+        transaction_id: SC::TransactionId<'life1>,
+        ok: &'life2 A::Ok,
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    where
+        Self: Sync,
+        Self: 'async_trait,
+        'life0: 'async_trait,
+        'life1: 'async_trait,
+        'life2: 'async_trait,
+    {
+        (*self).manage_cache(transaction_id, ok)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TxCacheEntity<T, Id> {
+    pub exists: bool,
+    pub id: Id,
+    pub value: T,
+}
+
+impl<T, Id> TxCacheEntity<T, Id> {
+    pub fn map<U>(self, f: impl FnOnce(T) -> U) -> TxCacheEntity<U, Id> {
+        TxCacheEntity {
+            exists: self.exists,
+            id: self.id,
+            value: f(self.value),
+        }
+    }
+    pub fn try_map<U, E>(self, f: impl FnOnce(T) -> Result<U, E>) -> Result<TxCacheEntity<U, Id>, E> {
+        Ok(TxCacheEntity {
+            exists: self.exists,
+            id: self.id,
+            value: f(self.value)?,
+        })
+    }
+}
+
+/// Wraps all components of an action requiring authorization
+/// which can be expected to be carried around in an
+/// application context.
+pub trait AuthorizationContext<DM, SC, TC> {
     /// decision context
     type Context<'a>: Send + Sync
     where
@@ -236,19 +590,14 @@ pub trait AuthorizationContext<DM> {
     fn context(&self) -> Self::Context<'_>;
     fn subject(&self) -> Self::Subject<'_>;
     fn decision_maker(&self) -> &DM;
-}
-
-/// Wraps all components of an action requiring authorization
-/// which can be expected to be carried around in an
-/// application context.
-pub trait TryActionContext<DM, SC>: AuthorizationContext<DM> {
     fn storage_client(&self) -> &SC;
+    fn transaction_cache(&self) -> &TC;
 }
 
 /// Represents the possible sources of error when performing
 /// an action which requires authorization.
 #[derive(AsVariant, AsVariantMut, Clone, Copy, Debug, Error, IsVariant, Unwrap)]
-pub enum ActionError<E1, E2> {
+pub enum ActionError<E1, E2, E3> {
     /// Wraps an error returned from a [`DecisionMaker`] when the subject is either not authorized to
     /// perform an action or some other issue occurs while communicating with the
     /// [`DecisionMaker`].
@@ -258,14 +607,20 @@ pub enum ActionError<E1, E2> {
     /// of this include network errors while communicating with an api or database, unique
     /// constraint violations raised by a database, etc.
     Storage(E2),
+    /// Wraps an error returned from a [`TransactionCache`] when updating the transaction
+    /// cache after a successful performance of the action.
+    TransactionCache(E3),
 }
 
-impl<E1, E2> ActionError<E1, E2> {
+impl<E1, E2, E3> ActionError<E1, E2, E3> {
     pub fn authz(err: E1) -> Self {
         Self::Authz(err)
     }
     pub fn storage(err: E2) -> Self {
         Self::Storage(err)
+    }
+    pub fn transaction_cache(err: E3) -> Self {
+        Self::TransactionCache(err)
     }
 }
 

@@ -26,7 +26,7 @@ cargo watch \
 ### Build
 To generate the docs, cd into the root of the repository and run:
 ```sh
-cargo +nightly doc --workspace --no-deps --verbose --color always
+cargo +nightly doc --workspace --no-deps --all-features --verbose --color always
 echo "<meta http-equiv=\"refresh\" content=\"0; url=authzen\">" > target/doc/index.html
 rm -rf docs
 mkdir docs

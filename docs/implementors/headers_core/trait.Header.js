@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"authzen_service_util":[["impl <a class=\"trait\" href=\"https://docs.rs/headers-core/0.2.0/headers_core/trait.Header.html\" title=\"trait headers_core::Header\">Header</a> for <a class=\"struct\" href=\"authzen_service_util/struct.RequestId.html\" title=\"struct authzen_service_util::RequestId\">RequestId</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

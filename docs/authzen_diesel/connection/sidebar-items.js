@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["DbConnection","TxCleanupError"],"trait":["Db","TxFn"],"type":["TxCleanup"]};
+window.SIDEBAR_ITEMS = {"enum":["PooledConnection"],"struct":["DbConnection","TxCleanupError"],"trait":["Db","TxFn"],"type":["TxCleanup"]};

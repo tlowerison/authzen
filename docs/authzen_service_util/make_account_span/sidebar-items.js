@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["debug","error","info","trace","warn"]};

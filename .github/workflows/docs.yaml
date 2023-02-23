@@ -20,8 +20,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - id: ruby-env
-      run: echo ::set-output docs_dir="$GITHUB_WORKSPACE/docs"
+    - name: Set docs directory environment variable
+      run: echo "DOCS_DIR=\"$GITHUB_WORKSPACE/docs\"" >> $GITHUB_OUTPUT
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
@@ -29,7 +29,7 @@ jobs:
         ruby-version: "3.1.3" # Not needed with a .ruby-version file
         bundler-cache: false # runs "bundle install" and caches installed gems automatically
         cache-version: 0 # Increment this number if you need to re-download cached gems
-        working-directory: ${{ steps.ruby-env.outputs.docs_dir }}
+        working-directory:  ${{ env.DOCS_DIR }}
 
     - name: Install nightly rust toolchain
       run: rustup toolchain install nightly

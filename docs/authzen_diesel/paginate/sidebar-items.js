@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["MAX_PAGINATE_COUNT","Page","Paged","Paginated"],"trait":["CanPaginate","PageRef","Paginate","Partition"]};

@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
-use proc_macro_util::match_path;
-use quote::quote;
+use proc_macro_util::{add_general_bounds_to_generics, match_path};
+use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse2, parse_quote, punctuated::Punctuated, Error, Token};
 
@@ -83,6 +83,29 @@ pub fn authz_object(item: TokenStream) -> Result<TokenStream, Error> {
         }
     };
 
+    match inner_ty {
+        syn::Type::Path(type_path) => {
+            let mut inner_ty_lifetime = None::<syn::Lifetime>;
+            for path_segment in &type_path.path.segments {
+                if let syn::PathArguments::AngleBracketed(generics) = &path_segment.arguments  {
+                    for arg in &generics.args {
+                        if let syn::GenericArgument::Lifetime(lt) = arg {
+                            if inner_ty_lifetime.is_some() {
+                                return Err(Error::new_spanned(lt, "authzen::AuthzObject currently can only be derived on types whose generic type parameter to Cow have at most one lifetime"));
+                            }
+                            inner_ty_lifetime = Some(lt.clone());
+                        }
+                    }
+                }
+            }
+            inner_ty_lifetime.unwrap_or_else(|| parse_quote!('__authzen_authz_object_inner_ty))
+        },
+        _ => return Err(Error::new_spanned(
+            inner_ty,
+            "expected type argument to std::borrow::Cow to be a type path (i.e. not a reference, slice, etc. -- see https://docs.rs/syn/latest/syn/enum.Type.html#variant.Path)"
+        )),
+    };
+
     if match_path(&parse_quote!(std::borrow::Cow #field_path_arguments), field_type_path).is_err() {
         return Err(Error::new_spanned(
             field_type_path,
@@ -97,30 +120,53 @@ pub fn authz_object(item: TokenStream) -> Result<TokenStream, Error> {
 
     let AuthzObjectArgs { service, ty } = attr.parse_args()?;
 
+    let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+
+    let mut identifiable_generics = ast.generics.clone();
+    add_general_bounds_to_generics(
+        &mut identifiable_generics,
+        [parse_quote!(#inner_ty: authzen::Identifiable)],
+    );
+    let (_, _, identifiable_where_clause) = identifiable_generics.split_for_impl();
+
+    let backend_ident = format_ident!("Backend");
+    let mut as_storage_generics = ast.generics.clone();
+    as_storage_generics.params.push(parse_quote!(#backend_ident));
+    add_general_bounds_to_generics(
+        &mut as_storage_generics,
+        [parse_quote!(#inner_ty: authzen::StorageObject<Backend>)],
+    );
+    let (as_storage_impl_generics, _, as_storage_where_clause) = as_storage_generics.split_for_impl();
+
     let tokens = quote! {
-        impl<#lifetime> From<#inner_ty> for #ident<#lifetime> {
+        impl #impl_generics From<#inner_ty> for #ident #ty_generics #where_clause {
             fn from(value: #inner_ty) -> Self {
                 Self(std::borrow::Cow::Owned(value))
             }
         }
 
-        impl<#lifetime> From<&#lifetime #inner_ty> for #ident<#lifetime> {
+        impl #impl_generics From<&#lifetime #inner_ty> for #ident #ty_generics #where_clause {
             fn from(value: &#lifetime #inner_ty) -> Self {
                 Self(std::borrow::Cow::Borrowed(value))
             }
         }
 
-        impl<#lifetime> authzen::ObjectType for #ident<#lifetime> {
+        impl #impl_generics authzen::ObjectType for #ident #ty_generics #where_clause {
             const SERVICE: &'static str = #service;
             const TYPE: &'static str = #ty;
         }
 
-        impl<#lifetime, Backend> authzen::AsStorage<Backend> for #ident<#lifetime>
-        where
-            #inner_ty: authzen::StorageObject<Backend>,
-        {
-            type Constructor<'__authz_object> = #ident<'__authz_object>;
+        impl #as_storage_impl_generics authzen::AsStorage<#backend_ident> for #ident #ty_generics #as_storage_where_clause {
+            type Constructor<'__authzen_authz_object> = #ident<'__authzen_authz_object>;
             type StorageObject = #inner_ty;
+        }
+
+        impl #impl_generics authzen::Identifiable for #ident #ty_generics #identifiable_where_clause {
+            type Id = <#inner_ty as Identifiable>::Id;
+            fn id(&self) -> &Self::Id {
+                use std::ops::Deref;
+                self.deref().id()
+            }
         }
     };
 

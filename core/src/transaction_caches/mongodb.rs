@@ -1,11 +1,11 @@
 use crate::actions::*;
 use crate::*;
+use ::chrono::Utc;
+use ::futures::future::BoxFuture;
+use ::futures::stream::TryStreamExt;
+use ::mongodb::bson::{self, doc, Bson, Document};
 use ::serde::{Deserialize, Serialize};
-use chrono::Utc;
-use futures::future::BoxFuture;
-use futures::stream::TryStreamExt;
-use mongodb::bson::{self, doc, Bson, Document};
-use service_util::{instrument_field, Error};
+use ::service_util::{instrument_field, Error};
 
 pub const TTL_INDEX_NAME: &str = "edited_at_ttl";
 pub const DEFAULT_TTL_SECONDS: u64 = 120;
@@ -136,26 +136,26 @@ pub async fn initialize_ttl_index(
     Ok(())
 }
 
-impl<SC: ?Sized + StorageClient> TransactionCache<SC> for MongodbTxCollection {
+impl TransactionCache for MongodbTxCollection {
     type Error = Error;
 
-    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+    fn get_entities<'life0, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
+        transaction_id: TransactionId,
     ) -> BoxFuture<'async_trait, Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>>
     where
         'life0: 'async_trait,
-        'life1: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async move {
             instrument_field!("service_name", O::SERVICE);
             instrument_field!("object_type", O::TYPE);
-            let pipeline =
-                group_pipeline::<SC::TransactionId<'_>, O, T>(transaction_id, None).map_err(Error::default_details)?;
+            let pipeline = group_pipeline::<_, O, T>(transaction_id, None).map_err(Error::default_details)?;
             let mut cursor = self.aggregate(pipeline, None).await.map_err(Error::default_details)?;
 
             let mut entities = Vec::<TxCacheEntity<T, T::Id>>::default();
@@ -168,25 +168,25 @@ impl<SC: ?Sized + StorageClient> TransactionCache<SC> for MongodbTxCollection {
         })
     }
 
-    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn get_by_ids<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ids: &'life2 [T::Id],
+        transaction_id: TransactionId,
+        ids: &'life1 [T::Id],
     ) -> BoxFuture<'async_trait, Result<Vec<T>, Self::Error>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async move {
             instrument_field!("service_name", O::SERVICE);
             instrument_field!("object_type", O::TYPE);
-            let pipeline =
-                group_pipeline::<SC::TransactionId<'_>, O, T>(transaction_id, ids).map_err(Error::default_details)?;
+            let pipeline = group_pipeline::<_, O, T>(transaction_id, ids).map_err(Error::default_details)?;
             let mut cursor = self.aggregate(pipeline, None).await.map_err(Error::default_details)?;
 
             let mut entities = Vec::<TxCacheEntity<T, T::Id>>::default();
@@ -199,19 +199,19 @@ impl<SC: ?Sized + StorageClient> TransactionCache<SC> for MongodbTxCollection {
         })
     }
 
-    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn upsert<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> BoxFuture<'async_trait, Result<(), Self::Error>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
         Box::pin(async move {
             instrument_field!("service_name", O::SERVICE);
@@ -228,19 +228,19 @@ impl<SC: ?Sized + StorageClient> TransactionCache<SC> for MongodbTxCollection {
         })
     }
 
-    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn mark_deleted<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> BoxFuture<'async_trait, Result<(), Self::Error>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
         Box::pin(async move {
             instrument_field!("service_name", O::SERVICE);
@@ -270,7 +270,7 @@ where
         &'life0 self,
         transaction_id: SC::TransactionId<'life1>,
         ok: &'life2 <Create<O> as StorageAction<SC, I>>::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -278,7 +278,7 @@ where
         'life1: 'async_trait,
         'life2: 'async_trait,
     {
-        <Self as TransactionCache<SC>>::upsert::<O, T>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
     }
 }
 
@@ -294,7 +294,7 @@ where
         &'life0 self,
         transaction_id: SC::TransactionId<'life1>,
         ok: &'life2 <Delete<O> as StorageAction<SC, I>>::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -302,7 +302,7 @@ where
         'life1: 'async_trait,
         'life2: 'async_trait,
     {
-        <Self as TransactionCache<SC>>::mark_deleted::<O, T>(self, transaction_id, ok)
+        <Self as TransactionCache>::mark_deleted::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
     }
 }
 
@@ -316,7 +316,7 @@ where
         &'life0 self,
         _: SC::TransactionId<'life1>,
         _: &'life2 <Read<O> as StorageAction<SC, I>>::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -340,7 +340,7 @@ where
         &'life0 self,
         transaction_id: SC::TransactionId<'life1>,
         ok: &'life2 <Update<O> as StorageAction<SC, I>>::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -348,6 +348,6 @@ where
         'life1: 'async_trait,
         'life2: 'async_trait,
     {
-        <Self as TransactionCache<SC>>::upsert::<O, T>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
     }
 }

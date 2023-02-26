@@ -107,7 +107,6 @@ pub async fn shutdown_signal() {
     info!("signal received, starting graceful shutdown");
 }
 
-#[cfg(any(feature = "axum-05", feature = "axum-06"))]
 pub async fn from_body<T: serde::de::DeserializeOwned>(raw_body: impl Into<RawBody>) -> Result<T, crate::Error> {
     let raw_body = raw_body.into();
 
@@ -115,20 +114,22 @@ pub async fn from_body<T: serde::de::DeserializeOwned>(raw_body: impl Into<RawBo
         .size_hint()
         .upper()
         .unwrap_or(MAX_ALLOWED_REQUEST_BODY_SIZE + 1);
+    #[allow(unreachable_code)]
     if content_length < MAX_ALLOWED_REQUEST_BODY_SIZE {
-        let bytes = match raw_body {
+        #[allow(unused_variables)]
+        let bytes: hyper::body::Bytes = match raw_body {
             #[cfg(feature = "axum-05")]
-            RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            RawBody::Axum05(axum_05::extract::RawBody(body)) => hyper::body::to_bytes(body)
+                .await
+                .map_err(|_| crate::Error::bad_request_msg("invalid request body"))?,
             #[cfg(feature = "axum-06")]
-            RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body).await,
+            RawBody::Axum06(axum_06::extract::RawBody(body)) => hyper::body::to_bytes(body)
+                .await
+                .map_err(|_| crate::Error::bad_request_msg("invalid request body"))?,
             RawBody::Empty(_) => unreachable!(),
         };
-        bytes
-            .map_err(|_| crate::Error::bad_request_msg("invalid request body"))
-            .and_then(|bytes| {
-                serde_json::from_slice(&bytes)
-                    .map_err(|err| crate::Error::bad_request_msg(format!("could not deserialize body: {err}")))
-            })
+        serde_json::from_slice(&bytes)
+            .map_err(|err| crate::Error::bad_request_msg(format!("could not deserialize body: {err}")))
     } else {
         Err(crate::Error::bad_request_msg(format!(
             "request body is too large, maximum allowed size is {MAX_ALLOWED_REQUEST_BODY_SIZE}"

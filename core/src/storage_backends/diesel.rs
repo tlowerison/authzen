@@ -1,20 +1,20 @@
 use crate::*;
+use ::authzen_diesel::{connection::Db, prelude::*};
+use ::diesel::associations::HasTable;
+use ::diesel::backend::Backend;
+use ::diesel::expression::Expression;
+use ::diesel::expression_methods::ExpressionMethods;
+use ::diesel::helper_types as ht;
+use ::diesel::query_dsl::methods::{FilterDsl, FindDsl};
+use ::diesel::query_source::QuerySource;
+use ::diesel::sql_types::SqlType;
+use ::diesel::{query_builder::*, Identifiable};
+use ::diesel::{Insertable, Table};
+use ::diesel_async::methods::*;
 use ::serde::{de::DeserializeOwned, Serialize};
-use authzen_diesel::{connection::Db, prelude::*};
-use diesel::associations::HasTable;
-use diesel::backend::Backend;
-use diesel::expression::Expression;
-use diesel::expression_methods::ExpressionMethods;
-use diesel::helper_types as ht;
-use diesel::query_dsl::methods::{FilterDsl, FindDsl};
-use diesel::query_source::QuerySource;
-use diesel::sql_types::SqlType;
-use diesel::{query_builder::*, Identifiable};
-use diesel::{Insertable, Table};
-use diesel_async::methods::*;
-use std::fmt::Debug;
-use std::hash::Hash;
-use uuid::Uuid;
+use ::std::fmt::Debug;
+use ::std::hash::Hash;
+use ::uuid::Uuid;
 
 impl<B> StorageBackend for B where B: Backend {}
 
@@ -49,7 +49,7 @@ impl<C: Db> StorageClient for C {
 impl<T, Id> crate::Identifiable for T
 where
     for<'a> &'a T: Identifiable<Id = &'a Id>,
-    Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static,
+    Id: Clone + DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static,
 {
     type Id = Id;
 

@@ -34,6 +34,8 @@ mongodb-tx-cache = ["core/mongodb-tx-cache"]
 
 opa-decision-maker = ["authzen-opa", "core/opa-decision-maker"]
 
+policy-information-point = ["core/policy-information-point"]
+
 service-util-axum-05 = ["service-util/axum-05"]
 service-util-axum-06 = ["service-util/axum-06"]
 service-util-client = ["service-util/client"]

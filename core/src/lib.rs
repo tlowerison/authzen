@@ -11,21 +11,27 @@ extern crate serde_with;
 
 mod decision_makers;
 mod storage_backends;
+
+/// Helper traits for implementing a policy information point.
+#[cfg(feature = "policy-information-point")]
+pub mod policy_information_point;
+
+/// Implementations of common transaction cache clients.
 pub mod transaction_caches;
 
 #[cfg(feature = "extra-traits")]
 mod extra_traits;
 
+use ::derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
 use ::serde::{de::DeserializeOwned, Deserialize, Serialize};
-use derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
-use std::borrow::Borrow;
-use std::collections::HashMap;
-use std::fmt::Debug;
-use std::future::Future;
-use std::hash::Hash;
-use std::marker::PhantomData;
-use std::pin::Pin;
-use typed_builder::TypedBuilder;
+use ::std::borrow::Borrow;
+use ::std::collections::HashMap;
+use ::std::fmt::Debug;
+use ::std::future::Future;
+use ::std::hash::Hash;
+use ::std::marker::PhantomData;
+use ::std::pin::Pin;
+use ::typed_builder::TypedBuilder;
 
 /// Compile time information about an action.
 pub trait ActionType {
@@ -45,7 +51,7 @@ where
     Object: ?Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache<SC> + TransactionCacheAction<Self::Action, SC, Input>,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction<Self::Action, SC, Input>,
 {
     /// Action to be authorized and performed.
     type Action: ActionType + StorageAction<SC, Input> + Send + Sync;
@@ -95,7 +101,7 @@ where
     Object: ?Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache<SC> + TransactionCacheAction<A, SC, Input>,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction<A, SC, Input>,
 
     A: ActionType + StorageAction<SC, Input> + Send + Sync,
 {
@@ -199,7 +205,7 @@ pub trait AsStorage<Backend>: ObjectType {
     /// ```
     type Constructor<'a>: AsStorage<Backend>;
     /// This object's storage representation for the specified `Backend`.
-    type StorageObject: StorageObject<Backend> + Send + Sync;
+    type StorageObject: DeserializeOwned + Identifiable + StorageObject<Backend> + Send + Serialize + Sync;
 }
 
 /// An object's representation specific to a particular backend. Often this will only be
@@ -272,209 +278,215 @@ where
 }
 
 pub trait Identifiable {
-    type Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static;
+    type Id: Clone + DeserializeOwned + Eq + Hash + Send + Serialize + Sync + 'static;
     fn id(&self) -> &Self::Id;
 }
 
-pub trait TransactionCache<SC: ?Sized + StorageClient> {
+pub trait TransactionCache {
     type Error: Debug + Send;
 
-    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+    fn get_entities<'life0, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
+        transaction_id: TransactionId,
     ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
-        'life1: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
-        T::Id: Clone;
+        T::Id: Clone,
+        TransactionId: Send + Serialize;
 
-    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn get_by_ids<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ids: &'life2 [T::Id],
+        transaction_id: TransactionId,
+        ids: &'life1 [T::Id],
     ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
-        T::Id: Clone;
+        T::Id: Clone,
+        TransactionId: Send + Serialize;
 
-    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn upsert<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize;
+        TransactionId: Clone + Send + Serialize;
 
-    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn mark_deleted<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize;
+        TransactionId: Clone + Send + Serialize;
 }
 
-impl<SC: ?Sized + StorageClient> TransactionCache<SC> for () {
+impl TransactionCache for () {
     type Error = std::convert::Infallible;
 
-    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+    fn get_entities<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
+        _: TransactionId,
     ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
-        'life1: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async { Ok(Default::default()) })
     }
 
-    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn get_by_ids<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: &'life2 [T::Id],
+        _: TransactionId,
+        _: &'life1 [T::Id],
     ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async { Ok(Default::default()) })
     }
 
-    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn upsert<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        _: TransactionId,
+        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async { Ok(Default::default()) })
     }
 
-    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn mark_deleted<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        _: TransactionId,
+        _: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Send + Serialize,
     {
         Box::pin(async { Ok(Default::default()) })
     }
 }
 
-impl<SC: ?Sized + StorageClient, TC: TransactionCache<SC>> TransactionCache<SC> for &TC {
+impl<TC: TransactionCache> TransactionCache for &TC {
     type Error = TC::Error;
 
-    fn get_entities<'life0, 'life1, 'async_trait, O, T>(
+    fn get_entities<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
+        transaction_id: TransactionId,
     ) -> Pin<Box<dyn Future<Output = Result<HashMap<T::Id, TxCacheEntity<T, T::Id>>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
-        'life1: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
-        (*self).get_entities::<O, T>(transaction_id)
+        (*self).get_entities::<O, T, TransactionId>(transaction_id)
     }
 
-    fn get_by_ids<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn get_by_ids<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ids: &'life2 [T::Id],
+        transaction_id: TransactionId,
+        ids: &'life1 [T::Id],
     ) -> Pin<Box<dyn Future<Output = Result<Vec<T>, Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
-        (*self).get_by_ids::<O, T>(transaction_id, ids)
+        (*self).get_by_ids::<O, T, TransactionId>(transaction_id, ids)
     }
 
-    fn upsert<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn upsert<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
-        (*self).upsert::<O, T>(transaction_id, entities)
+        (*self).upsert::<O, T, TransactionId>(transaction_id, entities)
     }
 
-    fn mark_deleted<'life0, 'life1, 'life2, 'async_trait, O, T>(
+    fn mark_deleted<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life2,
+        transaction_id: TransactionId,
+        entities: impl IntoIterator<Item = impl Borrow<T> + Send> + Send + 'life1,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
+        TransactionId: 'async_trait,
 
         O: ?Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId<'life1>: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
-        (*self).mark_deleted::<O, T>(transaction_id, entities)
+        (*self).mark_deleted::<O, T, TransactionId>(transaction_id, entities)
     }
 }
 
-pub trait TransactionCacheAction<A, SC, I>: TransactionCache<SC>
+pub trait TransactionCacheAction<A, SC, I>: TransactionCache
 where
     SC: ?Sized + StorageClient + Send + Sync,
     A: StorageAction<SC, I> + Send,
@@ -482,7 +494,7 @@ where
     fn handle_success<'life0, 'life1, 'life2, 'async_trait>(
         &'life0 self,
         storage_client: &'life1 SC,
-        ok: &'life1 A::Ok,
+        ok: &'life2 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
@@ -502,7 +514,7 @@ where
         &'life0 self,
         transaction_id: SC::TransactionId<'life1>,
         ok: &'life2 A::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -520,7 +532,7 @@ where
         &'life0 self,
         _: SC::TransactionId<'life1>,
         _: &'life2 A::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
@@ -542,7 +554,7 @@ where
         &'life0 self,
         transaction_id: SC::TransactionId<'life1>,
         ok: &'life2 A::Ok,
-    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache<SC>>::Error>> + Send + 'async_trait>>
+    ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,

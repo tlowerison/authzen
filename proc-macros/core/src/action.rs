@@ -120,7 +120,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
-                TC: Send + Sync + #source_mod TransactionCache<SC>,
+                TC: Send + Sync + #source_mod TransactionCache,
                 Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
                 I: Send + Sync,
 
@@ -160,7 +160,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                             <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                         >>::Error,
                         <#name<Self> as #source_mod StorageAction<SC, I>>::Error,
-                        <TC as #source_mod TransactionCache<SC>>::Error,
+                        <TC as #source_mod TransactionCache>::Error,
                     >,
                 >,
             > + Send + 'async_trait>>
@@ -175,7 +175,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync
-                    + #source_mod TransactionCache<SC>
+                    + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction<#name<Self>, SC, I>,
                 Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
                 #name<Self>: #source_mod StorageAction<SC, I>,
@@ -220,7 +220,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                             <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
                         >>::Error,
                         <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error,
-                        <TC as #source_mod TransactionCache<SC>>::Error,
+                        <TC as #source_mod TransactionCache>::Error,
                     >,
                 >,
             > + Send + 'async_trait>>
@@ -235,7 +235,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync
-                    + #source_mod TransactionCache<SC>
+                    + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction<#name<Self>, SC, [I; 1]>,
                 Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
                 #name<Self>: #source_mod StorageAction<SC, [I; 1]>,

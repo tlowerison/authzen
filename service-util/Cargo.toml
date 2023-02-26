@@ -15,6 +15,7 @@ lazy_static.workspace = true
 log.workspace = true
 paste.workspace = true
 thiserror.workspace = true
+tower-http = { workspace = true, features = ["cors"] }
 tracing.workspace = true
 
 async-graphql = { workspace = true, optional = true }
@@ -38,7 +39,6 @@ session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee
 tonic = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["signal"], optional = true }
 tower = { workspace = true, optional = true }
-tower-http = { workspace = true, features = ["cors", "request-id"], optional = true }
 tower-layer = { workspace = true, optional = true }
 tower-service = { workspace = true, optional = true }
 tracing-error = { workspace = true, optional = true }
@@ -69,5 +69,5 @@ log_error = []
 max-allowed-request-body-size-large = []
 max-allowed-request-body-size-medium = []
 max-allowed-request-body-size-small = []
-server = ["derive_more", "futures", "opentelemetry/rt-tokio", "serde", "serde_json", "session-util", "tokio", "tokio/macros", "tower", "tower/timeout", "trace", "uuid"]
-trace = ["opentelemetry", "opentelemetry-jaeger/rt-tokio", "tower-http", "tracing-error", "tracing-log", "tracing-opentelemetry", "tracing-subscriber", "tracing-tree", "uuid"]
+server = ["derive_more", "futures", "opentelemetry/rt-tokio", "serde", "serde_json", "session-util", "tokio", "tokio/macros", "tower", "tower/timeout", "tower-http/request-id", "trace", "uuid"]
+trace = ["opentelemetry", "opentelemetry-jaeger/rt-tokio", "tracing-error", "tracing-log", "tracing-opentelemetry", "tracing-subscriber", "tracing-tree", "uuid"]

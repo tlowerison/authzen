@@ -20,13 +20,19 @@ typed-builder.workspace = true
 anyhow = { workspace = true, optional = true }
 authzen-diesel = { workspace = true, optional = true }
 authzen-opa = { workspace = true, optional = true }
+axum = { workspace = true, optional = true, features = ["headers", "macros"] }
 chrono = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
 hyper = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+serde_plain = { workspace = true, optional = true }
 service-util = { workspace = true, optional = true }
+tower = { workspace = true, optional = true, feature = ["limit", "timeout"] }
+tower-http = { workspace = true, optional = true, features = ["auth", "catch-panic", "compression-gzip", "cors", "request-id", "trace", "util"] }
+tracing = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 
 [build-dependencies]
@@ -39,3 +45,6 @@ diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/po
 extra-traits = ["service-util"]
 mongodb-tx-cache = ["anyhow", "chrono", "mongodb", "service-util/client"]
 opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "service-util/trace"]
+policy-information-point = ["http", "serde_json", "serde_plain"]
+policy-information-point-server = ["axum", "axum/headers", "service-util/axum-06", "service-util/server", "service-util/trace", "dep:tower", "tower-http", "uuid"]
+tracing = ["dep:tracing"]

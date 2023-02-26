@@ -25,6 +25,7 @@ proc-macro-util = { path = "proc-macro-util", package = "authzen-proc-macro-util
 
 # authzen specific crates
 async-trait = "^0.1"
+axum = "0.6"
 convert_case = "^0.6"
 cfg-if = "1"
 derivative = "2"
@@ -32,11 +33,13 @@ derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "
 derive_more = { git = "https://github.com/tlowerison/derive_more", rev = "81eaa77" }
 diesel = "2"
 diesel-async = "^0.2"
+http = "0"
 hyper = "0"
 proc-macro2 = "1"
 quote = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+serde_plain = "1"
 serde_with = "2"
 syn = { version = "1", default-features = false }
 typed-builder = "^0.12"

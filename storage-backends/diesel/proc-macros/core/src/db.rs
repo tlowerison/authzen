@@ -224,6 +224,12 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
                 self.#db_field_accessor.tx(#sub_callback).await
             }
         }
+
+        impl #db_impl_generics AsRef<#db_field_type> for #ident #ty_generics #db_where_clause {
+            fn as_ref(&self) -> &#db_field_type {
+                &self.#db_field_accessor
+            }
+        }
     };
 
     Ok(tokens)

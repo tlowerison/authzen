@@ -189,12 +189,13 @@ pub fn is_param_exact_field_type(param: &syn::GenericParam, field: &syn::Field) 
 ///
 /// assert_eq!(parse2::<syn::Generics>(quote!(<A: Send + Sync, B: Debug>)).unwrap(), generics);
 /// ```
-pub fn add_bounds_to_generics(
+pub fn add_bounds_to_generics<'a>(
     generics: &mut syn::Generics,
     bounds_to_add: impl IntoIterator<Item = syn::TypeParamBound> + Debug,
-    generic_param_ident: Option<&syn::Ident>,
+    generic_param_ident: impl Into<Option<&'a syn::Ident>>,
 ) {
     let bounds_to_add = bounds_to_add.into_iter().collect::<Vec<_>>();
+    let generic_param_ident = generic_param_ident.into();
     for param in generics.params.iter_mut() {
         if let syn::GenericParam::Type(syn::TypeParam { bounds, ident, .. }) = param {
             if let Some(generic_param_ident) = generic_param_ident.as_ref() {
@@ -206,6 +207,25 @@ pub fn add_bounds_to_generics(
             bounds_union(bounds, bounds_to_add.clone());
         }
     }
+}
+
+/// Adds bounds to a [`syn::Generics`]'s where predicate, where the bounded types/lifetimes
+/// are not necessarily parameters of the generics. This permits applying bounds to compositions
+/// of generic parameters.
+pub fn add_general_bounds_to_generics(
+    generics: &mut syn::Generics,
+    where_predicates: impl IntoIterator<Item = syn::WherePredicate>,
+) {
+    if generics.where_clause.is_none() {
+        generics.where_clause = Some(syn::WhereClause {
+            where_token: Default::default(),
+            predicates: Default::default(),
+        });
+    }
+
+    let where_clause = generics.where_clause.as_mut().unwrap();
+
+    where_clause.predicates.extend(where_predicates);
 }
 
 /// add bounds to an existing set of bounds while not adding any duplicates

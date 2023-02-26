@@ -1,0 +1,16 @@
+decision_logs:
+  config: true
+  reporting:
+    min_delay_seconds: 300
+    max_delay_seconds: 600
+
+caching:
+  inter_query_builtin_cache:
+    max_size_bytes: 10000000
+
+distributed_tracing:
+  type: grpc
+  address: "${OTEL_HOST}:${OTEL_PORT}"
+  service_name: opa
+  sample_percentage: 100
+  encryption: "off"

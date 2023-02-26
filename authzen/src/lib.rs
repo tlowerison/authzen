@@ -13,14 +13,14 @@ pub use futures;
 #[doc(alias = "authzen_service_util")]
 pub use service_util;
 
-/// Decision maker client implementations provided for convienence.
+/// Implementations of common decision maker clients.
 pub mod decision_makers {
     #[cfg(feature = "opa-decision-maker")]
     #[doc(alias = "authzen_opa")]
     pub use authzen_opa as opa;
 }
 
-/// Storage backend client implementations provided for convienence.
+/// Implementations of common storage backend clients.
 pub mod storage_backends {
     #[cfg(feature = "diesel-storage-backend")]
     #[doc(alias = "authzen_diesel")]

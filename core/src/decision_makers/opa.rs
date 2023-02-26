@@ -1,11 +1,11 @@
 use crate::{ActionType, DecisionMaker, Event, ObjectType};
-use authzen_opa::OPAClient;
-use hyper::{body::Bytes, http::header::*, Body, Method};
-use serde::{Deserialize, Deserializer, Serialize};
-use serde_json::Value;
-use service_util::*;
-use std::fmt::Debug;
-use typed_builder::TypedBuilder;
+use ::authzen_opa::OPAClient;
+use ::hyper::{body::Bytes, http::header::*, Body, Method};
+use ::serde::{Deserialize, Deserializer, Serialize};
+use ::serde_json::Value;
+use ::service_util::*;
+use ::std::fmt::Debug;
+use ::typed_builder::TypedBuilder;
 
 #[async_trait]
 impl<Subject, Action, Object, Input, Context> DecisionMaker<Subject, Action, Object, Input, Context> for OPAClient

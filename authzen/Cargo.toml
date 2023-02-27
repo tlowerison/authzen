@@ -9,6 +9,7 @@ build = "../build.rs"
 [dependencies]
 proc-macro-util.workspace = true
 service-util.workspace = true
+cfg-if.workspace = true
 core = { package = "authzen-core", path = "../core" }
 derivative.workspace = true
 futures.workspace = true
@@ -16,6 +17,8 @@ proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
 
 authzen-diesel = { workspace = true, optional = true }
 authzen-opa = { workspace = true, optional = true }
+dotenv = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
 
 [build-dependencies]
 rustc_version.workspace = true
@@ -35,6 +38,7 @@ mongodb-tx-cache = ["core/mongodb-tx-cache"]
 opa-decision-maker = ["authzen-opa", "core/opa-decision-maker"]
 
 policy-information-point = ["core/policy-information-point"]
+policy-information-point-server = ["core/policy-information-point-server", "dep:dotenv", "dep:tokio"]
 
 service-util-axum-05 = ["service-util/axum-05"]
 service-util-axum-06 = ["service-util/axum-06"]
@@ -50,3 +54,5 @@ service-util-max-allowed-request-body-size-medium = ["service-util/max-allowed-r
 service-util-max-allowed-request-body-size-small = ["service-util/max-allowed-request-body-size-small"]
 service-util-server = ["service-util/server"]
 service-util-trace = ["service-util/trace"]
+
+tracing = ["core/tracing"]

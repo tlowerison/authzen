@@ -1,18 +1,18 @@
-use authzen::service_util::{env, parse_allowed_origins};
+use authzen::service_util::{env, parse_allowed_origin};
 use jsonwebtoken::{DecodingKey, EncodingKey};
 use session_util::{parse_decoding_key, parse_encoding_key};
-use std::net::Ipv4Addr;
+use std::net::IpAddr;
 
 env! {
     ALLOW_CREDENTIALS: bool = true,
-    ALLOWED_ORIGINS: tower_http::cors::AllowOrigin | parse_allowed_origins,
+    ALLOWED_ORIGIN: tower_http::cors::AllowOrigin | parse_allowed_origin,
     AUTH_TOKEN: String,
     BASE_URL: String,
     CONCURRENCY_LIMIT: usize = 250usize,
     DEFAULT_OAUTH_REDIRECT_URI: String,
+    IP_ADDR: IpAddr,
+    PORT: u16,
     REQUEST_TIMEOUT_IN_SECS: u64 = 15u64,
-    REST_IPV4_ADDR: Ipv4Addr = Ipv4Addr::UNSPECIFIED,
-    REST_PORT: u16,
 }
 env! {
     GRAPHQL_INCLUDE_PLAYGROUND: bool = false,

@@ -33,6 +33,7 @@ derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "
 derive_more = { git = "https://github.com/tlowerison/derive_more", rev = "81eaa77" }
 diesel = "2"
 diesel-async = "^0.2"
+dotenv = "0"
 http = "0"
 hyper = "0"
 proc-macro2 = "1"
@@ -43,6 +44,7 @@ serde_plain = "1"
 serde_with = "2"
 syn = { version = "1", default-features = false }
 typed-builder = "^0.12"
+url = "2"
 
 # authzen-diesel
 anyhow = "1"

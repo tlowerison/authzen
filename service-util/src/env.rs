@@ -126,11 +126,11 @@ pub fn service_util_opt_env<T: FromStr>(var_name: &'static str) -> Result<Option
     }
 }
 
-pub fn parse_allowed_origins(allowed_origins: String) -> AllowOrigin {
-    if allowed_origins == "*" {
+pub fn parse_allowed_origin(allowed_origin: String) -> AllowOrigin {
+    if allowed_origin == "*" {
         return AllowOrigin::any();
     }
-    let urls = allowed_origins
+    let urls = allowed_origin
         .split(',')
         .map(TryFrom::try_from)
         .collect::<Result<Vec<hyper::http::HeaderValue>, _>>()

@@ -5,6 +5,7 @@ extern crate serde;
 #[macro_use]
 extern crate tracing;
 
+pub mod env;
 mod examples_cart;
 mod prelude;
 
@@ -14,10 +15,16 @@ use crate::prelude::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 
 #[derive(Clone, Debug)]
+pub struct Clients {
+    pub db: DbPool,
+    pub tx_cache_client: MongodbTxCollection,
+}
+
+#[derive(Clone, Debug)]
 pub struct Ctx {
     pub db: DbPool,
-    pub tx_cache_db: mongodb::Database,
     pub tx_cache_client: MongodbTxCollection,
+    pub transaction_id: Option<Uuid>,
 }
 
 impl AsRef<DbPool> for Ctx {
@@ -29,6 +36,18 @@ impl AsRef<DbPool> for Ctx {
 impl AsRef<MongodbTxCollection> for Ctx {
     fn as_ref(&self) -> &MongodbTxCollection {
         &self.tx_cache_client
+    }
+}
+
+// required for Ctx to be derived from Clients and an optional transaction id in the main endpoint
+// to be passed to the query using the provided server function from authzen
+impl From<(Clients, Option<Uuid>)> for Ctx {
+    fn from(value: (Clients, Option<Uuid>)) -> Self {
+        Self {
+            db: value.0.db,
+            tx_cache_client: value.0.tx_cache_client,
+            transaction_id: value.1,
+        }
     }
 }
 

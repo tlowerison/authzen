@@ -5,9 +5,15 @@ extern crate async_trait;
 #[macro_use]
 extern crate cfg_if;
 #[macro_use]
+extern crate derivative;
+#[macro_use]
 extern crate derive_more;
 #[macro_use]
 extern crate serde_with;
+
+#[cfg(feature = "tracing")]
+#[macro_use]
+extern crate tracing;
 
 mod decision_makers;
 mod storage_backends;

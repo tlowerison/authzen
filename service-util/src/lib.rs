@@ -42,9 +42,22 @@ cfg_if! {
     if #[cfg(feature = "server")] {
         mod server;
         pub use server::*;
+    }
+}
+cfg_if! {
+    if #[cfg(feature = "trace")] {
+        mod trace;
+        pub use trace::*;
 
         #[doc(hidden)]
-        pub use tokio as service_util_tokio;
+        pub use tracing;
+    }
+}
+
+cfg_if! {
+    if #[cfg(feature = "try-join-safe")] {
+        #[doc(hidden)]
+        pub use futures as service_util_futures;
 
         #[macro_export]
         macro_rules! try_join_safe {
@@ -56,7 +69,7 @@ cfg_if! {
             };
             ( $($expr:expr,)* ~ $($final_ident:ident,)* @ $ident:ident ~) => {
                 {
-                    let ($($final_ident),*) = $crate::service_util_tokio::join!($($expr),+);
+                    let ($($final_ident),*) = $crate::service_util_futures::join!($($expr),+);
                     $crate::try_join_safe!( @ @ $($final_ident)* )
                 }
             };
@@ -78,14 +91,5 @@ cfg_if! {
                 futures::future::join_all(iter).await.into_iter().collect()
             }
         }
-    }
-}
-cfg_if! {
-    if #[cfg(feature = "trace")] {
-        mod trace;
-        pub use trace::*;
-
-        #[doc(hidden)]
-        pub use tracing;
     }
 }

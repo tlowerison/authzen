@@ -2,14 +2,14 @@
 mod server;
 mod transaction_cache;
 
+#[cfg(feature = "policy-information-point-server")]
 pub use server::*;
 pub use transaction_cache::*;
 
 use crate::*;
 use ::futures::future::TryFutureExt;
-use ::http::header::{HeaderMap, HeaderName, HeaderValue};
-use ::hyper::StatusCode;
-use ::serde::{de::DeserializeOwned, Serialize};
+use ::http::header::{HeaderMap, HeaderName};
+use ::serde::Serialize;
 use ::service_util::try_join_safe;
 use ::std::collections::HashMap;
 use ::std::fmt::Debug;
@@ -90,59 +90,4 @@ where
 pub struct Response {
     pub values: Vec<u8>,
     pub headers: HeaderMap,
-}
-
-impl axum::response::IntoResponse for Response {
-    fn into_response(self) -> axum::response::Response {
-        (self.headers, axum::Json(self.values)).into_response()
-    }
-}
-
-impl<Id> axum::headers::Header for TransactionId<Id>
-where
-    Id: DeserializeOwned + Serialize,
-{
-    fn name() -> &'static HeaderName {
-        &X_TRANSACTION_ID
-    }
-
-    fn decode<'i, I>(values: &mut I) -> Result<Self, axum::headers::Error>
-    where
-        I: Iterator<Item = &'i HeaderValue>,
-    {
-        let value = values.next().ok_or_else(axum::headers::Error::invalid)?;
-
-        let value = value.to_str().map_err(|_| axum::headers::Error::invalid())?;
-        match serde_plain::from_str(value) {
-            Ok(transaction_id) => Ok(Self(transaction_id)),
-            Err(_) => Err(axum::headers::Error::invalid()),
-        }
-    }
-
-    fn encode<E>(&self, values: &mut E)
-    where
-        E: Extend<HeaderValue>,
-    {
-        let value = HeaderValue::from_str(&serde_plain::to_string(&self.0).unwrap()).unwrap();
-        values.extend(std::iter::once(value));
-    }
-}
-
-impl<E> axum::response::IntoResponse for QueryError<E>
-where
-    E: axum::response::IntoResponse,
-{
-    fn into_response(self) -> axum::response::Response {
-        match self {
-            Self::Deserialization(err) => axum::response::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(axum::body::boxed(axum::body::Full::from(err.to_string())))
-                .unwrap(),
-            Self::Query(err) => err.into_response(),
-            Self::Serialization(err) => axum::response::Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(axum::body::boxed(axum::body::Full::from(err.to_string())))
-                .unwrap(),
-        }
-    }
 }

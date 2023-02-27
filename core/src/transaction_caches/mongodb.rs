@@ -351,3 +351,90 @@ where
         <Self as TransactionCache>::upsert::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
     }
 }
+
+#[derive(Clone, Derivative, TypedBuilder)]
+#[derivative(Debug)]
+pub struct MongodbConfig {
+    #[builder(setter(into))]
+    pub scheme: String,
+    #[builder(default)]
+    #[derivative(Debug = "ignore")]
+    pub username: Option<String>,
+    #[builder(default)]
+    #[derivative(Debug = "ignore")]
+    pub password: Option<String>,
+    #[builder(setter(into))]
+    pub host: String,
+    #[builder(setter(into))]
+    pub port: Option<u16>,
+    #[builder(default)]
+    pub args: Option<String>,
+    #[builder(setter(into))]
+    pub database: String,
+    #[builder(setter(into))]
+    pub collection: String,
+}
+
+#[cfg_attr(feature = "tracing", instrument)]
+pub async fn mongodb_client(
+    config: MongodbConfig,
+) -> Result<(::mongodb::Database, MongodbTxCollection), anyhow::Error> {
+    let mut connection_string = url::Url::parse("mongodb://localhost")?;
+
+    connection_string
+        .set_scheme(&config.scheme)
+        .map_err(|_| anyhow::Error::msg("unable to set mongodb url scheme"))?;
+
+    if let Some(username) = config.username {
+        connection_string
+            .set_username(&username)
+            .map_err(|_| anyhow::Error::msg("unable to set mongodb url username"))?;
+    }
+
+    connection_string
+        .set_password(config.password.as_ref().map(|x| &**x))
+        .map_err(|_| anyhow::Error::msg("unable to set mongodb url password"))?;
+
+    connection_string
+        .set_host(Some(&config.host))
+        .map_err(|_| anyhow::Error::msg("unable to set mongodb url host"))?;
+    connection_string.set_path("/");
+    connection_string
+        .set_port(config.port)
+        .map_err(|_| anyhow::Error::msg("unable to set mongodb url port"))?;
+
+    connection_string.set_query(config.args.as_ref().map(|x| &**x));
+
+    log::info!("connecting to mongodb");
+
+    let mut mongodb_client_options = mongodb::options::ClientOptions::parse(connection_string).await?;
+    mongodb_client_options.app_name = Some("accounts".into());
+    let client = mongodb::Client::with_options(mongodb_client_options)?;
+
+    let db = client.database(&config.database);
+
+    log::info!("pinging mongodb");
+    db.run_command(mongodb::bson::doc! {"ping": 1}, None).await?;
+
+    log::info!("connected to mongodb successfully");
+
+    let has_collection = db
+        .list_collection_names(None)
+        .await?
+        .into_iter()
+        .any(|collection_name| collection_name == config.collection);
+    if !has_collection {
+        log::info!("creating mongodb collection `{}`", config.collection);
+        db.create_collection(&config.collection, None).await?;
+        log::info!("created mongodb collection `{}`", config.collection);
+    }
+
+    let collection = db.collection::<TxEntityFull>(&config.collection);
+
+    log::info!("initializing mongodb ttl index");
+    initialize_ttl_index(&collection, None).await?;
+
+    log::info!("initialized mongodb ttl index");
+
+    Ok((db, collection))
+}

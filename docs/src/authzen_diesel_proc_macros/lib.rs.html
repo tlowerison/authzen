@@ -119,7 +119,7 @@
 
 <span class="attr">#[proc_macro_derive(Audit, attributes(audit))]
 </span><span class="kw">pub fn </span>derive_audit(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::derive_audit(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::derive_audit(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -127,7 +127,7 @@
 
 <span class="attr">#[proc_macro_derive(Db, attributes(db))]
 </span><span class="kw">pub fn </span>derive_db(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::derive_db(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::derive_db(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -135,7 +135,7 @@
 
 <span class="attr">#[proc_macro_derive(Enum, attributes(id))]
 </span><span class="kw">pub fn </span>derive_enum(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::derive_enum(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::derive_enum(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -143,7 +143,7 @@
 
 <span class="attr">#[proc_macro_derive(IncludesChanges)]
 </span><span class="kw">pub fn </span>derive_includes_changes(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::derive_includes_changes(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::derive_includes_changes(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -151,7 +151,7 @@
 
 <span class="attr">#[proc_macro_derive(SoftDelete)]
 </span><span class="kw">pub fn </span>derive_soft_delete(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::derive_soft_delete(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::derive_soft_delete(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -159,7 +159,7 @@
 
 <span class="attr">#[proc_macro]
 </span><span class="kw">pub fn </span>db_filter(tokens: TokenStream) -&gt; TokenStream {
-    <span class="kw">match </span>core::db_filter(tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::db_filter(tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }
@@ -170,10 +170,10 @@
     <span class="kw">use </span>std::ops::Deref;
     <span class="kw">use </span>std::str::FromStr;
 
-    <span class="kw">let </span>core::DynamicSchema {
+    <span class="kw">let </span>authzen_diesel_proc_macros_core::DynamicSchema {
         ident,
         schema_relative_file_path,
-    } = <span class="macro">syn::parse_macro_input!</span>(tokens <span class="kw">as </span>core::DynamicSchema);
+    } = <span class="macro">syn::parse_macro_input!</span>(tokens <span class="kw">as </span>authzen_diesel_proc_macros_core::DynamicSchema);
     <span class="kw">let </span>schema_relative_path_str = schema_relative_file_path.value();
     <span class="kw">let </span>schema_relative_path = std::path::Path::new(<span class="kw-2">&amp;</span>schema_relative_path_str);
     <span class="kw">let </span>source_path = proc_macro::Span::call_site().source_file().path();
@@ -215,7 +215,7 @@
         }
     };
 
-    <span class="kw">match </span>core::dynamic_schema(ident, tokens.into()) {
+    <span class="kw">match </span>authzen_diesel_proc_macros_core::dynamic_schema(ident, tokens.into()) {
         <span class="prelude-val">Ok</span>(tokens) =&gt; tokens.into(),
         <span class="prelude-val">Err</span>(err) =&gt; err.into_compile_error().into(),
     }

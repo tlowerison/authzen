@@ -174,7 +174,7 @@
     }
 }
 
-<span class="attr">#[derive(AsVariant, Clone, Derivative, IsVariant)]
+<span class="attr">#[derive(Clone, Derivative, IsVariant)]
 #[derivative(Debug)]
 </span><span class="kw">pub enum </span>ColumnSqlType {
     IsNullable(<span class="attr">#[derivative(Debug = <span class="string">&quot;ignore&quot;</span>)] </span>Arc&lt;Box&lt;<span class="kw">dyn </span>Send + Sync + SqlType&lt;IsNull = IsNullable&gt;&gt;&gt;),

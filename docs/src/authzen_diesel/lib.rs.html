@@ -32,12 +32,12 @@
 <a href="#32" id="32">32</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-</span><span class="kw">pub use </span>core::<span class="kw-2">*</span>;
-<span class="kw">pub use </span>proc_macros::<span class="kw-2">*</span>;
+</span><span class="kw">pub use </span>authzen_diesel_core::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>authzen_diesel_proc_macros::<span class="kw-2">*</span>;
 
 <span class="kw">pub mod </span>prelude {
-    <span class="kw">pub use </span>core::prelude::<span class="kw-2">*</span>;
-    <span class="kw">pub use </span>proc_macros::<span class="kw-2">*</span>;
+    <span class="kw">pub use </span>authzen_diesel_core::prelude::<span class="kw-2">*</span>;
+    <span class="kw">pub use </span>authzen_diesel_proc_macros::<span class="kw-2">*</span>;
 }
 
 <span class="attr">#[doc(hidden)]

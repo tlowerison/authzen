@@ -857,7 +857,7 @@
 <span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 </span><span class="kw">mod </span>extra_traits;
 
-<span class="kw">use </span>::derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
+<span class="kw">use </span>::derive_getters::{Dissolve, Getters};
 <span class="kw">use </span>::serde::{de::DeserializeOwned, Deserialize, Serialize};
 <span class="kw">use </span>::std::borrow::Borrow;
 <span class="kw">use </span>::std::collections::HashMap;
@@ -958,7 +958,7 @@
 
 <span class="doccomment">/// The unit of work in an authorization query, which will either be accepted or rejected by a decision maker.
 </span><span class="attr">#[skip_serializing_none]
-#[derive(Clone, Deserialize, Dissolve, DissolveMut, DissolveRef, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
+#[derive(Clone, Deserialize, Dissolve, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
 #[serde(bound(
     serialize = <span class="string">&quot;Subject: Serialize, Action: ActionType, Object: ObjectType, Input: Serialize, Context: Serialize&quot;</span>,
     deserialize = <span class="string">&quot;Subject: Deserialize&lt;&#39;de&gt;, Action: ActionType, Object: ObjectType, Input: Deserialize&lt;&#39;de&gt;, Context: Deserialize&lt;&#39;de&gt;&quot;</span>,
@@ -1473,7 +1473,7 @@
 
 <span class="doccomment">/// Represents the possible sources of error when performing
 /// an action which requires authorization.
-</span><span class="attr">#[derive(AsVariant, AsVariantMut, Clone, Copy, Debug, Error, IsVariant, Unwrap)]
+</span><span class="attr">#[derive(Clone, Copy, Debug, Error, IsVariant, Unwrap)]
 </span><span class="kw">pub enum </span>ActionError&lt;E1, E2, E3&gt; {
     <span class="doccomment">/// Wraps an error returned from a [`DecisionMaker`] when the subject is either not authorized to
     /// perform an action or some other issue occurs while communicating with the

@@ -1,0 +1,63 @@
+[package]
+name = "authzen-session"
+build = "../build.rs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+cfg-if.workspace = true
+chrono = { workspace = true, features = ["serde"] }
+clap = { workspace = true, features = ["derive", "env"], optional = true }
+cookie = { workspace = true, features = ["secure", "percent-encode"] }
+data-encoding.workspace = true
+futures.workspace = true
+http.workspace = true
+hyper.workspace = true
+jsonwebtoken.workspace = true
+percent-encoding.workspace = true
+pin-project-lite.workspace = true
+ring.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_plain.workspace = true
+tokio.workspace = true
+tower-layer.workspace = true
+tower-service.workspace = true
+uuid = { workspace = true, features = ["serde", "v4"] }
+
+deadpool = { workspace = true, optional = true }
+derivative = { workspace = true, optional = true }
+derive_more = { workspace = true, optional = true }
+log = { workspace = true, optional = true }
+redis_cluster_async = { workspace = true, optional = true }
+serde_with = { workspace = true, optional = true }
+typed-builder = { workspace = true, optional = true }
+url = { workspace = true, optional = true }
+
+axum-core-02 = { package = "axum-core", workspace = true, optional = true }
+axum-core-03 = { package = "axum-core", workspace = true, optional = true }
+
+[features]
+account-session = ["dep:derive_more", "dep:derivative", "dep:serde_with", "dep:typed-builder"]
+axum-core-02 = ["dep:axum-core-02", "dep:log"]
+axum-core-03 = ["dep:axum-core-03", "dep:log"]
+cli = ["dep:clap"]
+redis-backend = ["dep:deadpool", "dep:derivative", "dep:log", "dep:redis_cluster_async", "dep:typed-builder", "dep:url"]
+
+[[bin]]
+name = "create_account_jwt"
+required-features = ["account-session","cli"]

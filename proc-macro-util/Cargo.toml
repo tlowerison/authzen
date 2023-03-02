@@ -1,9 +1,20 @@
 [package]
 name = "authzen-proc-macro-util"
+build = "../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-build = "../build.rs"
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [dependencies]
 derivative.workspace = true
@@ -12,6 +23,3 @@ prettyplease.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
 syn = { workspace = true, default-features = false, features = ["clone-impls", "derive", "extra-traits", "parsing", "printing"] }
-
-[build-dependencies]
-rustc_version.workspace = true

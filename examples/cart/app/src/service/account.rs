@@ -1,10 +1,10 @@
 use crate::*;
 use authzen::service_util::Error;
+use authzen::session::{AccountSessionClaims, AccountSessionState, CookieConfig, DynAccountSessionStore};
 use authzen::storage_backends::diesel::prelude::*;
 use http::response::Parts;
 use hyper::{Body, Response};
 use serde::{de::DeserializeOwned, Serialize};
-use session_util::{AccountSessionClaims, AccountSessionState, CookieConfig, DynAccountSessionStore};
 
 #[instrument(skip(session_store))]
 pub async fn sign_up<D: Db>(

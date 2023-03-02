@@ -1,5 +1,5 @@
+use authzen_service_util::*;
 use hyper::Method;
-use service_util::*;
 
 #[derive(Clone, Debug, Default)]
 pub struct GetStatus {

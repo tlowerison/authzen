@@ -1,9 +1,9 @@
 use crate::OPA_EXPLAIN;
+use authzen_service_util::*;
 use futures::future::try_join_all;
 use hyper::{body::Bytes, http::header::*, Body, Method};
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
-use service_util::*;
 use std::borrow::Cow;
 use std::fmt::Debug;
 use uuid::Uuid;

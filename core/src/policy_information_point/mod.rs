@@ -7,10 +7,10 @@ pub use server::*;
 pub use transaction_cache::*;
 
 use crate::*;
+use ::authzen_service_util::try_join_safe;
 use ::futures::future::TryFutureExt;
 use ::http::header::{HeaderMap, HeaderName};
 use ::serde::Serialize;
-use ::service_util::try_join_safe;
 use ::std::collections::HashMap;
 use ::std::fmt::Debug;
 
@@ -21,7 +21,7 @@ pub struct TransactionId<Id>(pub Id);
 
 #[derive(Debug, Error)]
 pub enum QueryError<E> {
-    Deserialization(service_util::Error),
+    Deserialization(authzen_service_util::Error),
     Query(E),
     Serialization(serde_json::Error),
 }

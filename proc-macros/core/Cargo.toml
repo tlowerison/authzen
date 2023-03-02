@@ -1,16 +1,24 @@
 [package]
 name = "authzen-proc-macros-core"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
 build = "../../build.rs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [dependencies]
-proc-macro-util.workspace = true
+authzen-proc-macro-util.workspace = true
 convert_case.workspace = true
 proc-macro2.workspace = true
 quote.workspace = true
 syn.workspace = true
-
-[build-dependencies]
-rustc_version.workspace = true

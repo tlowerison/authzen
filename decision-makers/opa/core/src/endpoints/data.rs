@@ -1,6 +1,6 @@
+use authzen_service_util::*;
 use hyper::{http::header::*, Method};
 use serde_json::Value;
-use service_util::*;
 
 #[derive(Clone, Debug)]
 pub struct GetDocument {

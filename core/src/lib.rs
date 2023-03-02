@@ -5,8 +5,6 @@ extern crate async_trait;
 #[macro_use]
 extern crate cfg_if;
 #[macro_use]
-extern crate derivative;
-#[macro_use]
 extern crate derive_more;
 #[macro_use]
 extern crate serde_with;

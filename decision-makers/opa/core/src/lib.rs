@@ -24,15 +24,13 @@ extern crate typed_builder;
 
 mod endpoints;
 mod models;
-mod sql;
 
 pub use endpoints::*;
 pub use models::*;
-pub use sql::*;
 
+use authzen_service_util::*;
 use hyper::{client::HttpConnector, header::HeaderMap, Body, Request, Response, StatusCode};
 use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
-use service_util::*;
 use std::{ops::Deref, sync::Arc, time::Duration};
 use tokio::time::timeout;
 

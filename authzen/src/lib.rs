@@ -2,13 +2,22 @@
 
 use cfg_if::cfg_if;
 
-pub use core::*;
-pub use proc_macros::*;
+pub use authzen_core::*;
+pub use authzen_proc_macros::*;
 
-pub use proc_macros;
+pub use authzen_proc_macros as proc_macros;
 
+#[cfg(feature = "proc-macro-util")]
+#[doc(alias = "authzen_proc_macro_util")]
+pub use authzen_proc_macro_util as proc_macro_util;
+
+#[cfg(feature = "service-util")]
 #[doc(alias = "authzen_service_util")]
-pub use service_util;
+pub use authzen_service_util as service_util;
+
+#[cfg(feature = "session")]
+#[doc(alias = "authzen_session")]
+pub use authzen_session as session;
 
 /// Implementations of common decision maker clients.
 pub mod decision_makers {

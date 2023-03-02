@@ -45,7 +45,7 @@ where
     Id: DeserializeOwned + Send + Serialize + 'static,
     Clients: Clone + Send + Sync + 'static,
     Ctx: Send + Sync,
-    Q: DeserializeOwned + Query<Ctx, Error = service_util::Error> + Send,
+    Q: DeserializeOwned + Query<Ctx, Error = authzen_service_util::Error> + Send,
     (Clients, Option<Id>): Into<Ctx>,
 {
     // note: ordering of middleware layers is important, see https://docs.rs/axum/latest/axum/middleware/index.html#ordering
@@ -93,10 +93,10 @@ where
                 async move {
                     let transaction_id = transaction_id.map(|x| x.0 .0);
                     let ctx = Into::<Ctx>::into((clients, transaction_id));
-                    let query: Q = service_util::from_body(raw_body)
+                    let query: Q = authzen_service_util::from_body(raw_body)
                         .await
                         .map_err(QueryError::Deserialization)?;
-                    Ok::<_, QueryError<service_util::Error>>(query.fetch(&ctx).await?)
+                    Ok::<_, QueryError<authzen_service_util::Error>>(query.fetch(&ctx).await?)
                 }
             },
         ),
@@ -109,7 +109,7 @@ where
             app.layer(
                 app_middleware
                     // handle errors produced by fallible middleware layers (e.g. timeout)
-                    .layer(HandleErrorLayer::new(service_util::handle_middleware_error))
+                    .layer(HandleErrorLayer::new(authzen_service_util::handle_middleware_error))
                     .timeout(timeout_duration)
                     .into_inner(),
             )
@@ -123,7 +123,7 @@ where
 
     axum::Server::bind(&socket_addr)
         .serve(service)
-        .with_graceful_shutdown(service_util::shutdown_signal())
+        .with_graceful_shutdown(authzen_service_util::shutdown_signal())
         .await?;
 
     Ok(())
@@ -151,7 +151,7 @@ where
             Box::pin(async move {
                 let transaction_id = transaction_id.map(|x| x.0 .0);
                 let ctx = Into::<Ctx>::into((clients, transaction_id));
-                let query: Q = service_util::from_body(raw_body)
+                let query: Q = authzen_service_util::from_body(raw_body)
                     .await
                     .map_err(QueryError::Deserialization)?;
                 Ok(query.fetch(&ctx).await?)
@@ -217,14 +217,14 @@ where
 
 #[cfg(feature = "tracing")]
 fn derive_span(req: &http::Request<hyper::body::Body>) -> tracing::Span {
-    service_util::set_trace_parent(
+    authzen_service_util::set_trace_parent(
         req,
         tracing::info_span!(
             target: "",
             "request",
             "http.method" = %req.method(),
             "http.target" = %req.uri(),
-            "http.client_ip" = service_util::get_client_ip(req).map(display),
+            "http.client_ip" = authzen_service_util::get_client_ip(req).map(display),
         ),
     )
 }

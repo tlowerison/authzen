@@ -1,19 +1,27 @@
 [package]
 name = "authzen-opa"
+build = "../../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-build = "../../build.rs"
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
-[dependencies]
-async-trait.workspace = true
-serde.workspace = true
-session-util.workspace = true
-core = { path = "core", package = "authzen-opa-core" }
-proc-macros = { path = "proc-macros", package = "authzen-opa-proc-macros" }
+[package.metadata.docs.rs]
+all-features = true
 
 [build-dependencies]
 rustc_version.workspace = true
+
+[dependencies]
+authzen-session = { workspace = true }
+async-trait.workspace = true
+serde.workspace = true
+core = { path = "core", package = "authzen-opa-core" }
+proc-macros = { path = "proc-macros", package = "authzen-opa-proc-macros" }
 
 [features]
 mongodb-tx-cache-backend = ["core/mongodb-tx-cache-backend"]

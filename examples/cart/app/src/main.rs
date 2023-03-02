@@ -3,11 +3,11 @@ extern crate tracing;
 
 use ::authzen::decision_makers::opa::OPAClient;
 use ::authzen::service_util::{make_account_span, try_join_safe};
+use ::authzen::session::{redis_store, RedisStoreConfig, RedisStoreNodeConfig, SessionLayer};
 use ::authzen::transaction_caches::mongodb::{mongodb_client, MongodbConfig};
 use ::axum::{error_handling::HandleErrorLayer, extract::Extension};
 use ::dotenv::dotenv;
 use ::hyper::http::{header, method::Method};
-use ::session_util::{redis_store, RedisStoreConfig, RedisStoreNodeConfig, SessionLayer};
 use ::std::net::SocketAddr;
 use ::std::time::Duration;
 use ::tower::ServiceBuilder;

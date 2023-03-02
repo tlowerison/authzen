@@ -1,7 +1,7 @@
 #![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
+use authzen_proc_macro_util::{add_bounds_to_generics, find_field_attribute_in_struct, MatchedAttribute};
 use proc_macro2::{Span, TokenStream};
-use proc_macro_util::{add_bounds_to_generics, find_field_attribute_in_struct, MatchedAttribute};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::{parse2, parse_quote, punctuated::Punctuated, Error, Token};
@@ -58,7 +58,7 @@ pub fn opa_context_core(item: TokenStream) -> Result<TokenStream, Error> {
     add_bounds_to_generics(
         &mut opa_context_trait_generics,
         [
-            parse_quote!(authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession<#account_id_ty, #account_session_fields_ty>),
+            parse_quote!(authzen::decision_makers::opa::authzen_session::BorrowAccountSession<#account_id_ty, #account_session_fields_ty>),
         ],
         Some(&parse_quote!(#account_session_field_type)),
     );
@@ -75,7 +75,7 @@ pub fn opa_context_core(item: TokenStream) -> Result<TokenStream, Error> {
         impl #opa_context_impl_generics authzen::decision_makers::opa::OPAContext for #ident #ty_generics #opa_context_where_clause {
             type AccountId = #account_id_ty;
             type AccountSessionFields = #account_session_fields_ty;
-            fn account_session(&self) -> Option<&authzen::decision_makers::opa::authzen_opa_session_util::AccountSession<Self::AccountId, Self::AccountSessionFields>> {
+            fn account_session(&self) -> Option<&authzen::decision_makers::opa::authzen_session::AccountSession<Self::AccountId, Self::AccountSessionFields>> {
                 self.#account_session_field_accessor.borrow_account_session()
             }
             fn opa_client(&self) -> &authzen::decision_makers::opa::OPAClient {
@@ -288,7 +288,7 @@ impl Parse for OPAContextAccountSessionAttributeArg {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use proc_macro_util::pretty;
+    use authzen_proc_macro_util::pretty;
 
     #[test]
     fn test_opa_context_basic() -> Result<(), Error> {
@@ -308,10 +308,7 @@ mod tests {
             impl<
                     A: Send
                         + Sync
-                        + authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession<
-                            Uuid,
-                            AccountSessionFields,
-                        >,
+                        + authzen::decision_makers::opa::authzen_session::BorrowAccountSession<Uuid, AccountSessionFields>,
                     D: Send + Sync,
                     O1: Send + Sync + Borrow<authzen::decision_makers::opa::OPAClient>,
                     O2: Send + Sync,
@@ -322,7 +319,7 @@ mod tests {
                 fn account_session(
                     &self,
                 ) -> Option<
-                    &authzen::decision_makers::opa::authzen_opa_session_util::AccountSession<
+                    &authzen::decision_makers::opa::authzen_session::AccountSession<
                         Self::AccountId,
                         Self::AccountSessionFields,
                     >,
@@ -356,9 +353,7 @@ mod tests {
         let expected = quote!(
             #[authzen::decision_makers::opa::authzen_opa_async_trait]
             impl<
-                    A: Send
-                        + Sync
-                        + authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession<Uuid, ()>,
+                    A: Send + Sync + authzen::decision_makers::opa::authzen_session::BorrowAccountSession<Uuid, ()>,
                     D: Foo + Send + Sync,
                     O1: Yo + Send + Sync + Borrow<authzen::decision_makers::opa::OPAClient>,
                     O2: Test + Send + Sync,
@@ -369,7 +364,7 @@ mod tests {
                 fn account_session(
                     &self,
                 ) -> Option<
-                    &authzen::decision_makers::opa::authzen_opa_session_util::AccountSession<
+                    &authzen::decision_makers::opa::authzen_session::AccountSession<
                         Self::AccountId,
                         Self::AccountSessionFields,
                     >,

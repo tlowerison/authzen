@@ -1,20 +1,28 @@
 [package]
 name = "authzen-diesel-proc-macros-core"
+build = "../../../../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-build = "../../../../build.rs"
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [dependencies]
+authzen-proc-macro-util.workspace = true
 convert_case.workspace = true
 derive_more.workspace = true
 either.workspace = true
 itertools.workspace = true
 proc-macro2.workspace = true
-proc-macro-util.workspace = true
 quote.workspace = true
 syn.workspace = true
 uuid.workspace = true
-
-[build-dependencies]
-rustc_version.workspace = true

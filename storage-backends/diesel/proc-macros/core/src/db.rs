@@ -1,5 +1,5 @@
+use authzen_proc_macro_util::add_bounds_to_generics;
 use proc_macro2::TokenStream;
-use proc_macro_util::add_bounds_to_generics;
 use std::str::FromStr;
 use syn::parse::Error;
 use syn::parse2;

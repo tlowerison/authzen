@@ -1,17 +1,25 @@
 [package]
 name = "authzen-diesel-proc-macros"
+build = "../../../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-build = "../../../build.rs"
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [dependencies]
 core = { path = "core", package = "authzen-diesel-proc-macros-core" }
 proc-macro2.workspace = true
 syn.workspace = true
-
-[build-dependencies]
-rustc_version.workspace = true
 
 [lib]
 proc-macro = true

@@ -1,9 +1,20 @@
 [package]
 name = "authzen-diesel-core"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
 build = "../../../build.rs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
@@ -27,9 +38,6 @@ tracing.workspace = true
 uuid.workspace = true
 
 mobc = { version = "^0.7", optional = true }
-
-[build-dependencies]
-rustc_version.workspace = true
 
 [features]
 bb8 = ["diesel-async/bb8"]

@@ -6,22 +6,29 @@ members = [
   "proc-macros",
   "proc-macro-util",
   "service-util",
+  "session",
   "storage-backends/*",
 ]
 exclude = ["examples"]
 
 [workspace.package]
-description = "Policy representation and execution bindings."
-version = "0.1.0"
+description = "A framework for easily integrating authorization into backend services."
+version = "0.1.0-alpha.0"
 edition = "2021"
 authors = ["Trey Lowerison"]
+categories = ["web-programming"]
+keywords = ["authz", "authorization", "diesel", "opa", "open-policy-agent"]
+homepage = "https://github.com/tlowerison/authzen"
+repository = "https://github.com/tlowerison/authzen"
+license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-authzen-diesel.path = "storage-backends/diesel"
-authzen-opa.path = "decision-makers/opa"
-authzen-proc-macros.path = "proc-macros"
-service-util = { path = "service-util", package = "authzen-service-util" }
-proc-macro-util = { path = "proc-macro-util", package = "authzen-proc-macro-util" }
+authzen-diesel = { path = "storage-backends/diesel", version = "0.1.0-alpha.0" }
+authzen-opa = { path = "decision-makers/opa", version = "0.1.0-alpha.0" }
+authzen-proc-macros = { path = "proc-macros", version = "0.1.0-alpha.0" }
+authzen-proc-macro-util = { path = "proc-macro-util", version = "0.1.0-alpha.0" }
+authzen-service-util = { path = "service-util", version = "0.1.0-alpha.0" }
+authzen-session = { path = "session", version = "0.1.0-alpha.0" }
 
 # authzen specific crates
 async-trait = "^0.1"
@@ -69,7 +76,6 @@ float-cmp = "0"
 hyper-rustls = { version = "0", features = ["webpki-roots"] }
 mongodb = { version = "2", features = ["bson-chrono-0_4"] }
 opentelemetry = "0"
-session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee5b2", features = ["account-session"] }
 tracing-opentelemetry = "0"
 
 # proc-macro-util
@@ -83,9 +89,15 @@ log = "0"
 async-graphql = "4"
 axum-core = "0"
 cookie = "0"
+clap = "4"
 concat-string = "1"
 data-encoding = "2"
+deadpool = "0"
+jsonwebtoken = "8"
 opentelemetry-jaeger = "0"
+percent-encoding = "2"
+pin-project-lite = "0"
+redis_cluster_async = "0"
 ring = "0"
 serde_qs = "0"
 tonic = "0"
@@ -98,6 +110,8 @@ tracing-log = "0"
 tracing-subscriber = "0"
 tracing-tree = "0"
 
+axum-core-02 = { package = "axum-core", version = "0.2", default-features = false }
+axum-core-03 = { package = "axum-core", version = "0.3", default-features = false }
 axum-05 = { package = "axum", version = "0.5", default-features = false, features = ["headers"] }
 axum-06 = { package = "axum", version = "0.6", default-features = false, features = ["headers"] }
 

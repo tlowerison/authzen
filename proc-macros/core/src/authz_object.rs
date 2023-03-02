@@ -1,5 +1,5 @@
+use authzen_proc_macro_util::{add_general_bounds_to_generics, match_path};
 use proc_macro2::{Span, TokenStream};
-use proc_macro_util::{add_general_bounds_to_generics, match_path};
 use quote::{format_ident, quote};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse2, parse_quote, punctuated::Punctuated, Error, Token};

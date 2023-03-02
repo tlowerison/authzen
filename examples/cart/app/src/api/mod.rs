@@ -27,7 +27,7 @@ pub struct Clients {
     #[derivative(Debug = "ignore")]
     pub opa_client: authzen::decision_makers::opa::OPAClient,
     #[derivative(Debug = "ignore")]
-    pub session_store: session_util::DynAccountSessionStore,
+    pub session_store: authzen::session::DynAccountSessionStore,
     #[derivative(Debug = "ignore")]
     pub tx_cache_client: ApiTxCacheClient,
 }

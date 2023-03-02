@@ -1,8 +1,8 @@
-use convert_case::{Case, Casing};
-use proc_macro2::TokenStream;
-use proc_macro_util::{
+use authzen_proc_macro_util::{
     add_bounds_to_generics, find_field_attribute_in_struct, find_field_attributes_in_struct, MatchedAttribute,
 };
+use convert_case::{Case, Casing};
+use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use std::borrow::Cow;
 use syn::{parse2, parse_quote, Error};

@@ -1,58 +1,76 @@
 [package]
 name = "authzen"
-version.workspace = true
-description.workspace = true
-edition.workspace = true
-authors.workspace = true
 build = "../build.rs"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
-[dependencies]
-proc-macro-util.workspace = true
-service-util.workspace = true
-cfg-if.workspace = true
-core = { package = "authzen-core", path = "../core" }
-derivative.workspace = true
-futures.workspace = true
-proc-macros = { package = "authzen-proc-macros", path = "../proc-macros" }
-
-authzen-diesel = { workspace = true, optional = true }
-authzen-opa = { workspace = true, optional = true }
-dotenv = { workspace = true, optional = true }
-tokio = { workspace = true, optional = true }
+[package.metadata.docs.rs]
+all-features = true
 
 [build-dependencies]
 rustc_version.workspace = true
 
+[dependencies]
+authzen-diesel = { path = "../storage-backends/diesel", version = "0.1.0-alpha.0", optional = true }
+authzen-opa = { path = "../decision-makers/opa", version = "0.1.0-alpha.0", optional = true }
+authzen-core = { path = "../core", version = "0.1.0-alpha.0" }
+authzen-proc-macros = { path = "../proc-macros", version = "0.1.0-alpha.0" }
+authzen-proc-macro-util = { path = "../proc-macro-util", version = "0.1.0-alpha.0", optional = true }
+authzen-service-util = { path = "../service-util", version = "0.1.0-alpha.0", optional = true }
+authzen-session = { path = "../session", version = "0.1.0-alpha.0", optional = true }
+
+cfg-if.workspace = true
+derivative.workspace = true
+futures.workspace = true
+
+dotenv = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+
 [features]
-diesel-storage-backend = ["authzen-diesel", "core/diesel-storage-backend"]
-diesel-mysql = ["diesel-storage-backend", "core/diesel-mysql", "authzen-diesel/mysql"]
-diesel-postgres = ["diesel-storage-backend", "core/diesel-postgres", "authzen-diesel/postgres"]
+diesel-storage-backend = ["authzen-diesel", "authzen-core/diesel-storage-backend"]
+diesel-mysql = ["diesel-storage-backend", "authzen-core/diesel-mysql", "authzen-diesel/mysql"]
+diesel-postgres = ["diesel-storage-backend", "authzen-core/diesel-postgres", "authzen-diesel/postgres"]
 diesel-bb8 = ["diesel-storage-backend", "authzen-diesel/bb8"]
 diesel-deadpool = ["diesel-storage-backend", "authzen-diesel/deadpool"]
 diesel-mobc = ["diesel-storage-backend", "authzen-diesel/mobc"]
 
-extra-traits = ["core/extra-traits"]
+extra-traits = ["authzen-core/extra-traits"]
 
-mongodb-tx-cache = ["core/mongodb-tx-cache"]
+mongodb-tx-cache = ["authzen-core/mongodb-tx-cache"]
 
-opa-decision-maker = ["authzen-opa", "core/opa-decision-maker"]
+opa-decision-maker = ["authzen-opa", "authzen-core/opa-decision-maker"]
 
-policy-information-point = ["core/policy-information-point"]
-policy-information-point-server = ["core/policy-information-point-server", "dep:dotenv", "dep:tokio"]
+policy-information-point = ["authzen-core/policy-information-point"]
+policy-information-point-server = ["authzen-core/policy-information-point-server", "dep:dotenv", "dep:tokio"]
 
-service-util-axum-05 = ["service-util/axum-05"]
-service-util-axum-06 = ["service-util/axum-06"]
-service-util-client = ["service-util/client"]
-service-util-db = ["service-util/db"]
-service-util-graphql = ["service-util/graphql"]
-service-util-grpc = ["service-util/grpc"]
-service-util-http1 = ["service-util/http1"]
-service-util-http2 = ["service-util/http2"]
-service-util-log_error = ["service-util/log_error"]
-service-util-max-allowed-request-body-size-large = ["service-util/max-allowed-request-body-size-large"]
-service-util-max-allowed-request-body-size-medium = ["service-util/max-allowed-request-body-size-medium"]
-service-util-max-allowed-request-body-size-small = ["service-util/max-allowed-request-body-size-small"]
-service-util-server = ["service-util/server"]
-service-util-trace = ["service-util/trace"]
+proc-macro-util = ["authzen-proc-macro-util"]
 
-tracing = ["core/tracing"]
+service-util = ["authzen-service-util"]
+service-util-axum-05 = ["service-util", "authzen-service-util/axum-05"]
+service-util-axum-06 = ["service-util", "authzen-service-util/axum-06"]
+service-util-client = ["service-util", "authzen-service-util/client"]
+service-util-db = ["service-util", "authzen-service-util/db"]
+service-util-graphql = ["service-util", "authzen-service-util/graphql"]
+service-util-grpc = ["service-util", "authzen-service-util/grpc"]
+service-util-http1 = ["service-util", "authzen-service-util/http1"]
+service-util-http2 = ["service-util", "authzen-service-util/http2"]
+service-util-log_error = ["service-util", "authzen-service-util/log_error"]
+service-util-max-allowed-request-body-size-large = ["service-util", "authzen-service-util/max-allowed-request-body-size-large"]
+service-util-max-allowed-request-body-size-medium = ["service-util", "authzen-service-util/max-allowed-request-body-size-medium"]
+service-util-max-allowed-request-body-size-small = ["service-util", "authzen-service-util/max-allowed-request-body-size-small"]
+service-util-server = ["service-util", "authzen-service-util/server"]
+service-util-trace = ["service-util", "authzen-service-util/trace"]
+
+session = ["authzen-session"]
+session-account-session = ["session", "authzen-session/account-session"]
+session-axum-core-02 = ["session", "authzen-session/axum-core-02"]
+session-axum-core-03 = ["session", "authzen-session/axum-core-03"]
+session-redis-backend = ["session", "authzen-session/redis-backend"]
+
+tracing = ["authzen-core/tracing"]

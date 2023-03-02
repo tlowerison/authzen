@@ -1,9 +1,9 @@
 use crate::{ActionType, DecisionMaker, Event, ObjectType};
 use ::authzen_opa::OPAClient;
+use ::authzen_service_util::*;
 use ::hyper::{body::Bytes, http::header::*, Body, Method};
 use ::serde::{Deserialize, Deserializer, Serialize};
 use ::serde_json::Value;
-use ::service_util::*;
 use ::std::fmt::Debug;
 use ::typed_builder::TypedBuilder;
 
@@ -27,7 +27,7 @@ where
     TransactionId: Debug + Send + Serialize + Sync,
 {
     type Ok = ();
-    type Error = service_util::Error;
+    type Error = authzen_service_util::Error;
 
     async fn can_act(
         &self,
@@ -72,7 +72,7 @@ where
         .query(self)
         .await?;
         if result == false {
-            return Err(service_util::Error::bad_request());
+            return Err(authzen_service_util::Error::bad_request());
         }
         Ok(())
     }

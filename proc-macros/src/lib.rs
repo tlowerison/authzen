@@ -1,8 +1,8 @@
 #![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
+use authzen_proc_macro_util::ok_or_return_compile_error;
 use doc_comment::doc_comment;
 use proc_macro::TokenStream;
-use proc_macro_util::ok_or_return_compile_error;
 
 doc_comment!(
     include_str!("../docs/action.md"),

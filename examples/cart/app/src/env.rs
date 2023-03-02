@@ -1,6 +1,6 @@
 use authzen::service_util::{env, parse_allowed_origin};
+use authzen::session::{parse_decoding_key, parse_encoding_key};
 use jsonwebtoken::{DecodingKey, EncodingKey};
-use session_util::{parse_decoding_key, parse_encoding_key};
 use std::net::IpAddr;
 
 env! {

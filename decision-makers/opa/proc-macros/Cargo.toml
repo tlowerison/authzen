@@ -1,16 +1,24 @@
 [package]
 name = "authzen-opa-proc-macros"
+build = "../../../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
-build = "../../../build.rs"
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
-[dependencies]
-proc-macro-util.workspace = true
-core = { path = "core", package = "authzen-opa-proc-macros-core" }
+[package.metadata.docs.rs]
+all-features = true
 
 [build-dependencies]
 rustc_version.workspace = true
+
+[dependencies]
+authzen-proc-macro-util.workspace = true
+core = { path = "core", package = "authzen-opa-proc-macros-core" }
 
 [lib]
 proc-macro = true

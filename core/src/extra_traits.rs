@@ -1,11 +1,11 @@
 use crate::ActionError;
 
 impl<DecisionMakerError, StorageError, TransactionCacheError>
-    From<ActionError<DecisionMakerError, StorageError, TransactionCacheError>> for service_util::Error
+    From<ActionError<DecisionMakerError, StorageError, TransactionCacheError>> for authzen_service_util::Error
 where
     DecisionMakerError: std::fmt::Display,
-    StorageError: Into<service_util::Error>,
-    TransactionCacheError: Into<service_util::Error>,
+    StorageError: Into<authzen_service_util::Error>,
+    TransactionCacheError: Into<authzen_service_util::Error>,
 {
     fn from(value: ActionError<DecisionMakerError, StorageError, TransactionCacheError>) -> Self {
         match value {

@@ -27,7 +27,6 @@ cfg-if.workspace = true
 derivative.workspace = true
 hyper.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 paste.workspace = true
 thiserror.workspace = true
 tower-http = { workspace = true, features = ["cors"] }

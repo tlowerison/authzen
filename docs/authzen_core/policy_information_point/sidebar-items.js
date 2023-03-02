@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["QueryError"],"fn":["query_handler","server"],"macro":["server"],"static":["X_TRANSACTION_ID"],"struct":["Response","ServerConfig","TransactionId"],"trait":["GetTransactionValues","ObjectQuery","Query"]};

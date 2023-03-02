@@ -787,6 +787,50 @@
 <a href="#787" id="787">787</a>
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a>
+<a href="#801" id="801">801</a>
+<a href="#802" id="802">802</a>
+<a href="#803" id="803">803</a>
+<a href="#804" id="804">804</a>
+<a href="#805" id="805">805</a>
+<a href="#806" id="806">806</a>
+<a href="#807" id="807">807</a>
+<a href="#808" id="808">808</a>
+<a href="#809" id="809">809</a>
+<a href="#810" id="810">810</a>
+<a href="#811" id="811">811</a>
+<a href="#812" id="812">812</a>
+<a href="#813" id="813">813</a>
+<a href="#814" id="814">814</a>
+<a href="#815" id="815">815</a>
+<a href="#816" id="816">816</a>
+<a href="#817" id="817">817</a>
+<a href="#818" id="818">818</a>
+<a href="#819" id="819">819</a>
+<a href="#820" id="820">820</a>
+<a href="#821" id="821">821</a>
+<a href="#822" id="822">822</a>
+<a href="#823" id="823">823</a>
+<a href="#824" id="824">824</a>
+<a href="#825" id="825">825</a>
+<a href="#826" id="826">826</a>
+<a href="#827" id="827">827</a>
+<a href="#828" id="828">828</a>
+<a href="#829" id="829">829</a>
+<a href="#830" id="830">830</a>
+<a href="#831" id="831">831</a>
+<a href="#832" id="832">832</a>
+<a href="#833" id="833">833</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
 #[macro_use]
@@ -794,27 +838,39 @@
 <span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>cfg_if;
 <span class="attr">#[macro_use]
+</span><span class="kw">extern crate </span>derivative;
+<span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>derive_more;
 <span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>serde_with;
 
+<span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
+#[macro_use]
+</span><span class="kw">extern crate </span>tracing;
+
 <span class="kw">mod </span>decision_makers;
 <span class="kw">mod </span>storage_backends;
-<span class="kw">pub mod </span>transaction_caches;
+
+<span class="doccomment">/// Helper traits for implementing a policy information point.
+</span><span class="attr">#[cfg(feature = <span class="string">&quot;policy-information-point&quot;</span>)]
+</span><span class="kw">pub mod </span>policy_information_point;
+
+<span class="doccomment">/// Implementations of common transaction cache clients.
+</span><span class="kw">pub mod </span>transaction_caches;
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;extra-traits&quot;</span>)]
 </span><span class="kw">mod </span>extra_traits;
 
+<span class="kw">use </span>::derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
 <span class="kw">use </span>::serde::{de::DeserializeOwned, Deserialize, Serialize};
-<span class="kw">use </span>derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
-<span class="kw">use </span>std::borrow::Borrow;
-<span class="kw">use </span>std::collections::HashMap;
-<span class="kw">use </span>std::fmt::Debug;
-<span class="kw">use </span>std::future::Future;
-<span class="kw">use </span>std::hash::Hash;
-<span class="kw">use </span>std::marker::PhantomData;
-<span class="kw">use </span>std::pin::Pin;
-<span class="kw">use </span>typed_builder::TypedBuilder;
+<span class="kw">use </span>::std::borrow::Borrow;
+<span class="kw">use </span>::std::collections::HashMap;
+<span class="kw">use </span>::std::fmt::Debug;
+<span class="kw">use </span>::std::future::Future;
+<span class="kw">use </span>::std::hash::Hash;
+<span class="kw">use </span>::std::marker::PhantomData;
+<span class="kw">use </span>::std::pin::Pin;
+<span class="kw">use </span>::typed_builder::TypedBuilder;
 
 <span class="doccomment">/// Compile time information about an action.
 </span><span class="kw">pub trait </span>ActionType {
@@ -829,12 +885,12 @@
     Into&lt;Event&lt;Subject, <span class="self">Self</span>::Action, Object, Input, Context&gt;&gt;
 <span class="kw">where
     </span>SC: <span class="question-mark">?</span>Sized + StorageClient + Send + Sync,
-    DM: <span class="question-mark">?</span>Sized + DecisionMaker&lt;Subject, <span class="self">Self</span>::Action, Object, Input, Context&gt; + Sync,
+    DM: <span class="question-mark">?</span>Sized + DecisionMaker&lt;Subject, <span class="self">Self</span>::Action, Object, Input, Context, SC::TransactionId&gt; + Sync,
     Subject: Send + Sync,
     Object: <span class="question-mark">?</span>Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache&lt;SC&gt; + TransactionCacheAction&lt;<span class="self">Self</span>::Action, SC, Input&gt;,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction&lt;<span class="self">Self</span>::Action, SC, Input&gt;,
 {
     <span class="doccomment">/// Action to be authorized and performed.
     </span><span class="kw">type </span>Action: ActionType + StorageAction&lt;SC, Input&gt; + Send + Sync;
@@ -847,7 +903,7 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;
         &lt;<span class="self">Self</span>::Action <span class="kw">as </span>StorageAction&lt;SC, Input&gt;&gt;::Ok,
         ActionError&lt;
-            &lt;DM <span class="kw">as </span>DecisionMaker&lt;Subject, <span class="self">Self</span>::Action, Object, Input, Context&gt;&gt;::Error,
+            &lt;DM <span class="kw">as </span>DecisionMaker&lt;Subject, <span class="self">Self</span>::Action, Object, Input, Context, SC::TransactionId&gt;&gt;::Error,
             &lt;<span class="self">Self</span>::Action <span class="kw">as </span>StorageAction&lt;SC, Input&gt;&gt;::Error,
             TC::Error,
         &gt;,
@@ -860,7 +916,12 @@
     {
         <span class="kw">let </span>event = <span class="self">self</span>.into();
         decision_maker
-            .can_act(event.subject, <span class="kw-2">&amp;</span>event.input, event.context)
+            .can_act(
+                event.subject,
+                <span class="kw-2">&amp;</span>event.input,
+                event.context,
+                storage_client.transaction_id(),
+            )
             .<span class="kw">await
             </span>.map_err(ActionError::authz)<span class="question-mark">?</span>;
         <span class="kw">let </span>ok = <span class="self">Self</span>::Action::act(storage_client, event.input)
@@ -879,12 +940,12 @@
     <span class="kw">for </span>Event&lt;Subject, A, Object, Input, Context&gt;
 <span class="kw">where
     </span>SC: <span class="question-mark">?</span>Sized + StorageClient + Send + Sync,
-    DM: <span class="question-mark">?</span>Sized + <span class="kw">for</span>&lt;<span class="lifetime">&#39;a</span>&gt; DecisionMaker&lt;Subject, A, Object, Input, Context&gt; + Sync,
+    DM: <span class="question-mark">?</span>Sized + DecisionMaker&lt;Subject, A, Object, Input, Context, SC::TransactionId&gt; + Sync,
     Subject: Send + Sync,
     Object: <span class="question-mark">?</span>Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache&lt;SC&gt; + TransactionCacheAction&lt;A, SC, Input&gt;,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction&lt;A, SC, Input&gt;,
 
     A: ActionType + StorageAction&lt;SC, Input&gt; + Send + Sync,
 {
@@ -965,15 +1026,13 @@
     </span><span class="kw">type </span>Backend: StorageBackend;
     <span class="doccomment">/// The type for ids associated with transactions used by this client.
     /// If this client does not support transactions just set this value to `()`.
-    </span><span class="kw">type </span>TransactionId&lt;<span class="lifetime">&#39;a</span>&gt;: Clone + Eq + Hash + Send + Serialize + Sync
-    <span class="kw">where
-        </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+    </span><span class="kw">type </span>TransactionId: Clone + Eq + Hash + Send + Serialize + Sync;
 
     <span class="doccomment">/// Returns the current transaction id if there is one available
     /// for this client. Must return Some for clients which expect
     /// to use a transaction cache to assist a decision maker. If
     /// this client does not support transactions just return `None`.
-    </span><span class="kw">fn </span>transaction_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::TransactionId&lt;<span class="lifetime">&#39;_</span>&gt;&gt;;
+    </span><span class="kw">fn </span>transaction_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::TransactionId&gt;;
 }
 
 <span class="doccomment">/// Connects an object with its backend representation for a specific backend.
@@ -988,7 +1047,7 @@
     /// ```
     </span><span class="kw">type </span>Constructor&lt;<span class="lifetime">&#39;a</span>&gt;: AsStorage&lt;Backend&gt;;
     <span class="doccomment">/// This object&#39;s storage representation for the specified `Backend`.
-    </span><span class="kw">type </span>StorageObject: StorageObject&lt;Backend&gt; + Send + Sync;
+    </span><span class="kw">type </span>StorageObject: DeserializeOwned + Identifiable + StorageObject&lt;Backend&gt; + Send + Serialize + Sync;
 }
 
 <span class="doccomment">/// An object&#39;s representation specific to a particular backend. Often this will only be
@@ -1018,7 +1077,7 @@
 <span class="doccomment">/// Represents a policy decision point (could be astracted over an in-process memory, a remote api,
 /// etc.) which is capable of making authorization decisions using the provided [`Event`].
 </span><span class="attr">#[async_trait]
-</span><span class="kw">pub trait </span>DecisionMaker&lt;Subject, Action, Object, Input, Context&gt;
+</span><span class="kw">pub trait </span>DecisionMaker&lt;Subject, Action, Object, Input, Context, TransactionId&gt;
 <span class="kw">where
     </span>Event&lt;Subject, Action, Object, Input, Context&gt;: Send + Sync,
     Action: <span class="question-mark">?</span>Sized,
@@ -1026,17 +1085,25 @@
 {
     <span class="kw">type </span><span class="prelude-val">Ok</span>: Debug + Send;
     <span class="kw">type </span>Error: Debug + Send;
-    <span class="kw">async fn </span>can_act(<span class="kw-2">&amp;</span><span class="self">self</span>, subject: Subject, input: <span class="kw-2">&amp;</span>Input, context: Context) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">async fn </span>can_act(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        subject: Subject,
+        input: <span class="kw-2">&amp;</span>Input,
+        context: Context,
+        transaction_id: <span class="prelude-ty">Option</span>&lt;TransactionId&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
         </span>Subject: <span class="lifetime">&#39;async_trait</span>,
         Action: <span class="lifetime">&#39;async_trait</span>,
         Object: <span class="lifetime">&#39;async_trait</span>,
         Input: <span class="lifetime">&#39;async_trait</span>,
-        Context: <span class="lifetime">&#39;async_trait</span>;
+        Context: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>;
 }
 
 <span class="attr">#[async_trait]
-</span><span class="kw">impl</span>&lt;Subject, Action, Object, Input, Context, T&gt; DecisionMaker&lt;Subject, Action, Object, Input, Context&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>T
+</span><span class="kw">impl</span>&lt;Subject, Action, Object, Input, Context, TransactionId, T&gt;
+    DecisionMaker&lt;Subject, Action, Object, Input, Context, TransactionId&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>T
 <span class="kw">where
     </span>Event&lt;Subject, Action, Object, Input, Context&gt;: Send + Sync,
     Subject: Send + Serialize,
@@ -1044,226 +1111,247 @@
     Object: <span class="question-mark">?</span>Sized + ObjectType + Sync,
     Input: Serialize + Sync,
     Context: Send + Serialize,
-    T: <span class="question-mark">?</span>Sized + DecisionMaker&lt;Subject, Action, Object, Input, Context&gt; + Send + Sync,
+    TransactionId: Send,
+    T: <span class="question-mark">?</span>Sized + DecisionMaker&lt;Subject, Action, Object, Input, Context, TransactionId&gt; + Send + Sync,
 {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= T::Ok;
     <span class="kw">type </span>Error = T::Error;
-    <span class="kw">async fn </span>can_act(<span class="kw-2">&amp;</span><span class="self">self</span>, subject: Subject, input: <span class="kw-2">&amp;</span>Input, context: Context) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">async fn </span>can_act(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        subject: Subject,
+        input: <span class="kw-2">&amp;</span>Input,
+        context: Context,
+        transaction_id: <span class="prelude-ty">Option</span>&lt;TransactionId&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
         </span>Subject: <span class="lifetime">&#39;async_trait</span>,
         Action: <span class="lifetime">&#39;async_trait</span>,
         Object: <span class="lifetime">&#39;async_trait</span>,
         Input: <span class="lifetime">&#39;async_trait</span>,
         Context: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
     {
-        &lt;T <span class="kw">as </span>DecisionMaker&lt;Subject, Action, Object, Input, Context&gt;&gt;::can_act(<span class="kw-2">*</span><span class="self">self</span>, subject, input, context).<span class="kw">await
+        &lt;T <span class="kw">as </span>DecisionMaker&lt;Subject, Action, Object, Input, Context, TransactionId&gt;&gt;::can_act(
+            <span class="kw-2">*</span><span class="self">self</span>,
+            subject,
+            input,
+            context,
+            transaction_id,
+        )
+        .<span class="kw">await
     </span>}
 }
 
 <span class="kw">pub trait </span>Identifiable {
-    <span class="kw">type </span>Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + <span class="lifetime">&#39;static</span>;
+    <span class="kw">type </span>Id: Clone + DeserializeOwned + Eq + Hash + Send + Serialize + Sync + <span class="lifetime">&#39;static</span>;
     <span class="kw">fn </span>id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Id;
 }
 
-<span class="kw">pub trait </span>TransactionCache&lt;SC: <span class="question-mark">?</span>Sized + StorageClient&gt; {
+<span class="kw">pub trait </span>TransactionCache {
     <span class="kw">type </span>Error: Debug + Send;
 
-    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
+        transaction_id: TransactionId,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;HashMap&lt;T::Id, TxCacheEntity&lt;T, T::Id&gt;&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
-        T::Id: Clone;
+        T::Id: Clone,
+        TransactionId: Send + Serialize;
 
-    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        ids: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>[T::Id],
+        transaction_id: TransactionId,
+        ids: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>[T::Id],
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
-        T::Id: Clone;
+        T::Id: Clone,
+        TransactionId: Send + Serialize;
 
-    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        transaction_id: TransactionId,
+        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize;
+        TransactionId: Clone + Send + Serialize;
 
-    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        transaction_id: TransactionId,
+        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize;
+        TransactionId: Clone + Send + Serialize;
 }
 
-<span class="kw">impl</span>&lt;SC: <span class="question-mark">?</span>Sized + StorageClient&gt; TransactionCache&lt;SC&gt; <span class="kw">for </span>() {
+<span class="kw">impl </span>TransactionCache <span class="kw">for </span>() {
     <span class="kw">type </span>Error = std::convert::Infallible;
 
-    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        <span class="kw">_</span>: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
+        <span class="kw">_</span>: TransactionId,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;HashMap&lt;T::Id, TxCacheEntity&lt;T, T::Id&gt;&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(<span class="kw">async </span>{ <span class="prelude-val">Ok</span>(Default::default()) })
     }
 
-    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        <span class="kw">_</span>: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>[T::Id],
+        <span class="kw">_</span>: TransactionId,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>[T::Id],
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
         Box::pin(<span class="kw">async </span>{ <span class="prelude-val">Ok</span>(Default::default()) })
     }
 
-    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        <span class="kw">_</span>: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        <span class="kw">_</span>: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        <span class="kw">_</span>: TransactionId,
+        <span class="kw">_</span>: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize,
+        TransactionId: Send + Serialize,
     {
         Box::pin(<span class="kw">async </span>{ <span class="prelude-val">Ok</span>(Default::default()) })
     }
 
-    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        <span class="kw">_</span>: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        <span class="kw">_</span>: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        <span class="kw">_</span>: TransactionId,
+        <span class="kw">_</span>: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize,
+        TransactionId: Send + Serialize,
     {
         Box::pin(<span class="kw">async </span>{ <span class="prelude-val">Ok</span>(Default::default()) })
     }
 }
 
-<span class="kw">impl</span>&lt;SC: <span class="question-mark">?</span>Sized + StorageClient, TC: TransactionCache&lt;SC&gt;&gt; TransactionCache&lt;SC&gt; <span class="kw">for </span><span class="kw-2">&amp;</span>TC {
+<span class="kw">impl</span>&lt;TC: TransactionCache&gt; TransactionCache <span class="kw">for </span><span class="kw-2">&amp;</span>TC {
     <span class="kw">type </span>Error = TC::Error;
 
-    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_entities&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
+        transaction_id: TransactionId,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;HashMap&lt;T::Id, TxCacheEntity&lt;T, T::Id&gt;&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
-        (<span class="kw-2">*</span><span class="self">self</span>).get_entities::&lt;O, T&gt;(transaction_id)
+        (<span class="kw-2">*</span><span class="self">self</span>).get_entities::&lt;O, T, TransactionId&gt;(transaction_id)
     }
 
-    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>get_by_ids&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        ids: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>[T::Id],
+        transaction_id: TransactionId,
+        ids: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>[T::Id],
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;Vec&lt;T&gt;, <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: DeserializeOwned + Identifiable + Send,
         T::Id: Clone,
+        TransactionId: Send + Serialize,
     {
-        (<span class="kw-2">*</span><span class="self">self</span>).get_by_ids::&lt;O, T&gt;(transaction_id, ids)
+        (<span class="kw-2">*</span><span class="self">self</span>).get_by_ids::&lt;O, T, TransactionId&gt;(transaction_id, ids)
     }
 
-    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>upsert&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        transaction_id: TransactionId,
+        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
-        (<span class="kw-2">*</span><span class="self">self</span>).upsert::&lt;O, T&gt;(transaction_id, entities)
+        (<span class="kw-2">*</span><span class="self">self</span>).upsert::&lt;O, T, TransactionId&gt;(transaction_id, entities)
     }
 
-    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>, O, T&gt;(
+    <span class="kw">fn </span>mark_deleted&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>, O, T, TransactionId&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life2</span>,
+        transaction_id: TransactionId,
+        entities: <span class="kw">impl </span>IntoIterator&lt;Item = <span class="kw">impl </span>Borrow&lt;T&gt; + Send&gt; + Send + <span class="lifetime">&#39;life1</span>,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
 
         O: <span class="question-mark">?</span>Sized + ObjectType,
         T: Identifiable + Serialize,
-        SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;: Clone + Serialize,
+        TransactionId: Clone + Send + Serialize,
     {
-        (<span class="kw-2">*</span><span class="self">self</span>).mark_deleted::&lt;O, T&gt;(transaction_id, entities)
+        (<span class="kw-2">*</span><span class="self">self</span>).mark_deleted::&lt;O, T, TransactionId&gt;(transaction_id, entities)
     }
 }
 
-<span class="kw">pub trait </span>TransactionCacheAction&lt;A, SC, I&gt;: TransactionCache&lt;SC&gt;
+<span class="kw">pub trait </span>TransactionCacheAction&lt;A, SC, I&gt;: TransactionCache
 <span class="kw">where
     </span>SC: <span class="question-mark">?</span>Sized + StorageClient + Send + Sync,
     A: StorageAction&lt;SC, I&gt; + Send,
@@ -1271,7 +1359,7 @@
     <span class="kw">fn </span>handle_success&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
         storage_client: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>SC,
-        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>A::Ok,
+        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>A::Ok,
     ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), <span class="self">Self</span>::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sync,
@@ -1287,17 +1375,17 @@
         }
     }
 
-    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
+    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>A::Ok,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&lt;SC&gt;&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
+        transaction_id: SC::TransactionId,
+        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>A::Ok,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sync,
         <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>,
+        SC::TransactionId: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>;
+        <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>;
 }
 
 <span class="kw">impl</span>&lt;A, SC, I&gt; TransactionCacheAction&lt;A, SC, I&gt; <span class="kw">for </span>()
@@ -1305,17 +1393,17 @@
     </span>SC: <span class="question-mark">?</span>Sized + StorageClient + Send + Sync,
     A: StorageAction&lt;SC, I&gt; + Send,
 {
-    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
+    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        <span class="kw">_</span>: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>A::Ok,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&lt;SC&gt;&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
+        <span class="kw">_</span>: SC::TransactionId,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>A::Ok,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sync,
         <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>,
+        SC::TransactionId: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
     {
         Box::pin(<span class="kw">async </span>{ <span class="prelude-val">Ok</span>(()) })
     }
@@ -1327,17 +1415,17 @@
     A: StorageAction&lt;SC, I&gt; + Send,
     TCA: TransactionCacheAction&lt;A, SC, I&gt; + Sync,
 {
-    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;life2</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
+    <span class="kw">fn </span>manage_cache&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;life1</span>, <span class="lifetime">&#39;async_trait</span>&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
-        transaction_id: SC::TransactionId&lt;<span class="lifetime">&#39;life1</span>&gt;,
-        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life2 </span>A::Ok,
-    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&lt;SC&gt;&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
+        transaction_id: SC::TransactionId,
+        ok: <span class="kw-2">&amp;</span><span class="lifetime">&#39;life1 </span>A::Ok,
+    ) -&gt; Pin&lt;Box&lt;<span class="kw">dyn </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;(), &lt;<span class="self">Self </span><span class="kw">as </span>TransactionCache&gt;::Error&gt;&gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
     <span class="kw">where
         </span><span class="self">Self</span>: Sync,
         <span class="self">Self</span>: <span class="lifetime">&#39;async_trait</span>,
+        SC::TransactionId: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;life1</span>: <span class="lifetime">&#39;async_trait</span>,
-        <span class="lifetime">&#39;life2</span>: <span class="lifetime">&#39;async_trait</span>,
     {
         (<span class="kw-2">*</span><span class="self">self</span>).manage_cache(transaction_id, ok)
     }

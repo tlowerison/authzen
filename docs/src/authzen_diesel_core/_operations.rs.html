@@ -628,6 +628,9 @@
 <a href="#628" id="628">628</a>
 <a href="#629" id="629">629</a>
 <a href="#630" id="630">630</a>
+<a href="#631" id="631">631</a>
+<a href="#632" id="632">632</a>
+<a href="#633" id="633">633</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{connection::Db, prelude::<span class="kw-2">*</span>};
 <span class="kw">use </span>diesel::associations::HasTable;
 <span class="kw">use </span>diesel::dsl::SqlTypeOf;
@@ -789,7 +792,7 @@
 
         <span class="attr">#[framed]
         #[instrument(skip_all)]
-        </span><span class="kw">async fn </span>get_by_column&lt;<span class="lifetime">&#39;query</span>, D, C, U, Q&gt;(
+        </span><span class="kw">async fn </span>get_by_column&lt;<span class="lifetime">&#39;query</span>, D, C, U, F&gt;(
             db: <span class="kw-2">&amp;</span>D,
             column: C,
             values: <span class="kw">impl </span>IntoIterator&lt;Item = U&gt; + Send,
@@ -797,15 +800,11 @@
         <span class="kw">where
             </span>D: Db,
 
-            <span class="comment">// Id bounds
-            </span>U: AsExpression&lt;SqlTypeOf&lt;C&gt;&gt; + Debug + Send,
             C: Debug + Expression + ExpressionMethods + Send,
             SqlTypeOf&lt;C&gt;: SqlType,
-
-            <span class="self">Self</span>::Table: IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, D::AsyncConnection, <span class="self">Self</span>::Raw, <span class="self">Self</span>::Raw&gt;,
-            &lt;<span class="self">Self</span>::Table <span class="kw">as </span>IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, D::AsyncConnection, <span class="self">Self</span>::Raw, <span class="self">Self</span>::Raw&gt;&gt;::IsNotDeletedFilter:
-                FilterDsl&lt;ht::EqAny&lt;C, Vec&lt;U&gt;&gt;, Output = Q&gt;,
-            Q: Send + LoadQuery&lt;<span class="lifetime">&#39;query</span>, D::AsyncConnection, <span class="self">Self</span>::Raw&gt; + <span class="lifetime">&#39;query</span>,
+            U: AsExpression&lt;SqlTypeOf&lt;C&gt;&gt; + Debug + Send,
+            <span class="self">Self</span>::Table: FilterDsl&lt;ht::EqAny&lt;C, Vec&lt;U&gt;&gt;, Output = F&gt;,
+            F: IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, D::AsyncConnection, <span class="self">Self</span>::Raw, <span class="self">Self</span>::Raw&gt;,
         {
             <span class="kw">let </span>values = values.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
             tracing::Span::current().record(<span class="string">&quot;values&quot;</span>, <span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;{values:?}&quot;</span>));
@@ -1198,8 +1197,15 @@
             &lt;<span class="self">Self</span>::Table <span class="kw">as </span>Table&gt;::PrimaryKey: Expression + ExpressionMethods,
             &lt;&lt;<span class="self">Self</span>::Table <span class="kw">as </span>Table&gt;::PrimaryKey <span class="kw">as </span>Expression&gt;::SqlType: SqlType,
 
-            <span class="self">Self</span>::Raw:
-                Deletable&lt;<span class="lifetime">&#39;query</span>, D::AsyncConnection, <span class="self">Self</span>::Table, [I; <span class="number">1</span>], <span class="self">Self</span>::Id, <span class="self">Self</span>::DeletedAt, <span class="self">Self</span>::DeletePatch&lt;<span class="lifetime">&#39;v</span>&gt;&gt;,
+            <span class="self">Self</span>::Raw: Deletable&lt;
+                <span class="lifetime">&#39;query</span>,
+                D::AsyncConnection,
+                <span class="self">Self</span>::Table,
+                [I; <span class="number">1</span>],
+                <span class="self">Self</span>::Id,
+                <span class="self">Self</span>::DeletedAt,
+                <span class="self">Self</span>::DeletePatch&lt;<span class="lifetime">&#39;v</span>&gt;,
+            &gt;,
         {
             db.raw_tx(<span class="kw">move </span>|conn| {
                 <span class="kw">async move </span>{

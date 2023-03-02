@@ -212,22 +212,22 @@
 <a href="#212" id="212">212</a>
 <a href="#213" id="213">213</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>::authzen_diesel::{connection::Db, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>::diesel::associations::HasTable;
+<span class="kw">use </span>::diesel::backend::Backend;
+<span class="kw">use </span>::diesel::expression::Expression;
+<span class="kw">use </span>::diesel::expression_methods::ExpressionMethods;
+<span class="kw">use </span>::diesel::helper_types <span class="kw">as </span>ht;
+<span class="kw">use </span>::diesel::query_dsl::methods::{FilterDsl, FindDsl};
+<span class="kw">use </span>::diesel::query_source::QuerySource;
+<span class="kw">use </span>::diesel::sql_types::SqlType;
+<span class="kw">use </span>::diesel::{query_builder::<span class="kw-2">*</span>, Identifiable};
+<span class="kw">use </span>::diesel::{Insertable, Table};
+<span class="kw">use </span>::diesel_async::methods::<span class="kw-2">*</span>;
 <span class="kw">use </span>::serde::{de::DeserializeOwned, Serialize};
-<span class="kw">use </span>authzen_diesel::{connection::Db, prelude::<span class="kw-2">*</span>};
-<span class="kw">use </span>diesel::associations::HasTable;
-<span class="kw">use </span>diesel::backend::Backend;
-<span class="kw">use </span>diesel::expression::Expression;
-<span class="kw">use </span>diesel::expression_methods::ExpressionMethods;
-<span class="kw">use </span>diesel::helper_types <span class="kw">as </span>ht;
-<span class="kw">use </span>diesel::query_dsl::methods::{FilterDsl, FindDsl};
-<span class="kw">use </span>diesel::query_source::QuerySource;
-<span class="kw">use </span>diesel::sql_types::SqlType;
-<span class="kw">use </span>diesel::{query_builder::<span class="kw-2">*</span>, Identifiable};
-<span class="kw">use </span>diesel::{Insertable, Table};
-<span class="kw">use </span>diesel_async::methods::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::fmt::Debug;
-<span class="kw">use </span>std::hash::Hash;
-<span class="kw">use </span>uuid::Uuid;
+<span class="kw">use </span>::std::fmt::Debug;
+<span class="kw">use </span>::std::hash::Hash;
+<span class="kw">use </span>::uuid::Uuid;
 
 <span class="kw">impl</span>&lt;B&gt; StorageBackend <span class="kw">for </span>B <span class="kw">where </span>B: Backend {}
 
@@ -252,9 +252,9 @@
 
 <span class="kw">impl</span>&lt;C: Db&gt; StorageClient <span class="kw">for </span>C {
     <span class="kw">type </span>Backend = &lt;C <span class="kw">as </span>Db&gt;::Backend;
-    <span class="kw">type </span>TransactionId&lt;<span class="lifetime">&#39;a</span>&gt; = Uuid <span class="kw">where </span><span class="self">Self</span>: <span class="lifetime">&#39;a</span>;
+    <span class="kw">type </span>TransactionId = Uuid;
 
-    <span class="kw">fn </span>transaction_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::TransactionId&lt;<span class="lifetime">&#39;_</span>&gt;&gt; {
+    <span class="kw">fn </span>transaction_id(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::TransactionId&gt; {
         <span class="self">self</span>.tx_id()
     }
 }
@@ -262,7 +262,7 @@
 <span class="kw">impl</span>&lt;T, Id&gt; <span class="kw">crate</span>::Identifiable <span class="kw">for </span>T
 <span class="kw">where
     for</span>&lt;<span class="lifetime">&#39;a</span>&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>T: Identifiable&lt;Id = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Id&gt;,
-    Id: DeserializeOwned + Eq + Hash + Send + Serialize + Sync + <span class="lifetime">&#39;static</span>,
+    Id: Clone + DeserializeOwned + Eq + Hash + Send + Serialize + Sync + <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">type </span>Id = Id;
 

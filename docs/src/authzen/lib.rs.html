@@ -26,33 +26,59 @@
 <a href="#26" id="26">26</a>
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a>
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-</span><span class="kw">pub use </span>core::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>cfg_if::cfg_if;
+
+<span class="kw">pub use </span>core::<span class="kw-2">*</span>;
 <span class="kw">pub use </span>proc_macros::<span class="kw-2">*</span>;
 
 <span class="kw">pub use </span>proc_macros;
 
-<span class="attr">#[doc(hidden)]
-</span><span class="kw">pub use </span>derivative;
-<span class="attr">#[doc(hidden)]
-</span><span class="kw">pub use </span>futures;
-
 <span class="attr">#[doc(alias = <span class="string">&quot;authzen_service_util&quot;</span>)]
 </span><span class="kw">pub use </span>service_util;
 
-<span class="doccomment">/// Decision maker client implementations provided for convienence.
+<span class="doccomment">/// Implementations of common decision maker clients.
 </span><span class="kw">pub mod </span>decision_makers {
     <span class="attr">#[cfg(feature = <span class="string">&quot;opa-decision-maker&quot;</span>)]
     #[doc(alias = <span class="string">&quot;authzen_opa&quot;</span>)]
     </span><span class="kw">pub use </span>authzen_opa <span class="kw">as </span>opa;
 }
 
-<span class="doccomment">/// Storage backend client implementations provided for convienence.
+<span class="doccomment">/// Implementations of common storage backend clients.
 </span><span class="kw">pub mod </span>storage_backends {
     <span class="attr">#[cfg(feature = <span class="string">&quot;diesel-storage-backend&quot;</span>)]
     #[doc(alias = <span class="string">&quot;authzen_diesel&quot;</span>)]
     </span><span class="kw">pub use </span>authzen_diesel <span class="kw">as </span>diesel;
+}
+
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub use </span>derivative;
+
+<span class="attr">#[doc(hidden)]
+</span><span class="kw">pub use </span>futures;
+
+<span class="macro">cfg_if! </span>{
+    <span class="kw">if </span><span class="attr">#[cfg(feature = <span class="string">&quot;policy-information-point-server&quot;</span>)] </span>{
+        <span class="attr">#[doc(hidden)]
+        </span><span class="kw">pub use </span>dotenv;
+
+        <span class="attr">#[doc(hidden)]
+        </span><span class="kw">pub use </span>tokio;
+    }
 }
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="authzen" data-themes="" data-resource-suffix="" data-rustdoc-version="1.69.0-nightly (5243ea5c2 2023-02-20)" data-search-js="search-14421e1532aead08.js" data-settings-js="settings-f0c5c39777a9a2f6.js" data-settings-css="settings-0bcba95ff279c1db.css" ></div></body></html>

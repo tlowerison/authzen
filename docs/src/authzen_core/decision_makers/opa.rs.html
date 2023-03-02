@@ -151,17 +151,52 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{ActionType, DecisionMaker, Event, ObjectType};
-<span class="kw">use </span>authzen_opa::OPAClient;
-<span class="kw">use </span>hyper::{body::Bytes, http::header::<span class="kw-2">*</span>, Body, Method};
-<span class="kw">use </span>serde::{Deserialize, Deserializer, Serialize};
-<span class="kw">use </span>serde_json::Value;
-<span class="kw">use </span>service_util::<span class="kw-2">*</span>;
-<span class="kw">use </span>std::fmt::Debug;
-<span class="kw">use </span>typed_builder::TypedBuilder;
+<span class="kw">use </span>::authzen_opa::OPAClient;
+<span class="kw">use </span>::hyper::{body::Bytes, http::header::<span class="kw-2">*</span>, Body, Method};
+<span class="kw">use </span>::serde::{Deserialize, Deserializer, Serialize};
+<span class="kw">use </span>::serde_json::Value;
+<span class="kw">use </span>::service_util::<span class="kw-2">*</span>;
+<span class="kw">use </span>::std::fmt::Debug;
+<span class="kw">use </span>::typed_builder::TypedBuilder;
+
+<span class="attr">#[derive(Clone, Debug, Deserialize, Serialize)]
+</span><span class="kw">struct </span>OPAEvent&lt;E, TransactionId&gt; {
+    <span class="attr">#[serde(flatten)]
+    </span>event: E,
+    transaction_id: <span class="prelude-ty">Option</span>&lt;TransactionId&gt;,
+}
 
 <span class="attr">#[async_trait]
-</span><span class="kw">impl</span>&lt;Subject, Action, Object, Input, Context&gt; DecisionMaker&lt;Subject, Action, Object, Input, Context&gt; <span class="kw">for </span>OPAClient
+</span><span class="kw">impl</span>&lt;Subject, Action, Object, Input, Context, TransactionId&gt;
+    DecisionMaker&lt;Subject, Action, Object, Input, Context, TransactionId&gt; <span class="kw">for </span>OPAClient
 <span class="kw">where
     </span>Event&lt;Subject, Action, Object, Input, Context&gt;: Send + Sync,
     Subject: Debug + Send + Serialize + Sync,
@@ -169,30 +204,49 @@
     Object: <span class="question-mark">?</span>Sized + ObjectType + Send + Sync,
     Input: Debug + Serialize + Send + Sync,
     Context: Debug + Send + Serialize + Sync,
+    TransactionId: Debug + Send + Serialize + Sync,
 {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
     <span class="kw">type </span>Error = service_util::Error;
 
-    <span class="kw">async fn </span>can_act(<span class="kw-2">&amp;</span><span class="self">self</span>, subject: Subject, input: <span class="kw-2">&amp;</span>Input, context: Context) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
+    <span class="kw">async fn </span>can_act(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        subject: Subject,
+        input: <span class="kw-2">&amp;</span>Input,
+        context: Context,
+        transaction_id: <span class="prelude-ty">Option</span>&lt;TransactionId&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Ok, <span class="self">Self</span>::Error&gt;
     <span class="kw">where
         </span>Subject: <span class="lifetime">&#39;async_trait</span>,
         Action: <span class="lifetime">&#39;async_trait</span>,
         Object: <span class="lifetime">&#39;async_trait</span>,
         Input: <span class="lifetime">&#39;async_trait</span>,
         Context: <span class="lifetime">&#39;async_trait</span>,
+        TransactionId: <span class="lifetime">&#39;async_trait</span>,
     {
+        <span class="kw">let </span>explain = std::env::var(<span class="string">&quot;OPA_EXPLAIN&quot;</span>).ok();
         <span class="kw">let </span>result: OPAQueryResult = OPAQuery {
             config: OPAQueryConfig::builder()
                 .data_path(<span class="kw-2">&amp;*</span><span class="self">self</span>.data_path)
                 .query(<span class="kw-2">&amp;*</span><span class="self">self</span>.query)
+                .pretty(
+                    std::env::var(<span class="string">&quot;OPA_PRETTY&quot;</span>)
+                        .ok()
+                        .and_then(|x| x.parse::&lt;bool&gt;().ok())
+                        .unwrap_or_default(),
+                )
+                .explain(explain.as_ref().map(|x| <span class="kw-2">&amp;**</span>x))
                 .build(),
             data: <span class="prelude-val">None</span>,
-            input: Event {
-                action: std::marker::PhantomData::&lt;Action&gt;,
-                object: std::marker::PhantomData::&lt;Object&gt;,
-                subject,
-                input,
-                context,
+            input: OPAEvent {
+                event: Event {
+                    action: std::marker::PhantomData::&lt;Action&gt;,
+                    object: std::marker::PhantomData::&lt;Object&gt;,
+                    subject,
+                    input,
+                    context,
+                },
+                transaction_id,
             },
         }
         .query(<span class="self">self</span>)

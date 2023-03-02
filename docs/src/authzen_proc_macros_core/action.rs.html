@@ -285,6 +285,14 @@
 <a href="#285" id="285">285</a>
 <a href="#286" id="286">286</a>
 <a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
 </pre><pre class="rust"><code><span class="kw">use </span>convert_case::{Case, Casing};
 <span class="kw">use </span>proc_macro2::TokenStream;
 <span class="kw">use </span>quote::{format_ident, quote};
@@ -387,6 +395,7 @@
                         <span class="self">Self</span>,
                         I,
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                        SC::TransactionId,
                     &gt;&gt;::Ok,
                     &lt;DM <span class="kw">as </span>#source_mod DecisionMaker&lt;
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Subject&lt;<span class="lifetime">&#39;subject</span>&gt;,
@@ -394,6 +403,7 @@
                         <span class="self">Self</span>,
                         I,
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                        SC::TransactionId,
                     &gt;&gt;::Error,
                 &gt;,
             &gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
@@ -405,9 +415,10 @@
                         <span class="self">Self</span>,
                         I,
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                        SC::TransactionId,
                     &gt; + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
-                TC: Send + Sync + #source_mod TransactionCache&lt;SC&gt;,
+                TC: Send + Sync + #source_mod TransactionCache,
                 Ctx: #source_mod AuthorizationContext&lt;DM, SC, TC&gt;,
                 I: Send + Sync,
 
@@ -428,7 +439,8 @@
                         <span class="self">Self</span>,
                         I,
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
-                    &gt;&gt;::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context()))
+                        SC::TransactionId,
+                    &gt;&gt;::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context(), ctx.storage_client().transaction_id()))
             }
 
             <span class="attr">#[doc = #try_fn_doc]
@@ -445,9 +457,10 @@
                             <span class="self">Self</span>,
                             I,
                             &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                            SC::TransactionId,
                         &gt;&gt;::Error,
                         &lt;#name&lt;<span class="self">Self</span>&gt; <span class="kw">as </span>#source_mod StorageAction&lt;SC, I&gt;&gt;::Error,
-                        &lt;TC <span class="kw">as </span>#source_mod TransactionCache&lt;SC&gt;&gt;::Error,
+                        &lt;TC <span class="kw">as </span>#source_mod TransactionCache&gt;::Error,
                     &gt;,
                 &gt;,
             &gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
@@ -459,10 +472,11 @@
                         <span class="self">Self</span>,
                         I,
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                        SC::TransactionId,
                     &gt; + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync
-                    + #source_mod TransactionCache&lt;SC&gt;
+                    + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction&lt;#name&lt;<span class="self">Self</span>&gt;, SC, I&gt;,
                 Ctx: #source_mod AuthorizationContext&lt;DM, SC, TC&gt;,
                 #name&lt;<span class="self">Self</span>&gt;: #source_mod StorageAction&lt;SC, I&gt;,
@@ -505,9 +519,10 @@
                             <span class="self">Self</span>,
                             [I; <span class="number">1</span>],
                             &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                            SC::TransactionId,
                         &gt;&gt;::Error,
                         &lt;#name&lt;<span class="self">Self</span>&gt; <span class="kw">as </span>#source_mod StorageAction&lt;SC, [I; <span class="number">1</span>]&gt;&gt;::Error,
-                        &lt;TC <span class="kw">as </span>#source_mod TransactionCache&lt;SC&gt;&gt;::Error,
+                        &lt;TC <span class="kw">as </span>#source_mod TransactionCache&gt;::Error,
                     &gt;,
                 &gt;,
             &gt; + Send + <span class="lifetime">&#39;async_trait</span>&gt;&gt;
@@ -519,10 +534,11 @@
                         <span class="self">Self</span>,
                         [I; <span class="number">1</span>],
                         &lt;Ctx <span class="kw">as </span>#source_mod AuthorizationContext&lt;DM, SC, TC&gt;&gt;::Context&lt;<span class="lifetime">&#39;context</span>&gt;,
+                        SC::TransactionId,
                     &gt; + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync
-                    + #source_mod TransactionCache&lt;SC&gt;
+                    + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction&lt;#name&lt;<span class="self">Self</span>&gt;, SC, [I; <span class="number">1</span>]&gt;,
                 Ctx: #source_mod AuthorizationContext&lt;DM, SC, TC&gt;,
                 #name&lt;<span class="self">Self</span>&gt;: #source_mod StorageAction&lt;SC, [I; <span class="number">1</span>]&gt;,

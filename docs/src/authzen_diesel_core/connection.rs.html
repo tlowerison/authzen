@@ -960,7 +960,6 @@
 <a href="#960" id="960">960</a>
 <a href="#961" id="961">961</a>
 <a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a>
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>async_backtrace::{backtrace, Location};
 <span class="kw">use </span>diesel::associations::HasTable;
@@ -1226,7 +1225,7 @@
 
     <span class="attr">#[framed]
     #[instrument(skip_all)]
-    </span><span class="kw">fn </span>get&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;async_trait</span>, <span class="lifetime">&#39;query</span>, R, T, Pk, F, I&gt;(
+    </span><span class="kw">fn </span>get&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;async_trait</span>, <span class="lifetime">&#39;query</span>, R, T, Pk, I, F&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
         ids: I,
     ) -&gt; BoxFuture&lt;<span class="lifetime">&#39;async_trait</span>, <span class="prelude-ty">Result</span>&lt;Vec&lt;R&gt;, Error&gt;&gt;
@@ -1263,34 +1262,33 @@
 
     <span class="attr">#[framed]
     #[instrument(skip_all)]
-    </span><span class="kw">fn </span>get_by_column&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;async_trait</span>, <span class="lifetime">&#39;query</span>, R, U, Q, C&gt;(
+    </span><span class="kw">fn </span>get_by_column&lt;<span class="lifetime">&#39;life0</span>, <span class="lifetime">&#39;async_trait</span>, <span class="lifetime">&#39;query</span>, R, T, U, C, F&gt;(
         <span class="kw-2">&amp;</span><span class="lifetime">&#39;life0 </span><span class="self">self</span>,
         c: C,
         values: <span class="kw">impl </span>IntoIterator&lt;Item = U&gt; + Debug + Send,
     ) -&gt; BoxFuture&lt;<span class="lifetime">&#39;async_trait</span>, <span class="prelude-ty">Result</span>&lt;Vec&lt;R&gt;, Error&gt;&gt;
     <span class="kw">where
-        </span>U: AsExpression&lt;SqlTypeOf&lt;C&gt;&gt;,
-        C: Debug + Expression + ExpressionMethods + Send,
+        </span>C: Debug + Expression + ExpressionMethods + Send,
         SqlTypeOf&lt;C&gt;: SqlType,
-        R: Send + HasTable,
-        &lt;R <span class="kw">as </span>HasTable&gt;::Table: Table + IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, <span class="self">Self</span>::AsyncConnection, R, R&gt;,
-        &lt;&lt;R <span class="kw">as </span>HasTable&gt;::Table <span class="kw">as </span>IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, <span class="self">Self</span>::AsyncConnection, R, R&gt;&gt;::IsNotDeletedFilter:
-            FilterDsl&lt;ht::EqAny&lt;C, Vec&lt;U&gt;&gt;, Output = Q&gt;,
-        Q: Send + LoadQuery&lt;<span class="lifetime">&#39;query</span>, <span class="self">Self</span>::AsyncConnection, R&gt; + <span class="lifetime">&#39;query</span>,
+        U: AsExpression&lt;SqlTypeOf&lt;C&gt;&gt;,
+        R: Send + HasTable&lt;Table = T&gt;,
+        T: Table,
+        T: FilterDsl&lt;ht::EqAny&lt;C, Vec&lt;U&gt;&gt;, Output = F&gt;,
+        F: IsNotDeleted&lt;<span class="lifetime">&#39;query</span>, <span class="self">Self</span>::AsyncConnection, R, R&gt;,
 
         <span class="lifetime">&#39;life0</span>: <span class="lifetime">&#39;async_trait</span>,
         <span class="lifetime">&#39;query</span>: <span class="lifetime">&#39;async_trait</span>,
         R: <span class="lifetime">&#39;async_trait</span>,
         U: <span class="lifetime">&#39;async_trait</span>,
-        Q: <span class="lifetime">&#39;async_trait</span>,
         C: <span class="lifetime">&#39;async_trait</span>,
+        F: <span class="lifetime">&#39;async_trait</span>,
         <span class="self">Self</span>: <span class="lifetime">&#39;life0</span>,
     {
         <span class="macro">execute_query!</span>(
             <span class="self">self</span>,
             R::table()
-                .is_not_deleted()
-                .filter(c.eq_any(values.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;())),
+                .filter(c.eq_any(values.into_iter().collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;()))
+                .is_not_deleted(),
         )
         .boxed()
     }

@@ -39,7 +39,7 @@ axum-core = { workspace = true, optional = true }
 cookie = { workspace = true, optional = true }
 concat-string = { workspace = true, optional = true }
 data-encoding = { workspace = true, optional = true }
-derive_more = { git = "https://github.com/tlowerison/derive_more", optional = true }
+derive_more = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
 mongodb = { workspace = true, optional = true }

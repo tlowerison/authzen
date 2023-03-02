@@ -5,16 +5,36 @@ import future.keywords.every
 import future.keywords.in
 
 # input
-action := input.action
-
 subject := subject {
-	token := io.jwt.decode_verify(input.token, {
+	token := io.jwt.decode_verify(input.subject.value.token, {
 		"alg": opa.runtime().env.JWT_ALGORITHM,
 		"cert": replace(opa.runtime().env.JWT_PUBLIC_CERTIFICATE, "_", "\n"),
 	})
 	is_verified := token[0]
 	is_verified == true
 	subject := token[2].state
+}
+
+event := event {
+	subject
+	event := {
+		"subject": subject,
+		"action": input.action,
+		"object": input.object,
+		"input": input.input,
+		"context": input.context,
+	}
+}
+
+event := event {
+	not subject
+	event := {
+		"subject": null,
+		"action": input.action,
+		"object": input.object,
+		"input": input.input,
+		"context": input.context,
+	}
 }
 
 # authz is the binary policy decision output
@@ -53,86 +73,51 @@ read := "read"
 
 update := "update"
 
-root_role := role {
-	roles := fetch({
-		"service": data.app.accounts.service,
-		"entity": data.app.accounts.role.entity,
-	})
-	role := roles[_]
-	role.title == "root"
+deny := {"event is unsound"} {
+	not is_event_sound
 }
 
-service_role := role {
-	roles := fetch({
-		"service": data.app.accounts.service,
-		"entity": data.app.accounts.role.entity,
-	})
-	role := roles[_]
-	role.title == "service"
-}
-
-is_root {
-	some role_id in subject.role_ids
-	role_id == root_role.id
-}
-
-is_service {
-	some role_id in subject.role_ids
-	role_id == service_role.id
-}
-
-deny := {"input is not sound"} {
-	not is_input_sound
-}
-
-is_input_sound {
-	not subject
-	data.app.action.type
-	data.app.action.object.service
-	data.app.action.object.entity
+is_event_sound {
+	is_subject_sound
 	is_action_sound
+	is_object_sound
 }
 
-is_input_sound {
-	subject.account_id
-	subject.role_ids
-	data.app.action.type
-	data.app.action.object.service
-	data.app.action.object.entity
-	is_action_sound
+is_subject_sound {
+	event.subject == null
 }
 
-is_action_sound {
-	data.app.action.type == create
-	data.app.action.object.records
+is_subject_sound {
+	event.subject != null
+	event.subject.account_id
 }
 
 is_action_sound {
-	data.app.action.type == delete
-	data.app.action.object.ids
+	event.action == create
 }
 
 is_action_sound {
-	data.app.action.type == read
-	data.app.action.object.ids
+	event.action == delete
 }
 
 is_action_sound {
-	data.app.action.type == update
-	data.app.action.object.patches
+	event.action == read
+}
+
+is_action_sound {
+	event.action == update
+}
+
+is_object_sound {
+	event.object.service
+	event.object.type
 }
 
 # service-based denial policies are then enforced
-deny := data.app.accounts.deny {
-	is_input_sound
-	action.object.service == data.app.accounts.service
-	count(data.app.accounts.deny) > 0
-}
-
-deny := data.app.events.deny {
-	is_input_sound
-	action.object.service == data.app.events.service
-	count(data.app.events.deny) > 0
+deny := data.app.examples_cart.deny {
+	is_event_sound
+	event.object.service == data.app.examples_cart.service
+	count(data.app.examples_cart.deny) > 0
 }
 
 # service-based allowance policies are then enforced
@@ -147,42 +132,27 @@ deny := data.app.events.deny {
 #     (i.e. they should still reject an input whose action is allowed for some but not all of its objects)
 # - if there duplicate object ids/records/patches, trying to check that all
 #   have allowances at this level is more difficult than deeper in the eval tree
-allow := {"root"} {
-	is_root
+allow := {"no-op"} {
+	event.action == create
+	count(event.object.records) == 0
 }
 
 allow := {"no-op"} {
-	not is_root
-	data.app.action.type == create
-	count(data.app.action.object.records) == 0
+	event.action == delete
+	count(event.object.ids) == 0
 }
 
 allow := {"no-op"} {
-	not is_root
-	data.app.action.type == delete
-	count(data.app.action.object.ids) == 0
+	event.action == read
+	count(event.object.ids) == 0
 }
 
 allow := {"no-op"} {
-	not is_root
-	data.app.action.type == read
-	count(data.app.action.object.ids) == 0
+	event.action == update
+	count(event.object.patches) == 0
 }
 
-allow := {"no-op"} {
-	not is_root
-	data.app.action.type == update
-	count(data.app.action.object.patches) == 0
-}
-
-allow := data.app.accounts.allow {
-	not is_root
-	action.object.service == data.app.accounts.service
-	count(data.app.accounts.allow) > 0
-}
-
-allow := data.app.events.allow {
-	not is_root
-	action.object.service == data.app.events.service
-	count(data.app.events.allow) > 0
+allow := data.app.examples_cart.allow {
+	event.object.service == data.app.examples_cart.service
+	count(data.app.examples_cart.allow) > 0
 }

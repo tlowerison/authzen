@@ -22,12 +22,10 @@ extern crate tracing;
 #[macro_use]
 extern crate typed_builder;
 
-mod data;
 mod endpoints;
 mod models;
 mod sql;
 
-pub use data::*;
 pub use endpoints::*;
 pub use models::*;
 pub use sql::*;

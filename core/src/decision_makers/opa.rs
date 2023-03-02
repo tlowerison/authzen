@@ -7,8 +7,16 @@ use ::service_util::*;
 use ::std::fmt::Debug;
 use ::typed_builder::TypedBuilder;
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct OPAEvent<E, TransactionId> {
+    #[serde(flatten)]
+    event: E,
+    transaction_id: Option<TransactionId>,
+}
+
 #[async_trait]
-impl<Subject, Action, Object, Input, Context> DecisionMaker<Subject, Action, Object, Input, Context> for OPAClient
+impl<Subject, Action, Object, Input, Context, TransactionId>
+    DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> for OPAClient
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Subject: Debug + Send + Serialize + Sync,
@@ -16,30 +24,49 @@ where
     Object: ?Sized + ObjectType + Send + Sync,
     Input: Debug + Serialize + Send + Sync,
     Context: Debug + Send + Serialize + Sync,
+    TransactionId: Debug + Send + Serialize + Sync,
 {
     type Ok = ();
     type Error = service_util::Error;
 
-    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    async fn can_act(
+        &self,
+        subject: Subject,
+        input: &Input,
+        context: Context,
+        transaction_id: Option<TransactionId>,
+    ) -> Result<Self::Ok, Self::Error>
     where
         Subject: 'async_trait,
         Action: 'async_trait,
         Object: 'async_trait,
         Input: 'async_trait,
         Context: 'async_trait,
+        TransactionId: 'async_trait,
     {
+        let explain = std::env::var("OPA_EXPLAIN").ok();
         let result: OPAQueryResult = OPAQuery {
             config: OPAQueryConfig::builder()
                 .data_path(&*self.data_path)
                 .query(&*self.query)
+                .pretty(
+                    std::env::var("OPA_PRETTY")
+                        .ok()
+                        .and_then(|x| x.parse::<bool>().ok())
+                        .unwrap_or_default(),
+                )
+                .explain(explain.as_ref().map(|x| &**x))
                 .build(),
             data: None,
-            input: Event {
-                action: std::marker::PhantomData::<Action>,
-                object: std::marker::PhantomData::<Object>,
-                subject,
-                input,
-                context,
+            input: OPAEvent {
+                event: Event {
+                    action: std::marker::PhantomData::<Action>,
+                    object: std::marker::PhantomData::<Object>,
+                    subject,
+                    input,
+                    context,
+                },
+                transaction_id,
             },
         }
         .query(self)

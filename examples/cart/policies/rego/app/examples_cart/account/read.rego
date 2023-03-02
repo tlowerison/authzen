@@ -1,6 +1,5 @@
 package app.examples_cart.account.read
 
-import data.util.fetch
 import future.keywords
 
 default deny := {}
@@ -9,7 +8,7 @@ default allow := {}
 
 subject := data.app.subject
 
-ids := data.app.action.object.ids
+ids := data.app.event.object.ids
 
 allow := allow_read if {
 	every id in ids {

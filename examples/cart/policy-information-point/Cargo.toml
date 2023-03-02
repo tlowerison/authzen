@@ -9,6 +9,7 @@ anyhow = "1"
 async-trait = "0"
 axum = "0.6"
 cart-app.path = "../app"
+derivative = "2.2"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }
 diesel-async = { version = "0.2", features = ["postgres"] }
 diesel_migrations = "2"

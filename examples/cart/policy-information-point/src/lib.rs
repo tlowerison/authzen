@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate async_trait;
 #[macro_use]
+extern crate derivative;
+#[macro_use]
 extern crate serde;
 #[macro_use]
 extern crate tracing;
@@ -14,15 +16,20 @@ use examples_cart::*;
 use crate::prelude::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 pub struct Clients {
+    #[derivative(Debug = "ignore")]
     pub db: DbPool,
+    #[derivative(Debug = "ignore")]
     pub tx_cache_client: MongodbTxCollection,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Derivative)]
 pub struct Ctx {
+    #[derivative(Debug = "ignore")]
     pub db: DbPool,
+    #[derivative(Debug = "ignore")]
     pub tx_cache_client: MongodbTxCollection,
     pub transaction_id: Option<Uuid>,
 }

@@ -100,6 +100,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         I,
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        SC::TransactionId,
                     >>::Ok,
                     <DM as #source_mod DecisionMaker<
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
@@ -107,6 +108,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         I,
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        SC::TransactionId,
                     >>::Error,
                 >,
             > + Send + 'async_trait>>
@@ -118,6 +120,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         I,
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        SC::TransactionId,
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync + #source_mod TransactionCache,
@@ -141,7 +144,8 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         I,
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                    >>::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context()))
+                        SC::TransactionId,
+                    >>::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context(), ctx.storage_client().transaction_id()))
             }
 
             #[doc = #try_fn_doc]
@@ -158,6 +162,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                             Self,
                             I,
                             <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                            SC::TransactionId,
                         >>::Error,
                         <#name<Self> as #source_mod StorageAction<SC, I>>::Error,
                         <TC as #source_mod TransactionCache>::Error,
@@ -172,6 +177,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         I,
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        SC::TransactionId,
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync
@@ -218,6 +224,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                             Self,
                             [I; 1],
                             <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                            SC::TransactionId,
                         >>::Error,
                         <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error,
                         <TC as #source_mod TransactionCache>::Error,
@@ -232,6 +239,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         Self,
                         [I; 1],
                         <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
+                        SC::TransactionId,
                     > + Sync,
                 SC: #source_mod StorageClient + Send + Sync,
                 TC: Send + Sync

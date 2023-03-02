@@ -6,12 +6,13 @@ use hyper::{Body, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use session_util::{AccountSessionClaims, AccountSessionState, CookieConfig, DynAccountSessionStore};
 
+#[instrument(skip(session_store))]
 pub async fn sign_up<D: Db>(
-    ctx: CtxOptSession<'_, D>,
+    ctx: &CtxOptSession<'_, D>,
     session_store: &DynAccountSessionStore,
     identifier: crate::db::Identifier,
 ) -> Result<(Parts, DbAccount), Error> {
-    let db_account = DbAccount::insert_one(&ctx, DbAccount::builder().identifier(identifier).build()).await?;
+    let db_account = DbAccount::insert_one(ctx, DbAccount::builder().identifier(identifier).build()).await?;
 
     let token = AccountSessionClaims::new_exp_in(
         AccountSessionState {

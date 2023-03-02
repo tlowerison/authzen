@@ -29,6 +29,7 @@ diesel::table! {
         created_at -> Timestamp,
         updated_at -> Timestamp,
         account_id -> Uuid,
+        used_at -> Nullable<Timestamp>,
     }
 }
 

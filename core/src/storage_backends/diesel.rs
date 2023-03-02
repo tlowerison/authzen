@@ -39,9 +39,9 @@ impl<E> StorageError for DbEntityError<E> {
 
 impl<C: Db> StorageClient for C {
     type Backend = <C as Db>::Backend;
-    type TransactionId<'a> = Uuid where Self: 'a;
+    type TransactionId = Uuid;
 
-    fn transaction_id(&self) -> Option<Self::TransactionId<'_>> {
+    fn transaction_id(&self) -> Option<Self::TransactionId> {
         self.tx_id()
     }
 }

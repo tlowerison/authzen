@@ -8,7 +8,7 @@ default allow := {}
 
 subject := data.app.subject
 
-ids := data.app.action.object.ids
+ids := data.app.event.object.ids
 
 allow := allow_delete if {
 	every id in ids {

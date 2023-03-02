@@ -159,7 +159,7 @@ pub mod operations {
 
         #[framed]
         #[instrument(skip_all)]
-        async fn get_by_column<'query, D, C, U, Q>(
+        async fn get_by_column<'query, D, C, U, F>(
             db: &D,
             column: C,
             values: impl IntoIterator<Item = U> + Send,
@@ -167,15 +167,11 @@ pub mod operations {
         where
             D: Db,
 
-            // Id bounds
-            U: AsExpression<SqlTypeOf<C>> + Debug + Send,
             C: Debug + Expression + ExpressionMethods + Send,
             SqlTypeOf<C>: SqlType,
-
-            Self::Table: IsNotDeleted<'query, D::AsyncConnection, Self::Raw, Self::Raw>,
-            <Self::Table as IsNotDeleted<'query, D::AsyncConnection, Self::Raw, Self::Raw>>::IsNotDeletedFilter:
-                FilterDsl<ht::EqAny<C, Vec<U>>, Output = Q>,
-            Q: Send + LoadQuery<'query, D::AsyncConnection, Self::Raw> + 'query,
+            U: AsExpression<SqlTypeOf<C>> + Debug + Send,
+            Self::Table: FilterDsl<ht::EqAny<C, Vec<U>>, Output = F>,
+            F: IsNotDeleted<'query, D::AsyncConnection, Self::Raw, Self::Raw>,
         {
             let values = values.into_iter().collect::<Vec<_>>();
             tracing::Span::current().record("values", &*format!("{values:?}"));

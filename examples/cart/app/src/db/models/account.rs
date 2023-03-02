@@ -19,6 +19,7 @@ pub struct DbAccount {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Identifier {
     Email(String),
     Username(String),
@@ -63,8 +64,8 @@ pub struct _DbAccount {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub deleted_at: Option<NaiveDateTime>,
-    pub email: Option<String>,
     pub username: Option<String>,
+    pub email: Option<String>,
 }
 
 #[derive(AsChangeset, Clone, Debug, Identifiable, IncludesChanges)]

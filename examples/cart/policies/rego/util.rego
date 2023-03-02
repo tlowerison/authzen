@@ -12,7 +12,7 @@ import future.keywords
 fetch(body) := values if {
 	not opa.runtime().env.USE_POLICY_INFORMATION_POINT
 	trace(sprintf("fetch: %v", [body]))
-	values := body_filter(body, object.get(data.external, [body.service, body.entity], {}))
+	values := body_filter(body, object.get(data.external, [body.service, body.type], {}))
 	trace(sprintf("values: %v", [values]))
 }
 
@@ -20,7 +20,7 @@ fetch(body) := values if {
 fetch(body) := values if {
 	opa.runtime().env.USE_POLICY_INFORMATION_POINT != "true"
 	trace(sprintf("fetch: %v", [body]))
-	values := body_filter(body, object.get(data.external, [body.service, body.entity], {}))
+	values := body_filter(body, object.get(data.external, [body.service, body.type], {}))
 	trace(sprintf("values: %v", [values]))
 }
 
@@ -80,7 +80,7 @@ fetch(body) := values if {
 # either "id" or "ids"; it expects fields ending with "id" to have type
 # Uuid and fields ending with "ids" to have type Vec<Uuid>
 body_filter(body, values) := filtered if {
-	filters := object.remove(body, ["service", "entity"])
+	filters := object.remove(body, ["service", "type"])
 
 	singular_id_filters := {key: value |
 		key := object.keys(filters)[_]

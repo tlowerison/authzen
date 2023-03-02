@@ -3,7 +3,7 @@ use crate::Ctx;
 use cart_app::Account;
 
 #[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "snake_case", tag = "entity")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum ExamplesCartRequest {
     Account(AccountRequest),
     Cart(CartRequest),

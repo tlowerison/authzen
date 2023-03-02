@@ -1,4 +1,4 @@
-package app.examples_cart.cart.delete
+package app.examples_cart.cart_item.delete
 
 import future.keywords
 
@@ -8,7 +8,7 @@ default allow := {}
 
 subject := data.app.subject
 
-ids := data.app.action.object.ids
+ids := data.app.event.object.ids
 
 allow := allow_delete if {
 	every id in ids {
@@ -18,6 +18,6 @@ allow := allow_delete if {
 
 allow_delete[id] := reason if {
 	id := ids[_]
-	id == subject.cart_id
+	id == subject.cart_item_id
 	reason := "subject can delete itself"
 }

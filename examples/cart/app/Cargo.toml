@@ -11,6 +11,7 @@ authzen = { path = "../../../authzen", features = ["diesel-bb8", "diesel-postgre
 axum = "0.6"
 axum-macros = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
+derivative = "2.2"
 derive_more = "0"
 diesel = { version = "2", features = ["extras", "numeric", "postgres"] }
 diesel-async = { version = "0.2", features = ["postgres"] }
@@ -22,6 +23,7 @@ hyper = "0.14"
 lazy_static = "1.4.0"
 mongodb = "2.3"
 jsonwebtoken = "8.2"
+scoped-futures = "0.1"
 serde = { version = "1", features = ["derive"] }
 session-util = { git = "https://github.com/tlowerison/session-util", rev = "bfee5b2", features = ["account-session", "redis-backend"] }
 tokio = { version = "1", features = ["rt"] }

@@ -42,13 +42,19 @@ create table if not exists item_audit (
 );
 
 create table if not exists cart (
-  id           uuid          primary key,
-  created_at   timestamp     not null,
-  updated_at   timestamp     not null,
-  account_id   uuid          not null,
+  id           uuid       primary key,
+  created_at   timestamp  not null,
+  updated_at   timestamp  not null,
+  account_id   uuid       not null,
+  used_at      timestamp,
+
+  -- there should only be one unused cart per account
+  unique nulls not distinct (account_id, used_at),
 
   foreign key (account_id) references account (id)
 );
+
+
 
 create table if not exists cart_item (
   id           uuid          primary key,

@@ -37,8 +37,7 @@ where
         Ctx: 'async_trait,
     {
         if let Some(transaction_id) = AsRef::<SC>::as_ref(ctx).transaction_id() {
-            <TC as TransactionCache>::get_entities::<T, T, SC::TransactionId<'life0>>(ctx.as_ref(), transaction_id)
-                .boxed()
+            <TC as TransactionCache>::get_entities::<T, T, SC::TransactionId>(ctx.as_ref(), transaction_id).boxed()
         } else {
             async move { Ok(Default::default()) }.boxed()
         }

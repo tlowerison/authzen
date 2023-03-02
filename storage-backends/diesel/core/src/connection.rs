@@ -263,7 +263,7 @@ pub trait Db: Clone + Debug + Send + Sync + Sized {
 
     #[framed]
     #[instrument(skip_all)]
-    fn get<'life0, 'async_trait, 'query, R, T, Pk, F, I>(
+    fn get<'life0, 'async_trait, 'query, R, T, Pk, I, F>(
         &'life0 self,
         ids: I,
     ) -> BoxFuture<'async_trait, Result<Vec<R>, Error>>
@@ -300,34 +300,33 @@ pub trait Db: Clone + Debug + Send + Sync + Sized {
 
     #[framed]
     #[instrument(skip_all)]
-    fn get_by_column<'life0, 'async_trait, 'query, R, U, Q, C>(
+    fn get_by_column<'life0, 'async_trait, 'query, R, T, U, C, F>(
         &'life0 self,
         c: C,
         values: impl IntoIterator<Item = U> + Debug + Send,
     ) -> BoxFuture<'async_trait, Result<Vec<R>, Error>>
     where
-        U: AsExpression<SqlTypeOf<C>>,
         C: Debug + Expression + ExpressionMethods + Send,
         SqlTypeOf<C>: SqlType,
-        R: Send + HasTable,
-        <R as HasTable>::Table: Table + IsNotDeleted<'query, Self::AsyncConnection, R, R>,
-        <<R as HasTable>::Table as IsNotDeleted<'query, Self::AsyncConnection, R, R>>::IsNotDeletedFilter:
-            FilterDsl<ht::EqAny<C, Vec<U>>, Output = Q>,
-        Q: Send + LoadQuery<'query, Self::AsyncConnection, R> + 'query,
+        U: AsExpression<SqlTypeOf<C>>,
+        R: Send + HasTable<Table = T>,
+        T: Table,
+        T: FilterDsl<ht::EqAny<C, Vec<U>>, Output = F>,
+        F: IsNotDeleted<'query, Self::AsyncConnection, R, R>,
 
         'life0: 'async_trait,
         'query: 'async_trait,
         R: 'async_trait,
         U: 'async_trait,
-        Q: 'async_trait,
         C: 'async_trait,
+        F: 'async_trait,
         Self: 'life0,
     {
         execute_query!(
             self,
             R::table()
-                .is_not_deleted()
-                .filter(c.eq_any(values.into_iter().collect::<Vec<_>>())),
+                .filter(c.eq_any(values.into_iter().collect::<Vec<_>>()))
+                .is_not_deleted(),
         )
         .boxed()
     }

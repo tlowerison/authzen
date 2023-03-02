@@ -6,16 +6,20 @@ use uuid::Uuid;
 pub type AccountId = Uuid;
 pub type AccountSession = session_util::AccountSession<AccountId, ()>;
 
-#[derive(authzen::Context, Clone, Copy, Debug, Db)]
+#[derive(authzen::Context, Clone, Copy, Derivative, Db)]
+#[derivative(Debug)]
 pub struct Context<D, S, C, M> {
     #[subject]
     pub session: S,
     #[db]
+    #[derivative(Debug = "ignore")]
     #[storage_client]
     pub db: D,
     #[decision_maker]
+    #[derivative(Debug = "ignore")]
     pub opa_client: C,
     #[transaction_cache]
+    #[derivative(Debug = "ignore")]
     pub mongodb_client: M,
 }
 

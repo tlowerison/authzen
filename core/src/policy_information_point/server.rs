@@ -70,6 +70,7 @@ where
         // add high level tracing of requests and responses
         .layer(
             ::tower_http::trace::TraceLayer::new_for_http()
+                .make_span_with(derive_span)
                 .on_response(::tower_http::trace::DefaultOnRequest::new().level(::tracing::Level::INFO))
                 .on_response(
                     ::tower_http::trace::DefaultOnResponse::new()
@@ -161,7 +162,7 @@ where
 
 impl axum::response::IntoResponse for Response {
     fn into_response(self) -> axum::response::Response {
-        (self.headers, axum::Json(self.values)).into_response()
+        (self.headers, self.values).into_response()
     }
 }
 
@@ -212,4 +213,18 @@ where
                 .unwrap(),
         }
     }
+}
+
+#[cfg(feature = "tracing")]
+fn derive_span(req: &http::Request<hyper::body::Body>) -> tracing::Span {
+    service_util::set_trace_parent(
+        req,
+        tracing::info_span!(
+            target: "",
+            "request",
+            "http.method" = %req.method(),
+            "http.target" = %req.uri(),
+            "http.client_ip" = service_util::get_client_ip(req).map(display),
+        ),
+    )
 }

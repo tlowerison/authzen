@@ -52,7 +52,7 @@ pub trait TryAct<SC, DM, Subject, Object, Input, Context, TC>:
     Into<Event<Subject, Self::Action, Object, Input, Context>>
 where
     SC: ?Sized + StorageClient + Send + Sync,
-    DM: ?Sized + DecisionMaker<Subject, Self::Action, Object, Input, Context> + Sync,
+    DM: ?Sized + DecisionMaker<Subject, Self::Action, Object, Input, Context, SC::TransactionId> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
@@ -70,7 +70,7 @@ where
     ) -> Result<
         <Self::Action as StorageAction<SC, Input>>::Ok,
         ActionError<
-            <DM as DecisionMaker<Subject, Self::Action, Object, Input, Context>>::Error,
+            <DM as DecisionMaker<Subject, Self::Action, Object, Input, Context, SC::TransactionId>>::Error,
             <Self::Action as StorageAction<SC, Input>>::Error,
             TC::Error,
         >,
@@ -83,7 +83,12 @@ where
     {
         let event = self.into();
         decision_maker
-            .can_act(event.subject, &event.input, event.context)
+            .can_act(
+                event.subject,
+                &event.input,
+                event.context,
+                storage_client.transaction_id(),
+            )
             .await
             .map_err(ActionError::authz)?;
         let ok = Self::Action::act(storage_client, event.input)
@@ -102,7 +107,7 @@ impl<SC, DM, Subject, A, Object, Input, Context, TC> TryAct<SC, DM, Subject, Obj
     for Event<Subject, A, Object, Input, Context>
 where
     SC: ?Sized + StorageClient + Send + Sync,
-    DM: ?Sized + for<'a> DecisionMaker<Subject, A, Object, Input, Context> + Sync,
+    DM: ?Sized + DecisionMaker<Subject, A, Object, Input, Context, SC::TransactionId> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
@@ -188,15 +193,13 @@ pub trait StorageClient {
     type Backend: StorageBackend;
     /// The type for ids associated with transactions used by this client.
     /// If this client does not support transactions just set this value to `()`.
-    type TransactionId<'a>: Clone + Eq + Hash + Send + Serialize + Sync
-    where
-        Self: 'a;
+    type TransactionId: Clone + Eq + Hash + Send + Serialize + Sync;
 
     /// Returns the current transaction id if there is one available
     /// for this client. Must return Some for clients which expect
     /// to use a transaction cache to assist a decision maker. If
     /// this client does not support transactions just return `None`.
-    fn transaction_id(&self) -> Option<Self::TransactionId<'_>>;
+    fn transaction_id(&self) -> Option<Self::TransactionId>;
 }
 
 /// Connects an object with its backend representation for a specific backend.
@@ -241,7 +244,7 @@ pub trait StorageError {
 /// Represents a policy decision point (could be astracted over an in-process memory, a remote api,
 /// etc.) which is capable of making authorization decisions using the provided [`Event`].
 #[async_trait]
-pub trait DecisionMaker<Subject, Action, Object, Input, Context>
+pub trait DecisionMaker<Subject, Action, Object, Input, Context, TransactionId>
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Action: ?Sized,
@@ -249,17 +252,25 @@ where
 {
     type Ok: Debug + Send;
     type Error: Debug + Send;
-    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    async fn can_act(
+        &self,
+        subject: Subject,
+        input: &Input,
+        context: Context,
+        transaction_id: Option<TransactionId>,
+    ) -> Result<Self::Ok, Self::Error>
     where
         Subject: 'async_trait,
         Action: 'async_trait,
         Object: 'async_trait,
         Input: 'async_trait,
-        Context: 'async_trait;
+        Context: 'async_trait,
+        TransactionId: 'async_trait;
 }
 
 #[async_trait]
-impl<Subject, Action, Object, Input, Context, T> DecisionMaker<Subject, Action, Object, Input, Context> for &T
+impl<Subject, Action, Object, Input, Context, TransactionId, T>
+    DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> for &T
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Subject: Send + Serialize,
@@ -267,19 +278,34 @@ where
     Object: ?Sized + ObjectType + Sync,
     Input: Serialize + Sync,
     Context: Send + Serialize,
-    T: ?Sized + DecisionMaker<Subject, Action, Object, Input, Context> + Send + Sync,
+    TransactionId: Send,
+    T: ?Sized + DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> + Send + Sync,
 {
     type Ok = T::Ok;
     type Error = T::Error;
-    async fn can_act(&self, subject: Subject, input: &Input, context: Context) -> Result<Self::Ok, Self::Error>
+    async fn can_act(
+        &self,
+        subject: Subject,
+        input: &Input,
+        context: Context,
+        transaction_id: Option<TransactionId>,
+    ) -> Result<Self::Ok, Self::Error>
     where
         Subject: 'async_trait,
         Action: 'async_trait,
         Object: 'async_trait,
         Input: 'async_trait,
         Context: 'async_trait,
+        TransactionId: 'async_trait,
     {
-        <T as DecisionMaker<Subject, Action, Object, Input, Context>>::can_act(*self, subject, input, context).await
+        <T as DecisionMaker<Subject, Action, Object, Input, Context, TransactionId>>::can_act(
+            *self,
+            subject,
+            input,
+            context,
+            transaction_id,
+        )
+        .await
     }
 }
 
@@ -516,17 +542,17 @@ where
         }
     }
 
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ok: &'life2 A::Ok,
+        transaction_id: SC::TransactionId,
+        ok: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
-        'life1: 'async_trait,
-        'life2: 'async_trait;
+        'life1: 'async_trait;
 }
 
 impl<A, SC, I> TransactionCacheAction<A, SC, I> for ()
@@ -534,17 +560,17 @@ where
     SC: ?Sized + StorageClient + Send + Sync,
     A: StorageAction<SC, I> + Send,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: &'life2 A::Ok,
+        _: SC::TransactionId,
+        _: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
         Box::pin(async { Ok(()) })
     }
@@ -556,17 +582,17 @@ where
     A: StorageAction<SC, I> + Send,
     TCA: TransactionCacheAction<A, SC, I> + Sync,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ok: &'life2 A::Ok,
+        transaction_id: SC::TransactionId,
+        ok: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
         (*self).manage_cache(transaction_id, ok)
     }

@@ -14,41 +14,41 @@ default deny := {}
 default allow := {}
 
 deny := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.account.entity
+	data.app.event.object.type == data.app.examples_cart.account.type
 	reasons := data.app.examples_cart.account.deny
 }
 
 allow := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.account.entity
+	data.app.event.object.type == data.app.examples_cart.account.type
 	reasons := data.app.examples_cart.account.allow
 }
 
 deny := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.cart.entity
+	data.app.event.object.type == data.app.examples_cart.cart.type
 	reasons := data.app.examples_cart.cart.deny
 }
 
 allow := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.cart.entity
+	data.app.event.object.type == data.app.examples_cart.cart.type
 	reasons := data.app.examples_cart.cart.allow
 }
 
 deny := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.cart_item.entity
+	data.app.event.object.type == data.app.examples_cart.cart_item.type
 	reasons := data.app.examples_cart.cart_item.deny
 }
 
 allow := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.cart_item.entity
+	data.app.event.object.type == data.app.examples_cart.cart_item.type
 	reasons := data.app.examples_cart.cart_item.allow
 }
 
 deny := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.item.entity
+	data.app.event.object.type == data.app.examples_cart.item.type
 	reasons := data.app.examples_cart.item.deny
 }
 
 allow := reasons if {
-	data.app.action.object.entity == data.app.examples_cart.item.entity
+	data.app.event.object.type == data.app.examples_cart.item.type
 	reasons := data.app.examples_cart.item.allow
 }

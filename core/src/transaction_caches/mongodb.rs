@@ -266,19 +266,19 @@ where
     for<'a> &'a <Create<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ok: &'life2 <Create<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: SC::TransactionId,
+        ok: &'life1 <Create<O> as StorageAction<SC, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
-        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId>(self, transaction_id, ok)
     }
 }
 
@@ -290,19 +290,19 @@ where
     for<'a> &'a <Delete<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ok: &'life2 <Delete<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: SC::TransactionId,
+        ok: &'life1 <Delete<O> as StorageAction<SC, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
-        <Self as TransactionCache>::mark_deleted::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
+        <Self as TransactionCache>::mark_deleted::<O, T, SC::TransactionId>(self, transaction_id, ok)
     }
 }
 
@@ -312,17 +312,17 @@ where
     SC: ?Sized + StorageClient + Send + Sync,
     Read<O>: StorageAction<SC, I> + Send,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: &'life2 <Read<O> as StorageAction<SC, I>>::Ok,
+        _: SC::TransactionId,
+        _: &'life1 <Read<O> as StorageAction<SC, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
         Box::pin(async { Ok(()) })
     }
@@ -336,19 +336,19 @@ where
     for<'a> &'a <Update<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId<'life1>,
-        ok: &'life2 <Update<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: SC::TransactionId,
+        ok: &'life1 <Update<O> as StorageAction<SC, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
+        SC::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
-        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId<'life1>>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId>(self, transaction_id, ok)
     }
 }
 

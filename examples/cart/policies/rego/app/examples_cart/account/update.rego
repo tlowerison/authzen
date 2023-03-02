@@ -1,4 +1,4 @@
-package app.examples_cart.item.update
+package app.examples_cart.account.update
 
 import future.keywords
 
@@ -8,7 +8,7 @@ default allow := {}
 
 subject := data.app.subject
 
-patches := data.app.action.object.patches
+patches := data.app.event.object.patches
 
 allow := allow_update if {
 	every patch in patches {
@@ -19,6 +19,6 @@ allow := allow_update if {
 allow_update[id] := reason if {
 	patch := patches[_]
 	id := patch.id
-	patch.id == subject.item_id
+	patch.id == subject.account_id
 	reason := "subject can update itself"
 }

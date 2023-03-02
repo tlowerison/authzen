@@ -94,17 +94,16 @@ where
     SC: ?Sized + StorageClient + Send + Sync,
     CreateThenDelete<O>: StorageAction<SC, I> + Send,
 {
-    fn manage_cache<'life0, 'life1, 'life2, 'async_trait>(
+    fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId<'life1>,
-        _: &'life2 <CreateThenDelete<O> as StorageAction<SC, I>>::Ok,
+        _: SC::TransactionId,
+        _: &'life1 <CreateThenDelete<O> as StorageAction<SC, I>>::Ok,
     ) -> BoxFuture<'async_trait, Result<(), <Self as TransactionCache>::Error>>
     where
         Self: Sync,
         Self: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
-        'life2: 'async_trait,
     {
         Box::pin(async { Ok(()) })
     }

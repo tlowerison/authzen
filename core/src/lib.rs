@@ -642,7 +642,7 @@ pub trait AuthorizationContext<DM, SC, TC> {
 
 /// Represents the possible sources of error when performing
 /// an action which requires authorization.
-#[derive(AsVariant, AsVariantMut, Clone, Copy, Debug, Error, IsVariant, Unwrap)]
+#[derive(Clone, Copy, Debug, Error, IsVariant, Unwrap)]
 pub enum ActionError<E1, E2, E3> {
     /// Wraps an error returned from a [`DecisionMaker`] when the subject is either not authorized to
     /// perform an action or some other issue occurs while communicating with the

@@ -39,7 +39,7 @@ impl Borrow<str> for Column {
     }
 }
 
-#[derive(AsVariant, Clone, Derivative, IsVariant)]
+#[derive(Clone, Derivative, IsVariant)]
 #[derivative(Debug)]
 pub enum ColumnSqlType {
     IsNullable(#[derivative(Debug = "ignore")] Arc<Box<dyn Send + Sync + SqlType<IsNull = IsNullable>>>),

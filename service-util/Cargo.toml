@@ -1,6 +1,7 @@
 [package]
 name = "authzen-service-util"
 version = "0.1.0-alpha.0"
+description = "Backend service utilities."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

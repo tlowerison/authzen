@@ -1,6 +1,7 @@
 [package]
 name = "authzen-opa-core"
 version = "0.1.0-alpha.0"
+description = "Open Policy Agent rest client and endpoints used in authzen."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

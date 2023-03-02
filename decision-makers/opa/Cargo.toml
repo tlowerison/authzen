@@ -1,6 +1,7 @@
 [package]
 name = "authzen-opa"
 version = "0.1.0-alpha.0"
+description = "Open Policy Agent utilities used in authzen."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

@@ -12,7 +12,6 @@ members = [
 exclude = ["examples"]
 
 [workspace.package]
-description = "A framework for easily integrating authorization into backend services."
 edition = "2021"
 authors = ["Trey Lowerison"]
 categories = ["web-programming"]

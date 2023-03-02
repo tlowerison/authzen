@@ -1,6 +1,7 @@
 [package]
 name = "authzen-diesel-core"
 version = "0.1.0-alpha.0"
+description = "Core utilities for easier integration of diesel into async backend services."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

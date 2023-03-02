@@ -1,6 +1,7 @@
 [package]
 name = "authzen-core"
 version = "0.1.0-alpha.0"
+description = "Core authorization primatives and service integrations used in authzen."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

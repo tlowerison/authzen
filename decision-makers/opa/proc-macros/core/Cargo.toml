@@ -1,6 +1,7 @@
 [package]
 name = "authzen-opa-proc-macros-core"
 version = "0.1.0-alpha.0"
+description = "Core Open Policy Agent proc macro functions used in authzen."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

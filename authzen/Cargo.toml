@@ -1,6 +1,7 @@
 [package]
 name = "authzen"
 version = "0.1.0-alpha.0"
+description = "A framework for easily integrating authorization into backend services."
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

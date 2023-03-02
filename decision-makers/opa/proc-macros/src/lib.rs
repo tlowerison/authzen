@@ -1,7 +1,7 @@
 #![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
+use authzen_opa_proc_macros_core::*;
 use authzen_proc_macro_util::ok_or_return_compile_error;
-use core::*;
 use proc_macro::TokenStream;
 
 #[proc_macro_derive(OPAContext, attributes(account_session, opa_client))]

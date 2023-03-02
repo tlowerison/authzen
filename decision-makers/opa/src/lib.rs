@@ -1,7 +1,7 @@
 #![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-pub use core::*;
-pub use proc_macros::*;
+pub use authzen_opa_core::*;
+pub use authzen_opa_proc_macros::*;
 
 #[doc(hidden)]
 pub use async_trait::async_trait as authzen_opa_async_trait;

@@ -1,6 +1,6 @@
 [package]
 name = "authzen-diesel-proc-macros-core"
-version.workspace = true
+version = "0.1.0-alpha.0"
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true
@@ -17,7 +17,8 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-proc-macro-util.workspace = true
+authzen-proc-macro-util = { workspace = true, version = "0.1.0-alpha.0" }
+
 convert_case.workspace = true
 derive_more.workspace = true
 either.workspace = true

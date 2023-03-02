@@ -1,7 +1,7 @@
 use crate::*;
 use authzen::actions::*;
 use authzen::decision_makers::opa::OPAClient;
-use authzen::storage_backends::diesel::operations::{DbGet, DbInsert};
+use authzen::storage_backends::diesel::prelude::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 use authzen::*;
 use service_util::Error;

@@ -1,6 +1,6 @@
 [package]
 name = "authzen-opa-core"
-version.workspace = true
+version = "0.1.0-alpha.0"
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true
@@ -17,8 +17,9 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-service-util = { workspace = true, features = ["client"] }
-authzen-session = { workspace = true }
+authzen-diesel = { workspace = true, version = "0.1.0-alpha.0", optional = true }
+authzen-service-util = { workspace = true, version = "0.1.0-alpha.0", features = ["client"] }
+authzen-session = { workspace = true, version = "0.1.0-alpha.0" }
 
 anyhow.workspace = true
 async-backtrace.workspace = true
@@ -41,7 +42,6 @@ tracing-opentelemetry.workspace = true
 typed-builder.workspace = true
 uuid.workspace = true
 
-authzen-diesel = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }

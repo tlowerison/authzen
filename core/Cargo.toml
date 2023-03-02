@@ -1,6 +1,6 @@
 [package]
 name = "authzen-core"
-version.workspace = true
+version = "0.1.0-alpha.0"
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true

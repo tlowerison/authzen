@@ -1,11 +1,11 @@
 #![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-pub use core::*;
-pub use proc_macros::*;
+pub use authzen_diesel_core::*;
+pub use authzen_diesel_proc_macros::*;
 
 pub mod prelude {
-    pub use core::prelude::*;
-    pub use proc_macros::*;
+    pub use authzen_diesel_core::prelude::*;
+    pub use authzen_diesel_proc_macros::*;
 }
 
 #[doc(hidden)]

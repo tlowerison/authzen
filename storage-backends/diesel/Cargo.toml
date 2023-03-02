@@ -1,6 +1,6 @@
 [package]
 name = "authzen-diesel"
-version.workspace = true
+version = "0.1.0-alpha.0"
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true
@@ -17,6 +17,9 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
+authzen-diesel-core = { path = "core", version = "0.1.0-alpha.0" }
+authzen-diesel-proc-macros = { path = "proc-macros", version = "0.1.0-alpha.0" }
+
 anyhow.workspace = true
 async-trait.workspace = true
 chrono.workspace = true
@@ -29,12 +32,9 @@ serde_json.workspace = true
 tokio.workspace = true
 uuid.workspace = true
 
-core = { path = "core", package = "authzen-diesel-core" }
-proc-macros = { path = "proc-macros", package = "authzen-diesel-proc-macros" }
-
 [features]
-bb8 = ["core/bb8"]
-deadpool = ["core/deadpool"]
-mobc = ["core/mobc"]
-mysql = ["core/mysql"]
-postgres = ["core/postgres"]
+bb8 = ["authzen-diesel-core/bb8"]
+deadpool = ["authzen-diesel-core/deadpool"]
+mobc = ["authzen-diesel-core/mobc"]
+mysql = ["authzen-diesel-core/mysql"]
+postgres = ["authzen-diesel-core/postgres"]

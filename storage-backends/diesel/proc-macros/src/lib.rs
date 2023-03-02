@@ -5,7 +5,7 @@ use proc_macro::TokenStream;
 
 #[proc_macro_derive(Audit, attributes(audit))]
 pub fn derive_audit(tokens: TokenStream) -> TokenStream {
-    match core::derive_audit(tokens.into()) {
+    match authzen_diesel_proc_macros_core::derive_audit(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -13,7 +13,7 @@ pub fn derive_audit(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(Db, attributes(db))]
 pub fn derive_db(tokens: TokenStream) -> TokenStream {
-    match core::derive_db(tokens.into()) {
+    match authzen_diesel_proc_macros_core::derive_db(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -21,7 +21,7 @@ pub fn derive_db(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(Enum, attributes(id))]
 pub fn derive_enum(tokens: TokenStream) -> TokenStream {
-    match core::derive_enum(tokens.into()) {
+    match authzen_diesel_proc_macros_core::derive_enum(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -29,7 +29,7 @@ pub fn derive_enum(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(IncludesChanges)]
 pub fn derive_includes_changes(tokens: TokenStream) -> TokenStream {
-    match core::derive_includes_changes(tokens.into()) {
+    match authzen_diesel_proc_macros_core::derive_includes_changes(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -37,7 +37,7 @@ pub fn derive_includes_changes(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(SoftDelete)]
 pub fn derive_soft_delete(tokens: TokenStream) -> TokenStream {
-    match core::derive_soft_delete(tokens.into()) {
+    match authzen_diesel_proc_macros_core::derive_soft_delete(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -45,7 +45,7 @@ pub fn derive_soft_delete(tokens: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn db_filter(tokens: TokenStream) -> TokenStream {
-    match core::db_filter(tokens.into()) {
+    match authzen_diesel_proc_macros_core::db_filter(tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }
@@ -56,10 +56,10 @@ pub fn dynamic_schema(tokens: TokenStream) -> TokenStream {
     use std::ops::Deref;
     use std::str::FromStr;
 
-    let core::DynamicSchema {
+    let authzen_diesel_proc_macros_core::DynamicSchema {
         ident,
         schema_relative_file_path,
-    } = syn::parse_macro_input!(tokens as core::DynamicSchema);
+    } = syn::parse_macro_input!(tokens as authzen_diesel_proc_macros_core::DynamicSchema);
     let schema_relative_path_str = schema_relative_file_path.value();
     let schema_relative_path = std::path::Path::new(&schema_relative_path_str);
     let source_path = proc_macro::Span::call_site().source_file().path();
@@ -101,7 +101,7 @@ pub fn dynamic_schema(tokens: TokenStream) -> TokenStream {
         }
     };
 
-    match core::dynamic_schema(ident, tokens.into()) {
+    match authzen_diesel_proc_macros_core::dynamic_schema(ident, tokens.into()) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.into_compile_error().into(),
     }

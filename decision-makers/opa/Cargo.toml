@@ -1,6 +1,6 @@
 [package]
 name = "authzen-opa"
-version.workspace = true
+version = "0.1.0-alpha.0"
 authors.workspace = true
 edition.workspace = true
 categories.workspace = true
@@ -17,11 +17,12 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-session = { workspace = true }
+authzen-session = { workspace = true, version = "0.1.0-alpha.0" }
+authzen-opa-core = { path = "core", version = "0.1.0-alpha.0" }
+authzen-opa-proc-macros = { path = "proc-macros", version = "0.1.0-alpha.0" }
+
 async-trait.workspace = true
 serde.workspace = true
-core = { path = "core", package = "authzen-opa-core" }
-proc-macros = { path = "proc-macros", package = "authzen-opa-proc-macros" }
 
 [features]
-mongodb-tx-cache-backend = ["core/mongodb-tx-cache-backend"]
+mongodb-tx-cache-backend = ["authzen-opa-core/mongodb-tx-cache-backend"]

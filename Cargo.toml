@@ -36,7 +36,7 @@ axum = "0.6"
 convert_case = "^0.6"
 cfg-if = "1"
 derivative = "2"
-derive-getters = { git = "https://github.com/tlowerison/derive-getters", rev = "177c12a" }
+derive-getters = "0"
 derive_more = "0"
 diesel = "2"
 diesel-async = "^0.2"

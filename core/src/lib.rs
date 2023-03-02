@@ -26,7 +26,7 @@ pub mod transaction_caches;
 #[cfg(feature = "extra-traits")]
 mod extra_traits;
 
-use ::derive_getters::{Dissolve, DissolveMut, DissolveRef, Getters};
+use ::derive_getters::{Dissolve, Getters};
 use ::serde::{de::DeserializeOwned, Deserialize, Serialize};
 use ::std::borrow::Borrow;
 use ::std::collections::HashMap;
@@ -127,7 +127,7 @@ pub trait ObjectType {
 
 /// The unit of work in an authorization query, which will either be accepted or rejected by a decision maker.
 #[skip_serializing_none]
-#[derive(Clone, Deserialize, Dissolve, DissolveMut, DissolveRef, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
+#[derive(Clone, Deserialize, Dissolve, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
 #[serde(bound(
     serialize = "Subject: Serialize, Action: ActionType, Object: ObjectType, Input: Serialize, Context: Serialize",
     deserialize = "Subject: Deserialize<'de>, Action: ActionType, Object: ObjectType, Input: Deserialize<'de>, Context: Deserialize<'de>",

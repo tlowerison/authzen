@@ -1,6 +1,5 @@
 [package]
 name = "authzen-session"
-build = "../build.rs"
 version.workspace = true
 authors.workspace = true
 edition.workspace = true
@@ -9,6 +8,7 @@ keywords.workspace = true
 homepage.workspace = true
 repository.workspace = true
 license.workspace = true
+build = "build.rs"
 
 [package.metadata.docs.rs]
 all-features = true

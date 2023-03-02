@@ -193,11 +193,11 @@
 <a href="#193" id="193">193</a>
 <a href="#194" id="194">194</a>
 <a href="#195" id="195">195</a>
-</pre><pre class="rust"><code><span class="kw">use </span>convert_case::{Case, Casing};
-<span class="kw">use </span>proc_macro2::TokenStream;
-<span class="kw">use </span>proc_macro_util::{
+</pre><pre class="rust"><code><span class="kw">use </span>authzen_proc_macro_util::{
     add_bounds_to_generics, find_field_attribute_in_struct, find_field_attributes_in_struct, MatchedAttribute,
 };
+<span class="kw">use </span>convert_case::{Case, Casing};
+<span class="kw">use </span>proc_macro2::TokenStream;
 <span class="kw">use </span>quote::{format_ident, quote};
 <span class="kw">use </span>std::borrow::Cow;
 <span class="kw">use </span>syn::{parse2, parse_quote, Error};

@@ -275,7 +275,7 @@
     </span>Id: DeserializeOwned + Send + Serialize + <span class="lifetime">&#39;static</span>,
     Clients: Clone + Send + Sync + <span class="lifetime">&#39;static</span>,
     Ctx: Send + Sync,
-    Q: DeserializeOwned + Query&lt;Ctx, Error = service_util::Error&gt; + Send,
+    Q: DeserializeOwned + Query&lt;Ctx, Error = authzen_service_util::Error&gt; + Send,
     (Clients, <span class="prelude-ty">Option</span>&lt;Id&gt;): Into&lt;Ctx&gt;,
 {
     <span class="comment">// note: ordering of middleware layers is important, see https://docs.rs/axum/latest/axum/middleware/index.html#ordering
@@ -323,10 +323,10 @@
                 <span class="kw">async move </span>{
                     <span class="kw">let </span>transaction_id = transaction_id.map(|x| x.<span class="number">0 </span>.<span class="number">0</span>);
                     <span class="kw">let </span>ctx = Into::&lt;Ctx&gt;::into((clients, transaction_id));
-                    <span class="kw">let </span>query: Q = service_util::from_body(raw_body)
+                    <span class="kw">let </span>query: Q = authzen_service_util::from_body(raw_body)
                         .<span class="kw">await
                         </span>.map_err(QueryError::Deserialization)<span class="question-mark">?</span>;
-                    <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, QueryError&lt;service_util::Error&gt;&gt;(query.fetch(<span class="kw-2">&amp;</span>ctx).<span class="kw">await</span><span class="question-mark">?</span>)
+                    <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, QueryError&lt;authzen_service_util::Error&gt;&gt;(query.fetch(<span class="kw-2">&amp;</span>ctx).<span class="kw">await</span><span class="question-mark">?</span>)
                 }
             },
         ),
@@ -339,7 +339,7 @@
             app.layer(
                 app_middleware
                     <span class="comment">// handle errors produced by fallible middleware layers (e.g. timeout)
-                    </span>.layer(HandleErrorLayer::new(service_util::handle_middleware_error))
+                    </span>.layer(HandleErrorLayer::new(authzen_service_util::handle_middleware_error))
                     .timeout(timeout_duration)
                     .into_inner(),
             )
@@ -353,7 +353,7 @@
 
     axum::Server::bind(<span class="kw-2">&amp;</span>socket_addr)
         .serve(service)
-        .with_graceful_shutdown(service_util::shutdown_signal())
+        .with_graceful_shutdown(authzen_service_util::shutdown_signal())
         .<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(())
@@ -381,7 +381,7 @@
             Box::pin(<span class="kw">async move </span>{
                 <span class="kw">let </span>transaction_id = transaction_id.map(|x| x.<span class="number">0 </span>.<span class="number">0</span>);
                 <span class="kw">let </span>ctx = Into::&lt;Ctx&gt;::into((clients, transaction_id));
-                <span class="kw">let </span>query: Q = service_util::from_body(raw_body)
+                <span class="kw">let </span>query: Q = authzen_service_util::from_body(raw_body)
                     .<span class="kw">await
                     </span>.map_err(QueryError::Deserialization)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(query.fetch(<span class="kw-2">&amp;</span>ctx).<span class="kw">await</span><span class="question-mark">?</span>)
@@ -447,14 +447,14 @@
 
 <span class="attr">#[cfg(feature = <span class="string">&quot;tracing&quot;</span>)]
 </span><span class="kw">fn </span>derive_span(req: <span class="kw-2">&amp;</span>http::Request&lt;hyper::body::Body&gt;) -&gt; tracing::Span {
-    service_util::set_trace_parent(
+    authzen_service_util::set_trace_parent(
         req,
         <span class="macro">tracing::info_span!</span>(
             target: <span class="string">&quot;&quot;</span>,
             <span class="string">&quot;request&quot;</span>,
             <span class="string">&quot;http.method&quot; </span>= %req.method(),
             <span class="string">&quot;http.target&quot; </span>= %req.uri(),
-            <span class="string">&quot;http.client_ip&quot; </span>= service_util::get_client_ip(req).map(display),
+            <span class="string">&quot;http.client_ip&quot; </span>= authzen_service_util::get_client_ip(req).map(display),
         ),
     )
 }

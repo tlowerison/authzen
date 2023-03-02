@@ -20,9 +20,9 @@
 <a href="#20" id="20">20</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-</span><span class="kw">use </span>core::<span class="kw-2">*</span>;
+</span><span class="kw">use </span>authzen_proc_macro_util::ok_or_return_compile_error;
+<span class="kw">use </span>core::<span class="kw-2">*</span>;
 <span class="kw">use </span>proc_macro::TokenStream;
-<span class="kw">use </span>proc_macro_util::ok_or_return_compile_error;
 
 <span class="attr">#[proc_macro_derive(OPAContext, attributes(account_session, opa_client))]
 </span><span class="kw">pub fn </span>opa_context(item: TokenStream) -&gt; TokenStream {

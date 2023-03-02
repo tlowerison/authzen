@@ -180,10 +180,10 @@
 <a href="#180" id="180">180</a>
 </pre><pre class="rust"><code><span class="kw">use crate</span>::{ActionType, DecisionMaker, Event, ObjectType};
 <span class="kw">use </span>::authzen_opa::OPAClient;
+<span class="kw">use </span>::authzen_service_util::<span class="kw-2">*</span>;
 <span class="kw">use </span>::hyper::{body::Bytes, http::header::<span class="kw-2">*</span>, Body, Method};
 <span class="kw">use </span>::serde::{Deserialize, Deserializer, Serialize};
 <span class="kw">use </span>::serde_json::Value;
-<span class="kw">use </span>::service_util::<span class="kw-2">*</span>;
 <span class="kw">use </span>::std::fmt::Debug;
 <span class="kw">use </span>::typed_builder::TypedBuilder;
 
@@ -207,7 +207,7 @@
     TransactionId: Debug + Send + Serialize + Sync,
 {
     <span class="kw">type </span><span class="prelude-val">Ok </span>= ();
-    <span class="kw">type </span>Error = service_util::Error;
+    <span class="kw">type </span>Error = authzen_service_util::Error;
 
     <span class="kw">async fn </span>can_act(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -252,7 +252,7 @@
         .query(<span class="self">self</span>)
         .<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">if </span>result == <span class="bool-val">false </span>{
-            <span class="kw">return </span><span class="prelude-val">Err</span>(service_util::Error::bad_request());
+            <span class="kw">return </span><span class="prelude-val">Err</span>(authzen_service_util::Error::bad_request());
         }
         <span class="prelude-val">Ok</span>(())
     }

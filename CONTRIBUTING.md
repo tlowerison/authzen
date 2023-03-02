@@ -17,6 +17,7 @@ cargo watch \
   -w proc-macro-util \
   -w proc-macros \
   -w service-util \
+  -w session \
   -w storage-backends \
   -w Cargo.toml \
   -- \

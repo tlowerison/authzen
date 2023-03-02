@@ -540,15 +540,10 @@
 <a href="#540" id="540">540</a>
 <a href="#541" id="541">541</a>
 <a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a>
-<a href="#546" id="546">546</a>
-<a href="#547" id="547">547</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-</span><span class="kw">use </span>proc_macro2::{Span, TokenStream};
-<span class="kw">use </span>proc_macro_util::{add_bounds_to_generics, find_field_attribute_in_struct, MatchedAttribute};
+</span><span class="kw">use </span>authzen_proc_macro_util::{add_bounds_to_generics, find_field_attribute_in_struct, MatchedAttribute};
+<span class="kw">use </span>proc_macro2::{Span, TokenStream};
 <span class="kw">use </span>quote::quote;
 <span class="kw">use </span>syn::parse::{Parse, ParseStream};
 <span class="kw">use </span>syn::{parse2, parse_quote, punctuated::Punctuated, Error, Token};
@@ -605,7 +600,7 @@
     add_bounds_to_generics(
         <span class="kw-2">&amp;mut </span>opa_context_trait_generics,
         [
-            <span class="macro">parse_quote!</span>(authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession&lt;#account_id_ty, #account_session_fields_ty&gt;),
+            <span class="macro">parse_quote!</span>(authzen::decision_makers::opa::authzen_session::BorrowAccountSession&lt;#account_id_ty, #account_session_fields_ty&gt;),
         ],
         <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">parse_quote!</span>(#account_session_field_type)),
     );
@@ -622,7 +617,7 @@
         </span><span class="kw">impl </span>#opa_context_impl_generics authzen::decision_makers::opa::OPAContext <span class="kw">for </span>#ident #ty_generics #opa_context_where_clause {
             <span class="kw">type </span>AccountId = #account_id_ty;
             <span class="kw">type </span>AccountSessionFields = #account_session_fields_ty;
-            <span class="kw">fn </span>account_session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_opa_session_util::AccountSession&lt;<span class="self">Self</span>::AccountId, <span class="self">Self</span>::AccountSessionFields&gt;&gt; {
+            <span class="kw">fn </span>account_session(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_session::AccountSession&lt;<span class="self">Self</span>::AccountId, <span class="self">Self</span>::AccountSessionFields&gt;&gt; {
                 <span class="self">self</span>.#account_session_field_accessor.borrow_account_session()
             }
             <span class="kw">fn </span>opa_client(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>authzen::decision_makers::opa::OPAClient {
@@ -835,7 +830,7 @@
 <span class="attr">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use </span>proc_macro_util::pretty;
+    <span class="kw">use </span>authzen_proc_macro_util::pretty;
 
     <span class="attr">#[test]
     </span><span class="kw">fn </span>test_opa_context_basic() -&gt; <span class="prelude-ty">Result</span>&lt;(), Error&gt; {
@@ -855,10 +850,7 @@
             </span><span class="kw">impl</span>&lt;
                     A: Send
                         + Sync
-                        + authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession&lt;
-                            Uuid,
-                            AccountSessionFields,
-                        &gt;,
+                        + authzen::decision_makers::opa::authzen_session::BorrowAccountSession&lt;Uuid, AccountSessionFields&gt;,
                     D: Send + Sync,
                     O1: Send + Sync + Borrow&lt;authzen::decision_makers::opa::OPAClient&gt;,
                     O2: Send + Sync,
@@ -869,7 +861,7 @@
                 <span class="kw">fn </span>account_session(
                     <span class="kw-2">&amp;</span><span class="self">self</span>,
                 ) -&gt; <span class="prelude-ty">Option</span>&lt;
-                    <span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_opa_session_util::AccountSession&lt;
+                    <span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_session::AccountSession&lt;
                         <span class="self">Self</span>::AccountId,
                         <span class="self">Self</span>::AccountSessionFields,
                     &gt;,
@@ -903,9 +895,7 @@
         <span class="kw">let </span>expected = <span class="macro">quote!</span>(
             <span class="attr">#[authzen::decision_makers::opa::authzen_opa_async_trait]
             </span><span class="kw">impl</span>&lt;
-                    A: Send
-                        + Sync
-                        + authzen::decision_makers::opa::authzen_opa_session_util::BorrowAccountSession&lt;Uuid, ()&gt;,
+                    A: Send + Sync + authzen::decision_makers::opa::authzen_session::BorrowAccountSession&lt;Uuid, ()&gt;,
                     D: Foo + Send + Sync,
                     O1: Yo + Send + Sync + Borrow&lt;authzen::decision_makers::opa::OPAClient&gt;,
                     O2: Test + Send + Sync,
@@ -916,7 +906,7 @@
                 <span class="kw">fn </span>account_session(
                     <span class="kw-2">&amp;</span><span class="self">self</span>,
                 ) -&gt; <span class="prelude-ty">Option</span>&lt;
-                    <span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_opa_session_util::AccountSession&lt;
+                    <span class="kw-2">&amp;</span>authzen::decision_makers::opa::authzen_session::AccountSession&lt;
                         <span class="self">Self</span>::AccountId,
                         <span class="self">Self</span>::AccountSessionFields,
                     &gt;,

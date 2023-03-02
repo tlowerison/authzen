@@ -26,9 +26,9 @@
 <a href="#26" id="26">26</a>
 </pre><pre class="rust"><code><span class="attr">#![cfg_attr(all(doc, CHANNEL_NIGHTLY), feature(doc_auto_cfg))]
 
-</span><span class="kw">use </span>doc_comment::doc_comment;
+</span><span class="kw">use </span>authzen_proc_macro_util::ok_or_return_compile_error;
+<span class="kw">use </span>doc_comment::doc_comment;
 <span class="kw">use </span>proc_macro::TokenStream;
-<span class="kw">use </span>proc_macro_util::ok_or_return_compile_error;
 
 <span class="macro">doc_comment!</span>(
     <span class="macro">include_str!</span>(<span class="string">&quot;../docs/action.md&quot;</span>),

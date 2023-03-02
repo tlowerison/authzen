@@ -18,11 +18,11 @@
 </pre><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::ActionError;
 
 <span class="kw">impl</span>&lt;DecisionMakerError, StorageError, TransactionCacheError&gt;
-    From&lt;ActionError&lt;DecisionMakerError, StorageError, TransactionCacheError&gt;&gt; <span class="kw">for </span>service_util::Error
+    From&lt;ActionError&lt;DecisionMakerError, StorageError, TransactionCacheError&gt;&gt; <span class="kw">for </span>authzen_service_util::Error
 <span class="kw">where
     </span>DecisionMakerError: std::fmt::Display,
-    StorageError: Into&lt;service_util::Error&gt;,
-    TransactionCacheError: Into&lt;service_util::Error&gt;,
+    StorageError: Into&lt;authzen_service_util::Error&gt;,
+    TransactionCacheError: Into&lt;authzen_service_util::Error&gt;,
 {
     <span class="kw">fn </span>from(value: ActionError&lt;DecisionMakerError, StorageError, TransactionCacheError&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">match </span>value {

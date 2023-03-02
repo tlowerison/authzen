@@ -2,9 +2,9 @@ Generate a custom action which can be queried for authorization and performed on
 
 The output produced by this macro essentially consists of two traits:
 - a trait encapsulating a query to some decision maker of whether the action is allowed;
-this trait is generally referred to as a "Can" trait (e.g. [`CanCreate`](action/trait.CanCreate.html))
+this trait is generally referred to as a "Can" trait (e.g. [`CanCreate`](actions/trait.CanCreate.html))
 - a trait encapsulating a query which performs the decision maker, and if allowed, performs the action;
-this trait is generally referred to as a "Try" trait (e.g. [`TryCreate`](action/trait.TryCreate.html))
+this trait is generally referred to as a "Try" trait (e.g. [`TryCreate`](actions/trait.TryCreate.html))
 
 # Example
 This will show a couple of ways to configuring a custom action we'll call `Replace`.

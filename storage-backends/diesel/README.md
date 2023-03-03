@@ -168,7 +168,7 @@ create table if not exists item_audit (
 );
 ```
 Note that the placement of `item_id` as the second column in the table *is required*, otherwise, there is a chance that
-the diesel table model will still compile but with the ids swapped for example if the `id` and `item_id` columns are also swapped in the sql table definition.
+the diesel table model will still compile but with the ids swapped for example if the `id` and `item_id` columns are swapped in the sql table definition.
 ```rust
 #[derive(Audit, Clone, Debug, Identifiable, Insertable, Queryable)]
 #[audit(foreign_key = item_id)]

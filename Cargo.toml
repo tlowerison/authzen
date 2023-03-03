@@ -19,6 +19,7 @@ keywords = ["authz", "authorization", "diesel", "opa", "open-policy-agent"]
 homepage = "https://github.com/tlowerison/authzen"
 repository = "https://github.com/tlowerison/authzen"
 license = "MIT OR Apache-2.0"
+readme = "README.md"
 
 [workspace.dependencies]
 authzen-diesel = { path = "storage-backends/diesel", version = "0.1.0-alpha.0" }

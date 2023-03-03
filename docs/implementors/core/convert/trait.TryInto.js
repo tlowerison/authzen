@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"authzen_service_util":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html\" title=\"trait core::convert::TryInto\">TryInto</a>&lt;<a class=\"struct\" href=\"authzen_diesel_core/paginate/struct.Page.html\" title=\"struct authzen_diesel_core::paginate::Page\">Page</a>&gt; for <a class=\"struct\" href=\"authzen_service_util/struct.ApiPage.html\" title=\"struct authzen_service_util::ApiPage\">ApiPage</a>"]]
+"authzen_service_util":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html\" title=\"trait core::convert::TryInto\">TryInto</a>&lt;Page&gt; for <a class=\"struct\" href=\"authzen_service_util/struct.ApiPage.html\" title=\"struct authzen_service_util::ApiPage\">ApiPage</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

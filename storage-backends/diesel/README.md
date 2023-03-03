@@ -63,7 +63,7 @@ pub struct _DbItem {
     pub needed: Option<i32>,
 }
 
-/// for DbItem to implement DbInsert<Post<'v> = _DbItem>, DbItem must implement Into<_DbItem>
+/// for DbItem to implement DbInsert<Post<'v> = _DbItem, PostHelper<'v> = DbItem>, DbItem must implement Into<_DbItem>
 impl From<DbItem> for _DbItem {
     fn from(value: DbItem) -> Self {
         let (is_inventory_type, owned, needed) = match value.item_type {

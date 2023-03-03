@@ -128,9 +128,9 @@ for an object rather than having to call [can_create](https://docs.rs/authzen/la
 action after it has been authorized. Wrapping the authorization and performance of an action is *particularly* useful when the storage backend where the objects are stored is
 transactional in nature, see the section on [transaction caches](#transaction-caches) for why that is the case.
 
-#### Supported Backend Integrations
-- [diesel](https://github.com/tlowerison/authzen/tree/main/storage-backends/diesel)
-- [sqlx](https://github.com/tlowerison/authzen/tree/main/storage-backends/sqlx)
+#### Storage Backend Integrations
+- [diesel](https://github.com/tlowerison/authzen/tree/main/storage-backends/diesel) (implemented)
+- [sqlx](https://github.com/tlowerison/authzen/tree/main/storage-backends/sqlx) (todo)
 
 
 ### <a name="decision-makers"></a> Decision Makers

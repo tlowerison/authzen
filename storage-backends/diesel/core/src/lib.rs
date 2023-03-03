@@ -36,7 +36,7 @@ mod _operations;
 #[cfg(any(feature = "bb8", feature = "deadpool", feature = "mobc"))]
 pub mod pool;
 
-pub use _operations::operations;
+pub use _operations::{operations, DbEntity, DbEntityError};
 
 pub mod prelude {
     pub use crate::_operations::operations::*;

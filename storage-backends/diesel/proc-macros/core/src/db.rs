@@ -17,10 +17,9 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
     let mut should_box_tx_fn = true;
     if let Some(attr) = ast.attrs.iter().find(|attr| attr.path.is_ident("db")) {
         let ident = attr.parse_args::<syn::Ident>()?;
-        match &*ident.to_string() {
-            "no_tx_fn_box" => should_box_tx_fn = false,
-            _ => {}
-        };
+        if ident == "no_tx_fn_box" {
+            should_box_tx_fn = false;
+        }
     }
 
     let mut db_field_and_index: Option<(usize, &syn::Field)> = None;

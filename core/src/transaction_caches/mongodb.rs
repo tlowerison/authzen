@@ -393,7 +393,7 @@ pub async fn mongodb_client(
     }
 
     connection_string
-        .set_password(config.password.as_ref().map(|x| &**x))
+        .set_password(config.password.as_deref())
         .map_err(|_| anyhow::Error::msg("unable to set mongodb url password"))?;
 
     connection_string
@@ -404,7 +404,7 @@ pub async fn mongodb_client(
         .set_port(config.port)
         .map_err(|_| anyhow::Error::msg("unable to set mongodb url port"))?;
 
-    connection_string.set_query(config.args.as_ref().map(|x| &**x));
+    connection_string.set_query(config.args.as_deref());
 
     log::info!("connecting to mongodb");
 

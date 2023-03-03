@@ -32,10 +32,6 @@ pub struct DbItemPatch {
     pub description: Option<Option<String>>,
 }
 
-impl DbInsert for DbItem {
-    type Post<'a> = Self;
-}
-
 impl DbUpdate for DbItem {
     type Patch<'a> = DbItemPatch;
 }

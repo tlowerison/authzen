@@ -96,7 +96,7 @@ where
                     let query: Q = authzen_service_util::from_body(raw_body)
                         .await
                         .map_err(QueryError::Deserialization)?;
-                    Ok::<_, QueryError<authzen_service_util::Error>>(query.fetch(&ctx).await?)
+                    query.fetch(&ctx).await
                 }
             },
         ),
@@ -154,7 +154,7 @@ where
                 let query: Q = authzen_service_util::from_body(raw_body)
                     .await
                     .map_err(QueryError::Deserialization)?;
-                Ok(query.fetch(&ctx).await?)
+                query.fetch(&ctx).await
             })
         },
     )

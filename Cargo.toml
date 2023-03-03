@@ -29,89 +29,78 @@ authzen-proc-macro-util = { path = "proc-macro-util", version = "0.1.0-alpha.0" 
 authzen-service-util = { path = "service-util", version = "0.1.0-alpha.0" }
 authzen-session = { path = "session", version = "0.1.0-alpha.0" }
 
-# authzen specific crates
+anyhow = "1"
+async-backtrace = "^0.2"
+async-graphql = "4"
 async-trait = "^0.1"
 axum = "0.6"
-convert_case = "^0.6"
+axum-05 = { package = "axum", version = "0.5", default-features = false, features = ["headers"] }
+axum-06 = { package = "axum", version = "0.6", default-features = false, features = ["headers"] }
+axum-core = "0"
+axum-core-02 = { package = "axum-core", version = "0.2", default-features = false }
+axum-core-03 = { package = "axum-core", version = "0.3", default-features = false }
 cfg-if = "1"
+chrono = "^0.4"
+clap = "4"
+concat-string = "1"
+convert_case = "^0.6"
+cookie = "0"
+data-encoding = "2"
+deadpool = "0"
 derivative = "2"
 derive-getters = "0"
 derive_more = "0"
 diesel = "2"
 diesel-async = "^0.2"
+diesel-dynamic-schema = "0"
+diesel_migrations = "2"
+doc-comment = "0.3"
 dotenv = "0"
+either = "1"
+float-cmp = "0"
+futures = "^0.3"
+headers = "0"
 http = "0"
 hyper = "0"
+hyper-rustls = { version = "0", features = ["webpki-roots"] }
+itertools = "^0.10"
+jsonwebtoken = "8"
+lazy_static = "1"
+log = "0"
+mobc = "^0.7"
+mongodb = { version = "2", features = ["bson-chrono-0_4"] }
+opentelemetry = "0"
+opentelemetry-jaeger = "0"
+paste = "1"
+percent-encoding = "2"
+pin-project-lite = "0"
+prettyplease = "0"
 proc-macro2 = "1"
 quote = "1"
+redis_cluster_async = "0"
+ring = "0"
+rustc_version = "0.4.0"
+scoped-futures = "^0.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_plain = "1"
+serde_qs = "0"
 serde_with = "2"
+sqlx = { version = "^0.6", features = [ "runtime-tokio-rustls" ] }
 syn = { version = "1", default-features = false }
-typed-builder = "^0.12"
-url = "2"
-
-# authzen-diesel
-anyhow = "1"
-async-backtrace = "^0.2"
-chrono = "^0.4"
-diesel_migrations = "2"
-either = "1"
-futures = "^0.3"
-itertools = "^0.10"
-lazy_static = "1"
-mobc = "^0.7"
-paste = "1"
-scoped-futures = "^0.1"
 thiserror = "1"
 tokio = { version = "1", features = ["rt", "sync"] }
-tracing = "^0.1"
-uuid = { version = "1", features = ["serde", "v4"] }
-
-# authzen-opa
-diesel-dynamic-schema = "0"
-float-cmp = "0"
-hyper-rustls = { version = "0", features = ["webpki-roots"] }
-mongodb = { version = "2", features = ["bson-chrono-0_4"] }
-opentelemetry = "0"
-tracing-opentelemetry = "0"
-
-# proc-macro-util
-prettyplease = "0"
-doc-comment = "0.3"
-
-# service-util
-headers = "0"
-log = "0"
-
-async-graphql = "4"
-axum-core = "0"
-cookie = "0"
-clap = "4"
-concat-string = "1"
-data-encoding = "2"
-deadpool = "0"
-jsonwebtoken = "8"
-opentelemetry-jaeger = "0"
-percent-encoding = "2"
-pin-project-lite = "0"
-redis_cluster_async = "0"
-ring = "0"
-serde_qs = "0"
 tonic = "0"
 tower = "0"
 tower-http = "0"
 tower-layer = "0"
 tower-service = "0"
+tracing = "^0.1"
 tracing-error = "0"
 tracing-log = "0"
+tracing-opentelemetry = "0"
 tracing-subscriber = "0"
 tracing-tree = "0"
-
-axum-core-02 = { package = "axum-core", version = "0.2", default-features = false }
-axum-core-03 = { package = "axum-core", version = "0.3", default-features = false }
-axum-05 = { package = "axum", version = "0.5", default-features = false, features = ["headers"] }
-axum-06 = { package = "axum", version = "0.6", default-features = false, features = ["headers"] }
-
-rustc_version = "0.4.0"
+typed-builder = "^0.12"
+url = "2"
+uuid = { version = "1", features = ["serde", "v4"] }

@@ -55,7 +55,7 @@ where
                         .and_then(|x| x.parse::<bool>().ok())
                         .unwrap_or_default(),
                 )
-                .explain(explain.as_ref().map(|x| &**x))
+                .explain(explain.as_deref())
                 .build(),
             data: None,
             input: OPAEvent {

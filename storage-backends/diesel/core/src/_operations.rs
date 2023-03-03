@@ -1,29 +1,29 @@
 use crate::{connection::Db, prelude::*};
-use diesel::associations::HasTable;
-use diesel::dsl::SqlTypeOf;
-use diesel::expression::{AsExpression, Expression};
-use diesel::expression_methods::ExpressionMethods;
-use diesel::helper_types as ht;
-use diesel::query_dsl::methods::{FilterDsl, FindDsl};
-use diesel::query_source::QuerySource;
-use diesel::result::Error;
-use diesel::sql_types::SqlType;
-use diesel::{query_builder::*, Identifiable};
-use diesel::{Insertable, Table};
-use diesel_async::methods::*;
-use either::Either;
-use futures::future::FutureExt;
-use scoped_futures::ScopedFutureExt;
-use std::borrow::Borrow;
-use std::fmt::Debug;
-use std::hash::Hash;
+use ::diesel::associations::HasTable;
+use ::diesel::dsl::SqlTypeOf;
+use ::diesel::expression::{AsExpression, Expression};
+use ::diesel::expression_methods::ExpressionMethods;
+use ::diesel::helper_types as ht;
+use ::diesel::query_dsl::methods::{FilterDsl, FindDsl};
+use ::diesel::query_source::QuerySource;
+use ::diesel::result::Error;
+use ::diesel::sql_types::SqlType;
+use ::diesel::{query_builder::*, Identifiable};
+use ::diesel::{Insertable, Table};
+use ::diesel_async::methods::*;
+use ::either::Either;
+use ::futures::future::FutureExt;
+use ::scoped_futures::ScopedFutureExt;
+use ::std::borrow::Borrow;
+use ::std::fmt::Debug;
+use ::std::hash::Hash;
 
 /// Wrapper error type returned from DbEntity methods
 /// solely exists to facilitate error conversion when
 /// converting between the raw db representation and
 /// the entity representation.
-#[derive(Debug, Display, Error, IsVariant, PartialEq, Unwrap)]
-pub enum DbEntityError<E> {
+#[derive(Debug, Display, IsVariant, PartialEq, Unwrap, thiserror::Error)]
+pub enum DbEntityError<E = ::std::convert::Infallible> {
     Db(Error),
     /// In the cases where [`DbEntity::Raw`] does not implement [`Into<Self>`]
     /// and instead only implements [`TryInto<Self>`], this variant captures
@@ -52,8 +52,8 @@ impl<E> DbEntityError<E> {
     }
 }
 
-impl From<DbEntityError<std::convert::Infallible>> for diesel::result::Error {
-    fn from(value: DbEntityError<std::convert::Infallible>) -> Self {
+impl From<DbEntityError<::std::convert::Infallible>> for Error {
+    fn from(value: DbEntityError<::std::convert::Infallible>) -> Self {
         value.unwrap_db()
     }
 }
@@ -73,6 +73,22 @@ pub trait DbEntity: Sized + Send + 'static {
     type Id: AsExpression<SqlTypeOf<<Self::Table as Table>::PrimaryKey>>
     where
         <<Self::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType;
+}
+
+/// DbEntity is automatically implemented for any type which implements Audit and HasTable
+impl<T, Tab, Id> DbEntity for T
+where
+    T: Clone + HasTable<Table = Tab> + Send + 'static,
+    Tab: Table + QueryId + Send,
+
+    Id: AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
+    for<'a> &'a T: Identifiable<Id = &'a Id>,
+    Tab::PrimaryKey: Expression + ExpressionMethods,
+    <Tab::PrimaryKey as Expression>::SqlType: SqlType,
+{
+    type Raw = T;
+    type Table = Tab;
+    type Id = Id;
 }
 
 /// Common operations used across most database tables.
@@ -481,7 +497,7 @@ pub mod operations {
 
             db.update([patch.into()])
                 .map(|result| match result {
-                    Ok(mut records) => Ok(records.pop().ok_or(diesel::result::Error::NotFound)?),
+                    Ok(mut records) => Ok(records.pop().ok_or(Error::NotFound)?),
                     Err(err) => {
                         let err = err;
                         error!(target: module_path!(), error = %err);
@@ -608,26 +624,24 @@ pub mod operations {
         }
     }
 
-    /// DbEntity is automatically implemented for any type which implements Audit and HasTable
-    impl<T, Tab, Id> DbEntity for T
-    where
-        T: Clone + HasTable<Table = Tab> + Send + 'static,
-        Tab: Table + QueryId + Send,
-
-        Id: AsExpression<SqlTypeOf<Tab::PrimaryKey>>,
-        for<'a> &'a T: Identifiable<Id = &'a Id>,
-        Tab::PrimaryKey: Expression + ExpressionMethods,
-        <Tab::PrimaryKey as Expression>::SqlType: SqlType,
-    {
-        type Raw = T;
-        type Table = Tab;
-        type Id = Id;
-    }
-
     impl<T: DbEntity> DbGet for T {}
+
+    impl<T: DbEntity> DbInsert for T
+    where
+        T: Debug + HasTable<Table = Self::Table> + Send,
+    {
+        type Post<'v> = T;
+    }
 
     impl<T: DbEntity> DbDelete for T {
         default type DeletedAt = ();
         default type DeletePatch<'v> = ();
+    }
+
+    impl<T: DbEntity> DbUpdate for T
+    where
+        T: AsChangeset<Target = Self::Table> + Debug + HasTable<Table = Self::Table> + IncludesChanges + Send + Sync,
+    {
+        type Patch<'v> = T;
     }
 }

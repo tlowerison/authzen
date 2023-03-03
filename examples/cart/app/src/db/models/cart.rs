@@ -1,6 +1,5 @@
 use crate::db::schema::*;
 use crate::db::Db;
-use ::authzen::storage_backends::diesel::prelude::*;
 use ::chrono::{NaiveDateTime, Utc};
 use ::diesel::result::Error;
 use ::diesel::{ExpressionMethods, OptionalExtension, QueryDsl};
@@ -20,10 +19,6 @@ pub struct DbCart {
     pub account_id: Uuid,
     #[builder(default)]
     pub used_at: Option<NaiveDateTime>,
-}
-
-impl DbInsert for DbCart {
-    type Post<'a> = Self;
 }
 
 impl DbCart {

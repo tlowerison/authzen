@@ -93,7 +93,7 @@ where
             .await
             .map_err(ActionError::storage)?;
         transaction_cache
-            .handle_success(&storage_client, &ok)
+            .handle_success(storage_client, &ok)
             .await
             .map_err(ActionError::transaction_cache)?;
         Ok(ok)
@@ -315,6 +315,7 @@ pub trait Identifiable {
 pub trait TransactionCache {
     type Error: Debug + Send;
 
+    #[allow(clippy::type_complexity)]
     fn get_entities<'life0, 'async_trait, O, T, TransactionId>(
         &'life0 self,
         transaction_id: TransactionId,
@@ -328,6 +329,7 @@ pub trait TransactionCache {
         T::Id: Clone,
         TransactionId: Send + Serialize;
 
+    #[allow(clippy::type_complexity)]
     fn get_by_ids<'life0, 'life1, 'async_trait, O, T, TransactionId>(
         &'life0 self,
         transaction_id: TransactionId,
@@ -423,7 +425,7 @@ impl TransactionCache for () {
         T: Identifiable + Serialize,
         TransactionId: Send + Serialize,
     {
-        Box::pin(async { Ok(Default::default()) })
+        Box::pin(async { Ok(()) })
     }
 
     fn mark_deleted<'life0, 'life1, 'async_trait, O, T, TransactionId>(
@@ -440,7 +442,7 @@ impl TransactionCache for () {
         T: Identifiable + Serialize,
         TransactionId: Send + Serialize,
     {
-        Box::pin(async { Ok(Default::default()) })
+        Box::pin(async { Ok(()) })
     }
 }
 

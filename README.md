@@ -6,7 +6,7 @@ and aims to provide authorization primitives with the support for many different
 Policy based authorization is great but can be really complex to integrate into an application. This project exists to help remove a lot of the up front cost
 that's required to get authorization working in backend rust services. The goals of this project include:
 - annotation of object metadata (i.e. what's this object's type and originating service) which will be used by authorization engines
-- easy authorization enforcement (should be able to query whether a requestor is able to perform an action against some objects, e.g. can this requestor create these objects)
+- easy authorization enforcement (should be able to query with a single method whether a requestor is able to perform an action against some objects, e.g. can this requestor create these objects)
 - integration with different authorization engines like:
   - [Open Policy Agent](https://www.openpolicyagent.org) (implemented)
   - [oso](https://www.osohq.com) (todo)

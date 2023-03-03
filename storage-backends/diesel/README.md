@@ -30,7 +30,7 @@ Types which implement `DbEntity` can then implement the following operation trai
 ### Example
 The PostHelper/PatchHelper terminology in DbInsert/DbUpdate can be a little confusing without an example. The major win from this design is the ability to represent discriminated unions in tables easily and safely.
 As an example, let's take a case where an `item` table can either be an inventory item or a general item. General items have no count, while inventory items do have a count of how many are owned and how many are needed.
-A typical representation of this table with a diesel model would just use an option for the count, and we will use that as a "raw" model, but the type we'd rather work with in service code is one which makes the
+A typical representation of this table with a diesel model would just use an option for the two counts, and we will use that as a "raw" model, but the type we'd rather work with in service code is one which makes the
 distinction between the two item types with an enum.
 ```rust
 use authzen::storage_backends::diesel::prelude::*;

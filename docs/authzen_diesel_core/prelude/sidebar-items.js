@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DbEntityError"],"trait":["DbDelete","DbEntity","DbGet","DbInsert","DbUpdate"]};

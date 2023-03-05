@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":["Audit","Db","Enum","IncludesChanges","SoftDelete"],"macro":["db_filter","dynamic_schema"],"mod":["audit","connection","deletable","is_deleted","operations","paginate","pool","prelude"]};

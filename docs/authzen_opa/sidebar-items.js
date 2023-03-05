@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["DEFAULT_TIMEOUT_SECONDS"],"enum":["OPAQueryInputAction"],"fn":["query_all"],"struct":["OPAClient","OPAQuery","OPAQueryConfig","OPAQueryInput","OPAQueryResult"]};

@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"authzen_opa":[["impl&lt;Data: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> + <a class=\"trait\" href=\"https://docs.rs/serde/1.0.152/serde/ser/trait.Serialize.html\" title=\"trait serde::ser::Serialize\">Serialize</a>&gt; Endpoint for <a class=\"struct\" href=\"authzen_opa/struct.OPAQuery.html\" title=\"struct authzen_opa::OPAQuery\">OPAQuery</a>&lt;'_, Data&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

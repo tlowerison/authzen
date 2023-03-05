@@ -1,3 +1,0 @@
-(function() {var implementors = {
-"authzen_session":[["impl Manager for <a class=\"struct\" href=\"authzen_session/struct.Manager.html\" title=\"struct authzen_session::Manager\">Manager</a>&lt;Client&gt;"],["impl Manager for <a class=\"struct\" href=\"authzen_session/struct.Manager.html\" title=\"struct authzen_session::Manager\">Manager</a>&lt;Client&gt;"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["IsDeletedFilter","IsNotDeletedFilter","Wrapper"],"trait":["DbDelete","DbGet","DbInsert","DbUpdate","Deletable","IsDeleted","IsNotDeleted","SoftDeletable"]};

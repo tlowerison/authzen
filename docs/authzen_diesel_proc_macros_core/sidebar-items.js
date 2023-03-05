@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ColumnValueKind"],"fn":["db_filter","derive_audit","derive_db","derive_enum","derive_includes_changes","derive_soft_delete","dynamic_schema"],"struct":["Column","ColumnName","ColumnSqlType","DynamicSchema","Joinable","Schema","SchemaName","Table","TableName"]};

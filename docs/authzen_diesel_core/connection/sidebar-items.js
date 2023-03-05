@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["PooledConnection"],"struct":["DbConnection","TxCleanupError"],"trait":["Db","TxFn"],"traitalias":["TxCleanupFn"],"type":["TxCleanup"]};

@@ -132,26 +132,6 @@ deny := data.app.examples_cart.deny {
 #     (i.e. they should still reject an input whose action is allowed for some but not all of its objects)
 # - if there duplicate object ids/records/patches, trying to check that all
 #   have allowances at this level is more difficult than deeper in the eval tree
-allow := {"no-op"} {
-	event.action == create
-	count(event.object.records) == 0
-}
-
-allow := {"no-op"} {
-	event.action == delete
-	count(event.object.ids) == 0
-}
-
-allow := {"no-op"} {
-	event.action == read
-	count(event.object.ids) == 0
-}
-
-allow := {"no-op"} {
-	event.action == update
-	count(event.object.patches) == 0
-}
-
 allow := data.app.examples_cart.allow {
 	event.object.service == data.app.examples_cart.service
 	count(data.app.examples_cart.allow) > 0

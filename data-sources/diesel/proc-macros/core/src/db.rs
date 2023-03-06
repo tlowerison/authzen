@@ -81,7 +81,7 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
         .as_mut()
         .unwrap()
         .predicates
-        .push(parse_quote!(#db_field_type: authzen::storage_backends::diesel::connection::Db));
+        .push(parse_quote!(#db_field_type: authzen::data_sources::diesel::connection::Db));
 
     let (db_impl_generics, _, db_where_clause) = db_trait_generics.split_for_impl();
 
@@ -139,7 +139,7 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
                 false
             };
             if is_param_exact_db_field_type {
-                tx_connection_type_constructor = quote!(#tx_connection_type_constructor <#ident as authzen::storage_backends::diesel::connection::Db>::TxConnection<#with_tx_connection_lifetime>,);
+                tx_connection_type_constructor = quote!(#tx_connection_type_constructor <#ident as authzen::data_sources::diesel::connection::Db>::TxConnection<#with_tx_connection_lifetime>,);
             } else {
                 tx_connection_type_constructor = quote!(#tx_connection_type_constructor #ident,);
             }
@@ -151,10 +151,10 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
     let sub_callback = if should_box_tx_fn {
         quote!({
             let #sub_callback: Box<
-                dyn for<'r> authzen::storage_backends::diesel::connection::TxFn<
+                dyn for<'r> authzen::data_sources::diesel::connection::TxFn<
                     'a,
                     D::TxConnection<'r>,
-                    authzen::storage_backends::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>,
+                    authzen::data_sources::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>,
                 >,
             > = Box::new(move |#tx_connection_input| {
                 let tx_connection = #tx_connection_constructor;
@@ -172,19 +172,19 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
     };
 
     let tokens = quote! {
-        #[authzen::storage_backends::diesel::authzen_diesel_async_trait]
-        impl #db_impl_generics authzen::storage_backends::diesel::connection::Db for #ident #ty_generics #db_where_clause {
-            type Backend = <#db_field_type as authzen::storage_backends::diesel::connection::Db>::Backend;
-            type AsyncConnection = <#db_field_type as authzen::storage_backends::diesel::connection::Db>::AsyncConnection;
-            type Connection<'r> = <#db_field_type as authzen::storage_backends::diesel::connection::Db>::Connection<'r> where Self: 'r;
+        #[authzen::data_sources::diesel::authzen_diesel_async_trait]
+        impl #db_impl_generics authzen::data_sources::diesel::connection::Db for #ident #ty_generics #db_where_clause {
+            type Backend = <#db_field_type as authzen::data_sources::diesel::connection::Db>::Backend;
+            type AsyncConnection = <#db_field_type as authzen::data_sources::diesel::connection::Db>::AsyncConnection;
+            type Connection<'r> = <#db_field_type as authzen::data_sources::diesel::connection::Db>::Connection<'r> where Self: 'r;
             type TxConnection<#with_tx_connection_lifetime> = #tx_connection_type_constructor;
 
             async fn query<'a, F, T, E>(&self, f: F) -> Result<T, E>
             where
-                F: for<'r> FnOnce(&'r mut Self::AsyncConnection) -> authzen::storage_backends::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>
+                F: for<'r> FnOnce(&'r mut Self::AsyncConnection) -> authzen::data_sources::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>
                     + Send
                     + 'a,
-                E: std::fmt::Debug + From<authzen::storage_backends::diesel::diesel::result::Error> + Send + 'a,
+                E: std::fmt::Debug + From<authzen::data_sources::diesel::diesel::result::Error> + Send + 'a,
                 T: Send + 'a
             {
                 self.#db_field_accessor.query(f).await
@@ -192,31 +192,31 @@ pub fn derive_db(item: TokenStream) -> Result<TokenStream, Error> {
 
             async fn with_tx_connection<'a, F, T, E>(&self, f: F) -> Result<T, E>
             where
-                F: for<'r> FnOnce(&'r mut Self::AsyncConnection) -> authzen::storage_backends::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>
+                F: for<'r> FnOnce(&'r mut Self::AsyncConnection) -> authzen::data_sources::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>
                     + Send
                     + 'a,
-                E: std::fmt::Debug + From<authzen::storage_backends::diesel::diesel::result::Error> + Send + 'a,
+                E: std::fmt::Debug + From<authzen::data_sources::diesel::diesel::result::Error> + Send + 'a,
                 T: Send + 'a
             {
                 self.#db_field_accessor.with_tx_connection(f).await
             }
 
-            fn tx_id(&self) -> Option<authzen::storage_backends::diesel::uuid::Uuid> {
+            fn tx_id(&self) -> Option<authzen::data_sources::diesel::uuid::Uuid> {
                 self.#db_field_accessor.tx_id()
             }
 
             async fn tx_cleanup<F, E>(&self, f: F)
             where
-                F: for<'r> authzen::storage_backends::diesel::connection::TxCleanupFn<'r, Self::AsyncConnection, E>,
-                E: Into<authzen::storage_backends::diesel::connection::TxCleanupError> + 'static
+                F: for<'r> authzen::data_sources::diesel::connection::TxCleanupFn<'r, Self::AsyncConnection, E>,
+                E: Into<authzen::data_sources::diesel::connection::TxCleanupError> + 'static
             {
                 self.#db_field_accessor.tx_cleanup(f).await
             }
 
             async fn tx<'life0, 'a, T, E, F>(&'life0 self, callback: F) -> Result<T, E>
             where
-                F: for<'r> authzen::storage_backends::diesel::connection::TxFn<'a, Self::TxConnection<'r>, authzen::storage_backends::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>>,
-                E: std::fmt::Debug + From<authzen::storage_backends::diesel::diesel::result::Error> + From<authzen::storage_backends::diesel::connection::TxCleanupError> + Send + 'a,
+                F: for<'r> authzen::data_sources::diesel::connection::TxFn<'a, Self::TxConnection<'r>, authzen::data_sources::diesel::scoped_futures::ScopedBoxFuture<'a, 'r, Result<T, E>>>,
+                E: std::fmt::Debug + From<authzen::data_sources::diesel::diesel::result::Error> + From<authzen::data_sources::diesel::connection::TxCleanupError> + Send + 'a,
                 T: Send + 'a,
                 'life0: 'a
             {

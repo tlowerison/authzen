@@ -19,16 +19,16 @@ pub use authzen_service_util as service_util;
 #[doc(alias = "authzen_session")]
 pub use authzen_session as session;
 
-/// Implementations of common decision maker clients.
-pub mod decision_makers {
-    #[cfg(feature = "opa-decision-maker")]
+/// Implementations of common authorization engine clients.
+pub mod authz_engines {
+    #[cfg(feature = "opa-authz-engine")]
     #[doc(alias = "authzen_opa")]
     pub use authzen_opa as opa;
 }
 
-/// Implementations of common storage backend clients.
-pub mod storage_backends {
-    #[cfg(feature = "diesel-storage-backend")]
+/// Implementations of common data source clients.
+pub mod data_sources {
+    #[cfg(feature = "diesel-data-source")]
     #[doc(alias = "authzen_diesel")]
     pub use authzen_diesel as diesel;
 }

@@ -37,7 +37,7 @@ impl<E> StorageError for DbEntityError<E> {
     }
 }
 
-impl<C: Db> StorageClient for C {
+impl<C: Db> DataSource for C {
     type Backend = <C as Db>::Backend;
     type TransactionId = Uuid;
 

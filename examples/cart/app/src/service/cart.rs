@@ -1,7 +1,7 @@
 use crate::*;
 use authzen::actions::*;
-use authzen::decision_makers::opa::OPAClient;
-use authzen::storage_backends::diesel::prelude::*;
+use authzen::authz_engines::opa::OPAClient;
+use authzen::data_sources::diesel::prelude::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 use authzen::*;
 use service_util::Error;
@@ -45,9 +45,9 @@ pub async fn my_cart<D: Db>(ctx: &Ctx<'_, D>) -> Result<Vec<DbItem>, Error> {
 // try_create should typically handle all your needs for handling
 // both authorization queries and performing the actual action
 // that is being authorized, however, in the case where you have
-// some context which implements `CanContext<DecisionMaker>` for
-// for multiple `DecisionMaker`s or implements `TryContext<DecisionMaker, StorageClient>`
-// for multiple `StorageClient`s, you'll be able to explicitly specify those parameters
+// some context which implements `CanContext<AuthzEngine>` for
+// for multiple `AuthzEngine`s or implements `TryContext<AuthzEngine, DataSource>`
+// for multiple `DataSource`s, you'll be able to explicitly specify those parameters
 // as function generics
 #[instrument]
 pub async fn add_item_to_cart_explicitly<D: Db>(

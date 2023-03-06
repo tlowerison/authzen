@@ -7,13 +7,13 @@
 # Reference Guide
 
 - [Authorization Primitives](reference/primitives.md)
-- [Storage Backends](reference/storage_backends.md)
-  - [diesel](reference/storage_backends/diesel.md)
+- [Data Sources](reference/data_sources.md)
+  - [diesel](reference/data_sources/diesel.md)
   - [sqlx]()
   - [seaql]()
   - [mongodb]()
-- [Decision Makers](reference/decision_makers.md)
-  - [Open Policy Agent](reference/decision_makers/opa.md)
+- [Authorization Engines](reference/authz_engines.md)
+  - [Open Policy Agent](reference/authz_engines/opa.md)
   - [Oso]()
   - [Casbin]()
 - [Transaction Caches](reference/transaction_caches.md)

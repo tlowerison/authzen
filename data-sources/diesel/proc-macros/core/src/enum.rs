@@ -78,12 +78,12 @@ pub fn derive_enum(item: TokenStream) -> Result<TokenStream, Error> {
         #vis use #mod_name::*;
         #vis mod #mod_name {
             use super::*;
-            use authzen::storage_backends::diesel::diesel::backend::{Backend, RawValue};
-            use authzen::storage_backends::diesel::diesel::deserialize::{self, FromSql};
-            use authzen::storage_backends::diesel::diesel::serialize::{self, Output, ToSql};
-            use authzen::storage_backends::diesel::diesel::sql_types;
-            use authzen::storage_backends::diesel::Enum;
-            use authzen::storage_backends::diesel::uuid as uuid;
+            use authzen::data_sources::diesel::diesel::backend::{Backend, RawValue};
+            use authzen::data_sources::diesel::diesel::deserialize::{self, FromSql};
+            use authzen::data_sources::diesel::diesel::serialize::{self, Output, ToSql};
+            use authzen::data_sources::diesel::diesel::sql_types;
+            use authzen::data_sources::diesel::Enum;
+            use authzen::data_sources::diesel::uuid as uuid;
             use std::borrow::Borrow;
 
             #(
@@ -169,8 +169,8 @@ pub fn derive_enum(item: TokenStream) -> Result<TokenStream, Error> {
                 fn variants() -> Self::Variants {
                     [#(Self::#variant_idents,)*].into_iter()
                 }
-                fn with_title(&self) -> authzen::storage_backends::diesel::WithTitle<Self> {
-                    authzen::storage_backends::diesel::WithTitle {
+                fn with_title(&self) -> authzen::data_sources::diesel::WithTitle<Self> {
+                    authzen::data_sources::diesel::WithTitle {
                         id: self.into(),
                         title: self.clone(),
                     }

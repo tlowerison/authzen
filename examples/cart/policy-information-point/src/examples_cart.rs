@@ -47,7 +47,7 @@ impl ObjectQuery<Ctx, DbPool, MongodbTxCollection> for AccountRequest {
     async fn fetch(
         self,
         ctx: &Ctx,
-    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as StorageClient>::Backend>>::StorageObject>, Self::Error> {
+    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as DataSource>::Backend>>::StorageObject>, Self::Error> {
         Ok(match self {
             Self::Id(id) => DbAccount::get(&ctx.db, [id]).await?,
             Self::Ids(ids) => DbAccount::get(&ctx.db, ids).await?,
@@ -63,7 +63,7 @@ impl ObjectQuery<Ctx, DbPool, MongodbTxCollection> for CartRequest {
     async fn fetch(
         self,
         ctx: &Ctx,
-    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as StorageClient>::Backend>>::StorageObject>, Self::Error> {
+    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as DataSource>::Backend>>::StorageObject>, Self::Error> {
         Ok(match self {
             Self::Id(id) => DbCart::get(&ctx.db, [id]).await?,
             Self::Ids(ids) => DbCart::get(&ctx.db, ids).await?,
@@ -79,7 +79,7 @@ impl ObjectQuery<Ctx, DbPool, MongodbTxCollection> for CartItemRequest {
     async fn fetch(
         self,
         ctx: &Ctx,
-    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as StorageClient>::Backend>>::StorageObject>, Self::Error> {
+    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as DataSource>::Backend>>::StorageObject>, Self::Error> {
         Ok(match self {
             Self::Id(id) => DbCartItem::get(&ctx.db, [id]).await?,
             Self::Ids(ids) => DbCartItem::get(&ctx.db, ids).await?,
@@ -95,7 +95,7 @@ impl ObjectQuery<Ctx, DbPool, MongodbTxCollection> for ItemRequest {
     async fn fetch(
         self,
         ctx: &Ctx,
-    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as StorageClient>::Backend>>::StorageObject>, Self::Error> {
+    ) -> Result<Vec<<Self::Object as AsStorage<<DbPool as DataSource>::Backend>>::StorageObject>, Self::Error> {
         Ok(match self {
             Self::Id(id) => DbItem::get(&ctx.db, [id]).await?,
             Self::Ids(ids) => DbItem::get(&ctx.db, ids).await?,

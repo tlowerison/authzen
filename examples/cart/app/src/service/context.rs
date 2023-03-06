@@ -1,5 +1,5 @@
-use authzen::decision_makers::opa::OPAClient;
-use authzen::storage_backends::diesel::*;
+use authzen::authz_engines::opa::OPAClient;
+use authzen::data_sources::diesel::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 use uuid::Uuid;
 
@@ -13,9 +13,9 @@ pub struct Context<D, S, C, M> {
     pub session: S,
     #[db]
     #[derivative(Debug = "ignore")]
-    #[storage_client]
+    #[data_source]
     pub db: D,
-    #[decision_maker]
+    #[authz_engine]
     #[derivative(Debug = "ignore")]
     pub opa_client: C,
     #[transaction_cache]

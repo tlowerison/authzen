@@ -13,12 +13,12 @@ cargo install cargo-watch
 cargo watch \
   -w authzen \
   -w core \
-  -w decision-makers \
+  -w authz-engines \
   -w proc-macro-util \
   -w proc-macros \
   -w service-util \
   -w session \
-  -w storage-backends \
+  -w data-sources \
   -w Cargo.toml \
   -- \
   cargo +nightly doc --workspace --no-deps --all-features

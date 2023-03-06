@@ -1,5 +1,5 @@
 use crate::db::schema::*;
-use authzen::storage_backends::diesel::prelude::*;
+use authzen::data_sources::diesel::prelude::*;
 use chrono::{NaiveDateTime, Utc};
 use diesel::prelude::*;
 use uuid::Uuid;

@@ -969,7 +969,7 @@ fn get_dynamic_query(
     NestedQuery {
         multipaginated: quote! {
             #tokens
-            authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(query
+            authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(query
                 #group_by_clause
                 #order_by_clauses
                 .multipaginate(pages.iter())
@@ -979,7 +979,7 @@ fn get_dynamic_query(
         },
         non_paginated: quote! {
             #tokens
-            authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(query
+            authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(query
                 #group_by_clause
                 #order_by_clauses
                 .get_results::<#deserialize_ty>(conn)
@@ -987,7 +987,7 @@ fn get_dynamic_query(
         },
         paginated: quote! {
             #tokens
-            authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(query
+            authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(query
                 #group_by_clause
                 #order_by_clauses
                 .paginate(page)
@@ -1027,7 +1027,7 @@ fn get_static_query(
             .collect();
         return NestedQuery {
             multipaginated: quote! {
-                authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
+                authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
                     #(#filter_clauses)*
                     #group_by_clause
                     #order_by_clauses
@@ -1038,7 +1038,7 @@ fn get_static_query(
                 )).await
             },
             non_paginated: quote! {
-                authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
+                authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
                     #(#filter_clauses)*
                     #group_by_clause
                     #order_by_clauses
@@ -1047,7 +1047,7 @@ fn get_static_query(
                 )).await
             },
             paginated: quote! {
-                authzen::storage_backends::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
+                authzen::data_sources::diesel::_Db::query(&db, move |conn| Box::pin(#base_query
                     #(#filter_clauses)*
                     #group_by_clause
                     #order_by_clauses

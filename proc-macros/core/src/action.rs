@@ -62,9 +62,9 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
         Includes:
         - a query whether the action with type `"{ty}"` can be performed
           given the provided input and context (which must provide information about
-          the event's subject, context and decision maker). Automatically implmented
-          for any object which can be queried about for the given [`DecisionMaker`].
-        - upon approval of the action by the specified [`DecisionMaker`], the action
+          the event's subject, context and authorization engine). Automatically implmented
+          for any object which can be queried about for the given [`AuthzEngine`].
+        - upon approval of the action by the specified [`AuthzEngine`], the action
           is actually performed
         "#
     );
@@ -89,42 +89,42 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
             Ctx: Sync + 'subject + 'context,
         {
             #[doc = #can_fn_doc]
-            fn #can_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
+            fn #can_fn_name<'life0, 'async_trait, AE, DS, TC, I>(
                 ctx: &'life0 Ctx,
                 input: &'input I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
                 Output = Result<
-                    <DM as #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                    <AE as #source_mod AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
                     >>::Ok,
-                    <DM as #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                    <AE as #source_mod AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
                     >>::Error,
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
-                DM: #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                AE: #source_mod AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
                     > + Sync,
-                SC: #source_mod StorageClient + Send + Sync,
+                DS: #source_mod DataSource + Send + Sync,
                 TC: Send + Sync + #source_mod TransactionCache,
-                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
+                Ctx: #source_mod AuthorizationContext<AE, DS, TC>,
                 I: Send + Sync,
 
                 'subject: 'async_trait,
@@ -132,59 +132,59 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 'input: 'async_trait,
                 'life0: 'async_trait + 'subject + 'context,
                 Self: 'async_trait,
-                DM: 'async_trait,
-                SC: 'async_trait,
+                AE: 'async_trait,
+                DS: 'async_trait,
                 TC: 'async_trait,
                 I: 'async_trait,
             {
                 use #source_mod AuthorizationContext;
-                Box::pin(<DM as DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                Box::pin(<AE as AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
-                    >>::can_act(ctx.decision_maker(), ctx.subject(), input, ctx.context(), ctx.storage_client().transaction_id()))
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
+                    >>::can_act(ctx.authz_engine(), ctx.subject(), input, ctx.context(), ctx.data_source().transaction_id()))
             }
 
             #[doc = #try_fn_doc]
-            fn #try_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
+            fn #try_fn_name<'life0, 'async_trait, AE, DS, TC, I>(
                 ctx: &'life0 Ctx,
                 input: I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
                 Output = Result<
-                    <#name<Self> as #source_mod StorageAction<SC, I>>::Ok,
+                    <#name<Self> as #source_mod StorageAction<DS, I>>::Ok,
                     #source_mod ActionError<
-                        <DM as #source_mod DecisionMaker<
-                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                        <AE as #source_mod AuthzEngine<
+                            <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                             #name<Self>,
                             Self,
                             I,
-                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                            SC::TransactionId,
+                            <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                            DS::TransactionId,
                         >>::Error,
-                        <#name<Self> as #source_mod StorageAction<SC, I>>::Error,
+                        <#name<Self> as #source_mod StorageAction<DS, I>>::Error,
                         <TC as #source_mod TransactionCache>::Error,
                     >,
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
-                DM: #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                AE: #source_mod AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         I,
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
                     > + Sync,
-                SC: #source_mod StorageClient + Send + Sync,
+                DS: #source_mod DataSource + Send + Sync,
                 TC: Send + Sync
                     + #source_mod TransactionCache
-                    + #source_mod TransactionCacheAction<#name<Self>, SC, I>,
-                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
-                #name<Self>: #source_mod StorageAction<SC, I>,
+                    + #source_mod TransactionCacheAction<#name<Self>, DS, I>,
+                Ctx: #source_mod AuthorizationContext<AE, DS, TC>,
+                #name<Self>: #source_mod StorageAction<DS, I>,
                 I: Send + Sync,
 
                 'subject: 'async_trait,
@@ -192,8 +192,8 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 'input: 'async_trait,
                 'life0: 'async_trait + 'subject + 'context,
                 Self: 'async_trait,
-                DM: 'async_trait,
-                SC: 'async_trait,
+                AE: 'async_trait,
+                DS: 'async_trait,
                 TC: 'async_trait,
                 I: 'async_trait,
             {
@@ -207,58 +207,58 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     object: std::marker::PhantomData::<Self>::default(),
                     input,
                 };
-                Box::pin(event.try_act(ctx.decision_maker(), ctx.storage_client(), ctx.transaction_cache()))
+                Box::pin(event.try_act(ctx.authz_engine(), ctx.data_source(), ctx.transaction_cache()))
             }
 
             #[doc = #try_one_fn_doc]
-            fn #try_one_fn_name<'life0, 'async_trait, DM, SC, TC, I>(
+            fn #try_one_fn_name<'life0, 'async_trait, AE, DS, TC, I>(
                 ctx: &'life0 Ctx,
                 input: I,
             ) -> std::pin::Pin<Box<dyn std::future::Future<
                 Output = Result<
-                    <<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok as IntoIterator>::Item,
+                    <<#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Ok as IntoIterator>::Item,
                     #source_mod ActionError<
-                        <DM as #source_mod DecisionMaker<
-                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                        <AE as #source_mod AuthzEngine<
+                            <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                             #name<Self>,
                             Self,
                             [I; 1],
-                            <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                            SC::TransactionId,
+                            <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                            DS::TransactionId,
                         >>::Error,
-                        <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error,
+                        <#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Error,
                         <TC as #source_mod TransactionCache>::Error,
                     >,
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<SC as StorageClient>::Backend>,
-                DM: #source_mod DecisionMaker<
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Subject<'subject>,
+                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                AE: #source_mod AuthzEngine<
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
                         Self,
                         [I; 1],
-                        <Ctx as #source_mod AuthorizationContext<DM, SC, TC>>::Context<'context>,
-                        SC::TransactionId,
+                        <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
+                        DS::TransactionId,
                     > + Sync,
-                SC: #source_mod StorageClient + Send + Sync,
+                DS: #source_mod DataSource + Send + Sync,
                 TC: Send + Sync
                     + #source_mod TransactionCache
-                    + #source_mod TransactionCacheAction<#name<Self>, SC, [I; 1]>,
-                Ctx: #source_mod AuthorizationContext<DM, SC, TC>,
-                #name<Self>: #source_mod StorageAction<SC, [I; 1]>,
+                    + #source_mod TransactionCacheAction<#name<Self>, DS, [I; 1]>,
+                Ctx: #source_mod AuthorizationContext<AE, DS, TC>,
+                #name<Self>: #source_mod StorageAction<DS, [I; 1]>,
                 I: Send + Sync,
 
-                <#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok: IntoIterator,
-                <<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Ok as IntoIterator>::Item: Send,
+                <#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Ok: IntoIterator,
+                <<#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Ok as IntoIterator>::Item: Send,
 
                 'subject: 'async_trait,
                 'context: 'async_trait,
                 'input: 'async_trait,
                 'life0: 'async_trait + 'subject + 'context,
                 Self: 'async_trait,
-                DM: 'async_trait,
-                SC: 'async_trait,
+                AE: 'async_trait,
+                DS: 'async_trait,
                 TC: 'async_trait,
                 I: 'async_trait,
             {
@@ -274,10 +274,10 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     input: [input],
                 };
                 Box::pin(
-                    event.try_act(ctx.decision_maker(), ctx.storage_client(), ctx.transaction_cache())
+                    event.try_act(ctx.authz_engine(), ctx.data_source(), ctx.transaction_cache())
                         .and_then(|ok| {
                             let mut iter = ok.into_iter();
-                            ready(iter.next().ok_or_else(|| ActionError::storage(<#name<Self> as #source_mod StorageAction<SC, [I; 1]>>::Error::not_found())))
+                            ready(iter.next().ok_or_else(|| ActionError::storage(<#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Error::not_found())))
                         })
                 )
             }

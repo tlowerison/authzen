@@ -13,8 +13,8 @@ extern crate serde_with;
 #[macro_use]
 extern crate tracing;
 
-mod decision_makers;
-mod storage_backends;
+mod authz_engines;
+mod data_sources;
 
 /// Helper traits for implementing a policy information point.
 #[cfg(feature = "policy-information-point")]
@@ -46,54 +46,54 @@ pub trait ActionType {
 /// An action which requires authorization.
 #[doc(hidden)]
 #[async_trait]
-pub trait TryAct<SC, DM, Subject, Object, Input, Context, TC>:
+pub trait TryAct<DS, AE, Subject, Object, Input, Context, TC>:
     Into<Event<Subject, Self::Action, Object, Input, Context>>
 where
-    SC: ?Sized + StorageClient + Send + Sync,
-    DM: ?Sized + DecisionMaker<Subject, Self::Action, Object, Input, Context, SC::TransactionId> + Sync,
+    DS: ?Sized + DataSource + Send + Sync,
+    AE: ?Sized + AuthzEngine<Subject, Self::Action, Object, Input, Context, DS::TransactionId> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + Send + ObjectType + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache + TransactionCacheAction<Self::Action, SC, Input>,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction<Self::Action, DS, Input>,
 {
     /// Action to be authorized and performed.
-    type Action: ActionType + StorageAction<SC, Input> + Send + Sync;
+    type Action: ActionType + StorageAction<DS, Input> + Send + Sync;
 
     async fn try_act(
         self,
-        decision_maker: &DM,
-        storage_client: &SC,
+        authz_engine: &AE,
+        data_source: &DS,
         transaction_cache: &TC,
     ) -> Result<
-        <Self::Action as StorageAction<SC, Input>>::Ok,
+        <Self::Action as StorageAction<DS, Input>>::Ok,
         ActionError<
-            <DM as DecisionMaker<Subject, Self::Action, Object, Input, Context, SC::TransactionId>>::Error,
-            <Self::Action as StorageAction<SC, Input>>::Error,
+            <AE as AuthzEngine<Subject, Self::Action, Object, Input, Context, DS::TransactionId>>::Error,
+            <Self::Action as StorageAction<DS, Input>>::Error,
             TC::Error,
         >,
     >
     where
-        DM: 'async_trait,
-        SC: 'async_trait,
+        AE: 'async_trait,
+        DS: 'async_trait,
         TC: 'async_trait,
         Input: 'async_trait,
     {
         let event = self.into();
-        decision_maker
+        authz_engine
             .can_act(
                 event.subject,
                 &event.input,
                 event.context,
-                storage_client.transaction_id(),
+                data_source.transaction_id(),
             )
             .await
             .map_err(ActionError::authz)?;
-        let ok = Self::Action::act(storage_client, event.input)
+        let ok = Self::Action::act(data_source, event.input)
             .await
             .map_err(ActionError::storage)?;
         transaction_cache
-            .handle_success(storage_client, &ok)
+            .handle_success(data_source, &ok)
             .await
             .map_err(ActionError::transaction_cache)?;
         Ok(ok)
@@ -101,18 +101,18 @@ where
 }
 
 #[async_trait]
-impl<SC, DM, Subject, A, Object, Input, Context, TC> TryAct<SC, DM, Subject, Object, Input, Context, TC>
+impl<DS, AE, Subject, A, Object, Input, Context, TC> TryAct<DS, AE, Subject, Object, Input, Context, TC>
     for Event<Subject, A, Object, Input, Context>
 where
-    SC: ?Sized + StorageClient + Send + Sync,
-    DM: ?Sized + DecisionMaker<Subject, A, Object, Input, Context, SC::TransactionId> + Sync,
+    DS: ?Sized + DataSource + Send + Sync,
+    AE: ?Sized + AuthzEngine<Subject, A, Object, Input, Context, DS::TransactionId> + Sync,
     Subject: Send + Sync,
     Object: ?Sized + ObjectType + Send + Sync,
     Input: Send + Sync,
     Context: Send + Sync,
-    TC: Send + Sync + TransactionCache + TransactionCacheAction<A, SC, Input>,
+    TC: Send + Sync + TransactionCache + TransactionCacheAction<A, DS, Input>,
 
-    A: ActionType + StorageAction<SC, Input> + Send + Sync,
+    A: ActionType + StorageAction<DS, Input> + Send + Sync,
 {
     type Action = A;
 }
@@ -125,7 +125,7 @@ pub trait ObjectType {
     const TYPE: &'static str;
 }
 
-/// The unit of work in an authorization query, which will either be accepted or rejected by a decision maker.
+/// The unit of work in an authorization query, which will either be accepted or rejected by an authorization engine.
 #[skip_serializing_none]
 #[derive(Clone, Deserialize, Dissolve, Eq, Getters, PartialEq, Serialize, TypedBuilder)]
 #[serde(bound(
@@ -184,9 +184,9 @@ where
 /// mysql, or your own custom implementation of an API.
 pub trait StorageBackend {}
 
-/// A client for communicating with a storage backend. Typically this should be implemented for
+/// A client for communicating with a data source. Typically this should be implemented for
 /// connection or client implementations for that backend, e.g. [`diesel_async::AsyncPgConnection`](https://docs.rs/diesel-async/latest/diesel_async/pg/struct.AsyncPgConnection.html).
-pub trait StorageClient {
+pub trait DataSource {
     /// The backend this client will act upon.
     type Backend: StorageBackend;
     /// The type for ids associated with transactions used by this client.
@@ -195,7 +195,7 @@ pub trait StorageClient {
 
     /// Returns the current transaction id if there is one available
     /// for this client. Must return Some for clients which expect
-    /// to use a transaction cache to assist a decision maker. If
+    /// to use a transaction cache to assist an authorization engine. If
     /// this client does not support transactions just return `None`.
     fn transaction_id(&self) -> Option<Self::TransactionId>;
 }
@@ -223,12 +223,12 @@ pub trait StorageObject<Backend> {}
 #[async_trait]
 pub trait StorageAction<Client: ?Sized, Input>
 where
-    Client: StorageClient + Send,
+    Client: DataSource + Send,
 {
     type Ok: Send + Sync;
     type Error: Debug + Send + StorageError;
 
-    /// Carries out the intended action in the storage backend of `Client`.
+    /// Carries out the intended action in the data source of `Client`.
     async fn act(client: &Client, input: Input) -> Result<Self::Ok, Self::Error>
     where
         Client: 'async_trait,
@@ -242,7 +242,7 @@ pub trait StorageError {
 /// Represents a policy decision point (could be astracted over an in-process memory, a remote api,
 /// etc.) which is capable of making authorization decisions using the provided [`Event`].
 #[async_trait]
-pub trait DecisionMaker<Subject, Action, Object, Input, Context, TransactionId>
+pub trait AuthzEngine<Subject, Action, Object, Input, Context, TransactionId>
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Action: ?Sized,
@@ -268,7 +268,7 @@ where
 
 #[async_trait]
 impl<Subject, Action, Object, Input, Context, TransactionId, T>
-    DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> for &T
+    AuthzEngine<Subject, Action, Object, Input, Context, TransactionId> for &T
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Subject: Send + Serialize,
@@ -277,7 +277,7 @@ where
     Input: Serialize + Sync,
     Context: Send + Serialize,
     TransactionId: Send,
-    T: ?Sized + DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> + Send + Sync,
+    T: ?Sized + AuthzEngine<Subject, Action, Object, Input, Context, TransactionId> + Send + Sync,
 {
     type Ok = T::Ok;
     type Error = T::Error;
@@ -296,7 +296,7 @@ where
         Context: 'async_trait,
         TransactionId: 'async_trait,
     {
-        <T as DecisionMaker<Subject, Action, Object, Input, Context, TransactionId>>::can_act(
+        <T as AuthzEngine<Subject, Action, Object, Input, Context, TransactionId>>::can_act(
             *self,
             subject,
             input,
@@ -518,14 +518,14 @@ impl<TC: TransactionCache> TransactionCache for &TC {
     }
 }
 
-pub trait TransactionCacheAction<A, SC, I>: TransactionCache
+pub trait TransactionCacheAction<A, DS, I>: TransactionCache
 where
-    SC: ?Sized + StorageClient + Send + Sync,
-    A: StorageAction<SC, I> + Send,
+    DS: ?Sized + DataSource + Send + Sync,
+    A: StorageAction<DS, I> + Send,
 {
     fn handle_success<'life0, 'life1, 'life2, 'async_trait>(
         &'life0 self,
-        storage_client: &'life1 SC,
+        data_source: &'life1 DS,
         ok: &'life2 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), Self::Error>> + Send + 'async_trait>>
     where
@@ -535,7 +535,7 @@ where
         'life1: 'async_trait,
         'life2: 'async_trait,
     {
-        if let Some(transaction_id) = storage_client.transaction_id() {
+        if let Some(transaction_id) = data_source.transaction_id() {
             self.manage_cache(transaction_id, ok)
         } else {
             Box::pin(async { Ok(()) })
@@ -544,31 +544,31 @@ where
 
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId,
+        transaction_id: DS::TransactionId,
         ok: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait;
 }
 
-impl<A, SC, I> TransactionCacheAction<A, SC, I> for ()
+impl<A, DS, I> TransactionCacheAction<A, DS, I> for ()
 where
-    SC: ?Sized + StorageClient + Send + Sync,
-    A: StorageAction<SC, I> + Send,
+    DS: ?Sized + DataSource + Send + Sync,
+    A: StorageAction<DS, I> + Send,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId,
+        _: DS::TransactionId,
         _: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
@@ -576,21 +576,21 @@ where
     }
 }
 
-impl<A, SC, I, TCA> TransactionCacheAction<A, SC, I> for &TCA
+impl<A, DS, I, TCA> TransactionCacheAction<A, DS, I> for &TCA
 where
-    SC: ?Sized + StorageClient + Send + Sync,
-    A: StorageAction<SC, I> + Send,
-    TCA: TransactionCacheAction<A, SC, I> + Sync,
+    DS: ?Sized + DataSource + Send + Sync,
+    A: StorageAction<DS, I> + Send,
+    TCA: TransactionCacheAction<A, DS, I> + Sync,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId,
+        transaction_id: DS::TransactionId,
         ok: &'life1 A::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
@@ -625,7 +625,7 @@ impl<T, Id> TxCacheEntity<T, Id> {
 /// Wraps all components of an action requiring authorization
 /// which can be expected to be carried around in an
 /// application context.
-pub trait AuthorizationContext<DM, SC, TC> {
+pub trait AuthorizationContext<AE, DS, TC> {
     /// decision context
     type Context<'a>: Send + Sync
     where
@@ -637,8 +637,8 @@ pub trait AuthorizationContext<DM, SC, TC> {
 
     fn context(&self) -> Self::Context<'_>;
     fn subject(&self) -> Self::Subject<'_>;
-    fn decision_maker(&self) -> &DM;
-    fn storage_client(&self) -> &SC;
+    fn authz_engine(&self) -> &AE;
+    fn data_source(&self) -> &DS;
     fn transaction_cache(&self) -> &TC;
 }
 
@@ -646,11 +646,11 @@ pub trait AuthorizationContext<DM, SC, TC> {
 /// an action which requires authorization.
 #[derive(Clone, Copy, Debug, Error, IsVariant, Unwrap)]
 pub enum ActionError<E1, E2, E3> {
-    /// Wraps an error returned from a [`DecisionMaker`] when the subject is either not authorized to
+    /// Wraps an error returned from a [`AuthzEngine`] when the subject is either not authorized to
     /// perform an action or some other issue occurs while communicating with the
-    /// [`DecisionMaker`].
+    /// [`AuthzEngine`].
     Authz(E1),
-    /// Wraps an error returned from a [`StorageClient`] when the subject has been authorized to
+    /// Wraps an error returned from a [`DataSource`] when the subject has been authorized to
     /// perform an action but there an error occurs while actually performing the error. Examples
     /// of this include network errors while communicating with an api or database, unique
     /// constraint violations raised by a database, etc.

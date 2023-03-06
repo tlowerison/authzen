@@ -34,9 +34,9 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
 
     let matched_context_attribute = matched_context_attributes.pop();
 
-    let matched_decision_maker_attributes = find_field_attributes_in_struct("decision_maker", &ast)?;
+    let matched_authz_engine_attributes = find_field_attributes_in_struct("authz_engine", &ast)?;
 
-    let matched_storage_client_attributes = find_field_attributes_in_struct("storage_client", &ast)?;
+    let matched_data_source_attributes = find_field_attributes_in_struct("data_source", &ast)?;
 
     let mut matched_transaction_cache_attributes = find_field_attributes_in_struct("transaction_cache", &ast)?;
 
@@ -84,38 +84,38 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
 
     let subject_field_accessor = &matched_subject_attribute.field_accessor;
 
-    let decision_maker_field_types = matched_decision_maker_attributes
+    let authz_engine_field_types = matched_authz_engine_attributes
         .iter()
         .map(|MatchedAttribute { field, .. }| &field.ty)
         .collect::<Vec<_>>();
-    let decision_maker_field_accessors = matched_decision_maker_attributes
+    let authz_engine_field_accessors = matched_authz_engine_attributes
         .iter()
         .map(|MatchedAttribute { field_accessor, .. }| field_accessor)
         .collect::<Vec<_>>();
 
-    let storage_client_field_types = matched_decision_maker_attributes
+    let data_source_field_types = matched_authz_engine_attributes
         .iter()
         .map(|_| {
-            matched_storage_client_attributes
+            matched_data_source_attributes
                 .iter()
                 .map(move |MatchedAttribute { field, .. }| &field.ty)
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let storage_client_field_accessors = matched_decision_maker_attributes
+    let data_source_field_accessors = matched_authz_engine_attributes
         .iter()
         .map(|_| {
-            matched_storage_client_attributes
+            matched_data_source_attributes
                 .iter()
                 .map(move |MatchedAttribute { field_accessor, .. }| field_accessor)
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
 
-    let transaction_cache_field_types = matched_decision_maker_attributes
+    let transaction_cache_field_types = matched_authz_engine_attributes
         .iter()
         .map(|_| {
-            matched_storage_client_attributes
+            matched_data_source_attributes
                 .iter()
                 .map(|_| {
                     matched_transaction_cache_attributes
@@ -126,10 +126,10 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let transaction_cache_field_accessors = matched_decision_maker_attributes
+    let transaction_cache_field_accessors = matched_authz_engine_attributes
         .iter()
         .map(|_| {
-            matched_storage_client_attributes
+            matched_data_source_attributes
                 .iter()
                 .map(|_| {
                     matched_transaction_cache_attributes
@@ -166,7 +166,7 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
         #(
             #(
                 #(
-                    impl #impl_generics authzen::AuthorizationContext<#decision_maker_field_types, #storage_client_field_types, #transaction_cache_field_types> for #ident #ty_generics #where_clause {
+                    impl #impl_generics authzen::AuthorizationContext<#authz_engine_field_types, #data_source_field_types, #transaction_cache_field_types> for #ident #ty_generics #where_clause {
                         type Context<#gat_lifetime> = #context_field_gat where Self: #gat_lifetime;
                         type Subject<#gat_lifetime> = #subject_field_gat where Self: #gat_lifetime;
 
@@ -176,11 +176,11 @@ pub fn context(item: TokenStream) -> Result<TokenStream, Error> {
                         fn subject(&self) -> Self::Subject<'_> {
                             &self.#subject_field_accessor
                         }
-                        fn decision_maker(&self) -> &#decision_maker_field_types {
-                            &self.#decision_maker_field_accessors
+                        fn authz_engine(&self) -> &#authz_engine_field_types {
+                            &self.#authz_engine_field_accessors
                         }
-                        fn storage_client(&self) -> &#storage_client_field_types {
-                            &self.#storage_client_field_accessors
+                        fn data_source(&self) -> &#data_source_field_types {
+                            &self.#data_source_field_accessors
                         }
                         fn transaction_cache(&self) -> &#transaction_cache_field_types {
                             #transaction_cache_field_accessors

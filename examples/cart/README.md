@@ -3,7 +3,7 @@
 ## Setup
 
 ### Postgres
-This example uses postgres as its data storage backend, you'll need it installed prior to installing diesel in the next step.
+This example uses postgres as its data data source, you'll need it installed prior to installing diesel in the next step.
 
 ### Diesel
 Diesel is used as the database interface in this example.

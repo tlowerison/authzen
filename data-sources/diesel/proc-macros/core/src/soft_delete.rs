@@ -99,11 +99,11 @@ pub fn derive_soft_delete(tokens: TokenStream) -> Result<TokenStream, Error> {
     let additional_impls = if soft_delete_attribute.db_entity.is_some() {
         let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
         quote!(
-            impl authzen::storage_backends::diesel::deletable::SoftDeletable for #db_entity_path {
+            impl authzen::data_sources::diesel::deletable::SoftDeletable for #db_entity_path {
                 type DeletedAt = #table_name::#deleted_at_column_name;
             }
 
-            impl #impl_generics authzen::storage_backends::diesel::operations::DbDelete for #ident #ty_generics #where_clause {
+            impl #impl_generics authzen::data_sources::diesel::operations::DbDelete for #ident #ty_generics #where_clause {
                 type DeletedAt = #table_name::#deleted_at_column_name;
                 type DeletePatch<'a> = #soft_delete_ident;
             }
@@ -113,7 +113,7 @@ pub fn derive_soft_delete(tokens: TokenStream) -> Result<TokenStream, Error> {
     };
 
     let tokens = quote! {
-        impl authzen::storage_backends::diesel::deletable::SoftDeletable for #ident {
+        impl authzen::data_sources::diesel::deletable::SoftDeletable for #ident {
             type DeletedAt = #table_name::#deleted_at_column_name;
         }
 
@@ -129,12 +129,12 @@ pub fn derive_soft_delete(tokens: TokenStream) -> Result<TokenStream, Error> {
                 use std::borrow::Borrow;
                 Self {
                     id: id.borrow().clone(),
-                    #deleted_at_column_name: authzen::storage_backends::diesel::chrono::Utc::now().naive_utc(),
+                    #deleted_at_column_name: authzen::data_sources::diesel::chrono::Utc::now().naive_utc(),
                 }
             }
         }
 
-        impl authzen::storage_backends::diesel::operations::DbDelete for #db_entity_path {
+        impl authzen::data_sources::diesel::operations::DbDelete for #db_entity_path {
             type DeletedAt = #table_name::#deleted_at_column_name;
             type DeletePatch<'a> = #soft_delete_ident;
         }

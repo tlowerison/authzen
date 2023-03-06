@@ -1,13 +1,13 @@
 [workspace]
 members = [
   "authzen",
+  "authz-engines/*",
   "core",
-  "decision-makers/*",
+  "data-sources/*",
   "proc-macros",
   "proc-macro-util",
   "service-util",
   "session",
-  "storage-backends/*",
 ]
 exclude = ["examples"]
 
@@ -19,11 +19,11 @@ keywords = ["authz", "authorization", "diesel", "opa", "open-policy-agent"]
 homepage = "https://github.com/tlowerison/authzen"
 repository = "https://github.com/tlowerison/authzen"
 license = "MIT OR Apache-2.0"
-readme = "README.md"
+readme = "readme.md"
 
 [workspace.dependencies]
-authzen-diesel = { path = "storage-backends/diesel", version = "0.1.0-alpha.0" }
-authzen-opa = { path = "decision-makers/opa", version = "0.1.0-alpha.0" }
+authzen-diesel = { path = "data-sources/diesel", version = "0.1.0-alpha.0" }
+authzen-opa = { path = "authz-engines/opa", version = "0.1.0-alpha.0" }
 authzen-proc-macros = { path = "proc-macros", version = "0.1.0-alpha.0" }
 authzen-proc-macro-util = { path = "proc-macro-util", version = "0.1.0-alpha.0" }
 authzen-service-util = { path = "service-util", version = "0.1.0-alpha.0" }

@@ -259,69 +259,69 @@ impl TransactionCache for MongodbTxCollection {
     }
 }
 
-impl<O, SC, I, T> TransactionCacheAction<Create<O>, SC, I> for MongodbTxCollection
+impl<O, DS, I, T> TransactionCacheAction<Create<O>, DS, I> for MongodbTxCollection
 where
     O: ?Sized + ObjectType,
-    SC: ?Sized + StorageClient + Send + Sync,
-    Create<O>: StorageAction<SC, I> + Send,
-    for<'a> &'a <Create<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
+    DS: ?Sized + DataSource + Send + Sync,
+    Create<O>: StorageAction<DS, I> + Send,
+    for<'a> &'a <Create<O> as StorageAction<DS, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId,
-        ok: &'life1 <Create<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: DS::TransactionId,
+        ok: &'life1 <Create<O> as StorageAction<DS, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
-        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, DS::TransactionId>(self, transaction_id, ok)
     }
 }
 
-impl<O, SC, I, T> TransactionCacheAction<Delete<O>, SC, I> for MongodbTxCollection
+impl<O, DS, I, T> TransactionCacheAction<Delete<O>, DS, I> for MongodbTxCollection
 where
     O: ?Sized + ObjectType,
-    SC: ?Sized + StorageClient + Send + Sync,
-    Delete<O>: StorageAction<SC, I> + Send,
-    for<'a> &'a <Delete<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
+    DS: ?Sized + DataSource + Send + Sync,
+    Delete<O>: StorageAction<DS, I> + Send,
+    for<'a> &'a <Delete<O> as StorageAction<DS, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId,
-        ok: &'life1 <Delete<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: DS::TransactionId,
+        ok: &'life1 <Delete<O> as StorageAction<DS, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
-        <Self as TransactionCache>::mark_deleted::<O, T, SC::TransactionId>(self, transaction_id, ok)
+        <Self as TransactionCache>::mark_deleted::<O, T, DS::TransactionId>(self, transaction_id, ok)
     }
 }
 
-impl<O, SC, I> TransactionCacheAction<Read<O>, SC, I> for MongodbTxCollection
+impl<O, DS, I> TransactionCacheAction<Read<O>, DS, I> for MongodbTxCollection
 where
     O: ?Sized + ObjectType,
-    SC: ?Sized + StorageClient + Send + Sync,
-    Read<O>: StorageAction<SC, I> + Send,
+    DS: ?Sized + DataSource + Send + Sync,
+    Read<O>: StorageAction<DS, I> + Send,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId,
-        _: &'life1 <Read<O> as StorageAction<SC, I>>::Ok,
+        _: DS::TransactionId,
+        _: &'life1 <Read<O> as StorageAction<DS, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
@@ -329,27 +329,27 @@ where
     }
 }
 
-impl<O, SC, I, T> TransactionCacheAction<Update<O>, SC, I> for MongodbTxCollection
+impl<O, DS, I, T> TransactionCacheAction<Update<O>, DS, I> for MongodbTxCollection
 where
     O: ?Sized + ObjectType,
-    SC: ?Sized + StorageClient + Send + Sync,
-    Update<O>: StorageAction<SC, I> + Send,
-    for<'a> &'a <Update<O> as StorageAction<SC, I>>::Ok: IntoIterator<Item = &'a T>,
+    DS: ?Sized + DataSource + Send + Sync,
+    Update<O>: StorageAction<DS, I> + Send,
+    for<'a> &'a <Update<O> as StorageAction<DS, I>>::Ok: IntoIterator<Item = &'a T>,
     T: Identifiable + Serialize + Sync + 'static,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        transaction_id: SC::TransactionId,
-        ok: &'life1 <Update<O> as StorageAction<SC, I>>::Ok,
+        transaction_id: DS::TransactionId,
+        ok: &'life1 <Update<O> as StorageAction<DS, I>>::Ok,
     ) -> Pin<Box<dyn Future<Output = Result<(), <Self as TransactionCache>::Error>> + Send + 'async_trait>>
     where
         Self: Sync,
         Self: 'async_trait,
-        SC::TransactionId: 'async_trait,
+        DS::TransactionId: 'async_trait,
         'life0: 'async_trait,
         'life1: 'async_trait,
     {
-        <Self as TransactionCache>::upsert::<O, T, SC::TransactionId>(self, transaction_id, ok)
+        <Self as TransactionCache>::upsert::<O, T, DS::TransactionId>(self, transaction_id, ok)
     }
 }
 

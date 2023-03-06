@@ -52,13 +52,13 @@ url = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 
 [features]
-diesel-storage-backend = ["authzen-diesel", "diesel", "diesel-async", "uuid"]
-diesel-mysql = ["diesel-storage-backend", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
-diesel-postgres = ["diesel-storage-backend", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
+diesel-data-source = ["authzen-diesel", "diesel", "diesel-async", "uuid"]
+diesel-mysql = ["diesel-data-source", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
+diesel-postgres = ["diesel-data-source", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
 extra-traits = ["authzen-service-util"]
 mongodb-tx-cache = ["anyhow", "chrono", "log", "mongodb", "authzen-service-util/client", "url"]
-opa-decision-maker = ["authzen-opa", "hyper", "serde_json", "authzen-service-util/trace"]
+opa-authz-engine = ["authzen-opa", "hyper", "serde_json", "authzen-service-util/trace"]
 policy-information-point = ["http", "serde_json", "serde_plain", "authzen-service-util/try-join-safe"]
 policy-information-point-server = ["axum", "axum/headers", "log", "policy-information-point", "authzen-service-util/axum-06", "authzen-service-util/server", "authzen-service-util/trace", "tower", "tower-http", "uuid"]
-sqlx-storage-backend = ["sqlx", "uuid"]
+sqlx-data-source = ["sqlx", "uuid"]
 tracing = ["dep:tracing"]

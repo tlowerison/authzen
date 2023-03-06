@@ -1,4 +1,4 @@
-use crate::{ActionType, DecisionMaker, Event, ObjectType};
+use crate::{ActionType, AuthzEngine, Event, ObjectType};
 use ::authzen_opa::OPAClient;
 use ::authzen_service_util::*;
 use ::hyper::{body::Bytes, http::header::*, Body, Method};
@@ -16,7 +16,7 @@ struct OPAEvent<E, TransactionId> {
 
 #[async_trait]
 impl<Subject, Action, Object, Input, Context, TransactionId>
-    DecisionMaker<Subject, Action, Object, Input, Context, TransactionId> for OPAClient
+    AuthzEngine<Subject, Action, Object, Input, Context, TransactionId> for OPAClient
 where
     Event<Subject, Action, Object, Input, Context>: Send + Sync,
     Subject: Debug + Send + Serialize + Sync,

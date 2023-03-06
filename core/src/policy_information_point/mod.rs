@@ -33,16 +33,16 @@ pub trait Query<Ctx>: Sized {
 }
 
 #[async_trait]
-pub trait ObjectQuery<Ctx, SC, TC>: Sized
+pub trait ObjectQuery<Ctx, DS, TC>: Sized
 where
-    SC: StorageClient + Send + Sync,
+    DS: DataSource + Send + Sync,
     TC: TransactionCache + Sync,
-    Ctx: AsRef<SC> + AsRef<TC> + Sync,
+    Ctx: AsRef<DS> + AsRef<TC> + Sync,
     TC::Error: Into<Self::Error>,
-    <Self::Object as AsStorage<<SC as StorageClient>::Backend>>::StorageObject: Into<Self::Object>,
+    <Self::Object as AsStorage<<DS as DataSource>::Backend>>::StorageObject: Into<Self::Object>,
 {
-    type Object: AsStorage<<SC as StorageClient>::Backend>
-        + GetTransactionValues<SC, TC, Ctx>
+    type Object: AsStorage<<DS as DataSource>::Backend>
+        + GetTransactionValues<DS, TC, Ctx>
         + Identifiable
         + Send
         + Serialize;
@@ -51,7 +51,7 @@ where
     async fn fetch(
         self,
         ctx: &Ctx,
-    ) -> Result<Vec<<Self::Object as AsStorage<SC::Backend>>::StorageObject>, Self::Error>;
+    ) -> Result<Vec<<Self::Object as AsStorage<DS::Backend>>::StorageObject>, Self::Error>;
 
     async fn fetch_with_tx_data(self, ctx: &Ctx) -> Result<Response, QueryError<Self::Error>> {
         let (storage_values, transaction_values) = try_join_safe!(

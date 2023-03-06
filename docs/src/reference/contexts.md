@@ -1,17 +1,17 @@
 # Contexts
-Authzen contexts are data types which hold all of the necessary http clients/connections to the underlying decision makers, data storage backends and transaction caches.
+Authzen contexts are data types which hold all of the necessary http clients/connections to the underlying authorization engines, data data sources and transaction caches.
 In rust, they are any type which implements [AuthorizationContext](https://docs.rs/authzen/latest/authzen/trait.AuthorizationContext.html).
 `AuthorizationContext` can be derived on structs like so:
 ```rust
-#[derive(Clone, Copy, authzen::Context, authzen::storage_backends::diesel::Db)]
+#[derive(Clone, Copy, authzen::Context, authzen::data_sources::diesel::Db)]
 pub struct Context<D> {
     #[subject]
     pub session: uuid::Uuid,
     #[db]
-    #[storage_client]
+    #[data_source]
     pub db: D,
-    #[decision_maker]
-    pub opa_client: authzen::decision_makers::opa::OPAClient,
+    #[authz_engine]
+    pub opa_client: authzen::authz_engines::opa::OPAClient,
     #[transaction_cache]
     pub mongodb_client: authzen::transaction_caches::mongodb::MongodbTxCollection,
 }
@@ -25,9 +25,9 @@ pub struct Context<D, S, C, M> {
     pub session: S,
     #[db]
     #[derivative(Debug = "ignore")]
-    #[storage_client]
+    #[data_source]
     pub db: D,
-    #[decision_maker]
+    #[authz_engine]
     #[derivative(Debug = "ignore")]
     pub opa_client: C,
     #[transaction_cache]

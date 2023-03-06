@@ -2,7 +2,7 @@
 name = "authzen-session"
 version = "0.1.0-alpha.0"
 description = """
-Utilities for integrating session management with different web frameworks and support for different session storage backends.
+Utilities for integrating session management with different web frameworks and support for different session data sources.
 """
 authors.workspace = true
 edition.workspace = true

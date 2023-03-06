@@ -1,7 +1,7 @@
 use crate::*;
 use authzen::service_util::Error;
 use authzen::session::{AccountSessionClaims, AccountSessionState, CookieConfig, DynAccountSessionStore};
-use authzen::storage_backends::diesel::prelude::*;
+use authzen::data_sources::diesel::prelude::*;
 use http::response::Parts;
 use hyper::{Body, Response};
 use serde::{de::DeserializeOwned, Serialize};

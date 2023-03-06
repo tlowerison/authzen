@@ -1,4 +1,4 @@
-use authzen::storage_backends::diesel::prelude::*;
+use authzen::data_sources::diesel::prelude::*;
 use authzen::transaction_caches::mongodb::*;
 use authzen::*;
 use diesel::backend::Backend;
@@ -35,7 +35,7 @@ where
     E: DbInsert + Sync,
     B: Backend,
     I: IntoIterator<Item = E::PostHelper<'v>> + Send,
-    C: authzen::storage_backends::diesel::connection::Db<Backend = B>,
+    C: authzen::data_sources::diesel::connection::Db<Backend = B>,
 
     // DbEntity bounds
     <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
@@ -88,16 +88,16 @@ where
 // because a successful execution of the CreateThenDelete operation will not
 // produce any new db records (that we are interested in, i.e. excluding Audit records),
 // we can simply do nothing in the transaction cache management for this action
-impl<O, SC, I> TransactionCacheAction<CreateThenDelete<O>, SC, I> for MongodbTxCollection
+impl<O, DS, I> TransactionCacheAction<CreateThenDelete<O>, DS, I> for MongodbTxCollection
 where
     O: ?Sized + ObjectType,
-    SC: ?Sized + StorageClient + Send + Sync,
-    CreateThenDelete<O>: StorageAction<SC, I> + Send,
+    DS: ?Sized + DataSource + Send + Sync,
+    CreateThenDelete<O>: StorageAction<DS, I> + Send,
 {
     fn manage_cache<'life0, 'life1, 'async_trait>(
         &'life0 self,
-        _: SC::TransactionId,
-        _: &'life1 <CreateThenDelete<O> as StorageAction<SC, I>>::Ok,
+        _: DS::TransactionId,
+        _: &'life1 <CreateThenDelete<O> as StorageAction<DS, I>>::Ok,
     ) -> BoxFuture<'async_trait, Result<(), <Self as TransactionCache>::Error>>
     where
         Self: Sync,

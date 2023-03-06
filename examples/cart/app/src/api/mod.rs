@@ -25,7 +25,7 @@ pub struct Clients {
     #[derivative(Debug = "ignore")]
     pub db: crate::DbPool,
     #[derivative(Debug = "ignore")]
-    pub opa_client: authzen::decision_makers::opa::OPAClient,
+    pub opa_client: authzen::authz_engines::opa::OPAClient,
     #[derivative(Debug = "ignore")]
     pub session_store: authzen::session::DynAccountSessionStore,
     #[derivative(Debug = "ignore")]

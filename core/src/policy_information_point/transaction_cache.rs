@@ -3,9 +3,9 @@ use crate::*;
 use ::futures::future::{BoxFuture, FutureExt};
 use ::serde::de::DeserializeOwned;
 
-pub trait GetTransactionValues<SC, TC, Ctx>: Identifiable + Sized
+pub trait GetTransactionValues<DS, TC, Ctx>: Identifiable + Sized
 where
-    SC: StorageClient,
+    DS: DataSource,
     TC: TransactionCache,
 {
     fn get_transaction_values<'life0, 'async_trait>(
@@ -14,17 +14,17 @@ where
     where
         'life0: 'async_trait,
         Self: 'async_trait,
-        SC: 'async_trait + 'life0,
+        DS: 'async_trait + 'life0,
         TC: 'async_trait,
         Ctx: 'async_trait;
 }
 
-impl<T, SC, TC, Ctx> GetTransactionValues<SC, TC, Ctx> for T
+impl<T, DS, TC, Ctx> GetTransactionValues<DS, TC, Ctx> for T
 where
     T: DeserializeOwned + ObjectType + Identifiable + Send,
-    SC: StorageClient + Send + Sync,
+    DS: DataSource + Send + Sync,
     TC: TransactionCache + Sync,
-    Ctx: AsRef<SC> + AsRef<TC> + Sync,
+    Ctx: AsRef<DS> + AsRef<TC> + Sync,
 {
     fn get_transaction_values<'life0, 'async_trait>(
         ctx: &'life0 Ctx,
@@ -32,12 +32,12 @@ where
     where
         'life0: 'async_trait,
         Self: 'async_trait,
-        SC: 'async_trait + 'life0,
+        DS: 'async_trait + 'life0,
         TC: 'async_trait,
         Ctx: 'async_trait,
     {
-        if let Some(transaction_id) = AsRef::<SC>::as_ref(ctx).transaction_id() {
-            <TC as TransactionCache>::get_entities::<T, T, SC::TransactionId>(ctx.as_ref(), transaction_id).boxed()
+        if let Some(transaction_id) = AsRef::<DS>::as_ref(ctx).transaction_id() {
+            <TC as TransactionCache>::get_entities::<T, T, DS::TransactionId>(ctx.as_ref(), transaction_id).boxed()
         } else {
             async move { Ok(Default::default()) }.boxed()
         }

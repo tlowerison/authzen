@@ -7,8 +7,8 @@ This project exists to help remove a lot of the up front cost that's required to
 Authzen can mostly be thought of as a "frontend" gluing together multiple different backends.
 It orchestrates the enforcement of authorization policies and then the
 performance of those authorized actions. The enforced policies live external to authzen and are managed
-by a "decision maker" such as [Open Policy Agent](https://www.openpolicyagent.org). Authzen wraps around that decision maker, and when
-an action needs to be authorized, authzen relays the policy query to the decision maker. Then if the action is allowed,
+by an "authorization engine" such as [Open Policy Agent](https://www.openpolicyagent.org). Authzen wraps around that authorization engine, and when
+an action needs to be authorized, authzen relays the policy query to the authorization engine. Then if the action is allowed,
 authzen can either stop there or perform the action, depending on where the "action" takes place.
 
 For example, say we want to authorize whether a user can tag another user in a post. The authorization engine is running

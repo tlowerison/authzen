@@ -19,7 +19,7 @@ pub fn authz_object(item: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(
     Context,
-    attributes(context, decision_maker, storage_client, subject, transaction_cache)
+    attributes(context, authz_engine, data_source, subject, transaction_cache)
 )]
 pub fn context(item: TokenStream) -> TokenStream {
     ok_or_return_compile_error!(authzen_proc_macros_core::context(item.into())).into()

@@ -1,4 +1,4 @@
-# Diesel Integration
+# diesel
 Integration with diesel as a storage client is fully supported and comes with some features.
 The base export is [DbEntity](https://docs.rs/authzen-diesel/latest/authzen_diesel/trait.DbEntity.html), which is automatically implemented for any type which
 implements [diesel::associations::HasTable](https://docs.rs/diesel/latest/diesel/associations/trait.HasTable.html). Of note, this includes all types which implement [diesel::Insertable](https://docs.rs/diesel/latest/diesel/trait.Insertable.html).
@@ -33,7 +33,7 @@ As an example, let's take a case where an `item` table can either be an inventor
 A typical representation of this table with a diesel model would just use an option for the two counts, and we will use that as a "raw" model, but the type we'd rather work with in service code is one which makes the
 distinction between the two item types with an enum.
 ```rust
-use authzen::storage_backends::diesel::prelude::*;
+use authzen::data_sources::diesel::prelude::*;
 use diesel::prelude::*;
 use uuid::Uuid;
 

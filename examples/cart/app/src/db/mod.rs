@@ -1,5 +1,5 @@
 use crate::env;
-use authzen::storage_backends::diesel::connection::Db as _Db;
+use authzen::data_sources::diesel::connection::Db as _Db;
 use diesel::pg::Pg;
 use diesel_async::{pooled_connection as pc, AsyncPgConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
@@ -14,7 +14,7 @@ pub trait Db: _Db<AsyncConnection = AsyncPgConnection, Backend = Pg> {}
 
 impl<D: _Db<AsyncConnection = AsyncPgConnection, Backend = Pg>> Db for D {}
 
-pub type DbPool = authzen::storage_backends::diesel::pool::Pool<AsyncPgConnection>;
+pub type DbPool = authzen::data_sources::diesel::pool::Pool<AsyncPgConnection>;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 

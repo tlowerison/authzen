@@ -1,9 +1,9 @@
-Generate a custom action which can be queried for authorization and performed on a storage backend.
+Generate a custom action which can be queried for authorization and performed on a data source.
 
 The output produced by this macro essentially consists of two traits:
-- a trait encapsulating a query to some decision maker of whether the action is allowed;
+- a trait encapsulating a query to some authorization engine of whether the action is allowed;
 this trait is generally referred to as a "Can" trait (e.g. [`CanCreate`](actions/trait.CanCreate.html))
-- a trait encapsulating a query which performs the decision maker, and if allowed, performs the action;
+- a trait encapsulating a query which performs the authorization engine, and if allowed, performs the action;
 this trait is generally referred to as a "Try" trait (e.g. [`TryCreate`](actions/trait.TryCreate.html))
 
 # Example
@@ -21,8 +21,8 @@ We can explicitly set the value of the [`ActionType::TYPE`](trait.ActionType.htm
 action!(Replace = "my.actions.replace");
 ```
 
-Note that [`ActionType::TYPE`](trait.ActionType.html#associatedconstant.TYPE) is the name of the action that decision makers are expected to recognize on authorization queries.
-So if we call `CanReplace::can_replace`, the input data to the decision maker would look something like the below (omitting other fields)
+Note that [`ActionType::TYPE`](trait.ActionType.html#associatedconstant.TYPE) is the name of the action that authorization engines are expected to recognize on authorization queries.
+So if we call `CanReplace::can_replace`, the input data to the authorization engine would look something like the below (omitting other fields)
 ```json
 {"action": "my.actions.replace"}
 ```

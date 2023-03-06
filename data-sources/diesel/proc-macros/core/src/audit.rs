@@ -131,7 +131,7 @@ pub fn derive_audit(tokens: TokenStream) -> Result<TokenStream, Error> {
         .collect::<Vec<_>>();
 
     let tokens = quote! {
-        #[derive(Associations, Clone, authzen::storage_backends::diesel::DieselUtilDerivative, Identifiable, Insertable, Queryable)]
+        #[derive(Associations, Clone, authzen::data_sources::diesel::DieselUtilDerivative, Identifiable, Insertable, Queryable)]
         #[derivative(Debug)]
         #[diesel(
             table_name = #audit_table_name,
@@ -156,7 +156,7 @@ pub fn derive_audit(tokens: TokenStream) -> Result<TokenStream, Error> {
             }
         }
 
-        impl authzen::storage_backends::diesel::audit::Audit for #struct_name {
+        impl authzen::data_sources::diesel::audit::Audit for #struct_name {
             type Raw = #audit_struct_name;
             type Table = #audit_struct_name;
         }

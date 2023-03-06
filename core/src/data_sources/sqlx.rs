@@ -10,7 +10,7 @@ impl StorageError for sqlx::Error {
     }
 }
 
-// TODO: refactor DbEntity in authzen::storage_backends::diesel
+// TODO: refactor DbEntity in authzen::data_sources::diesel
 // to be generalized over diesel, sqlx, etc.
 // need to do that in order be able to attach a transaction id
 // to each one of their transactions

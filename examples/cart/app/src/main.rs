@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate tracing;
 
-use ::authzen::decision_makers::opa::OPAClient;
+use ::authzen::authz_engines::opa::OPAClient;
 use ::authzen::service_util::{make_account_span, try_join_safe};
 use ::authzen::session::{redis_store, RedisStoreConfig, RedisStoreNodeConfig, SessionLayer};
 use ::authzen::transaction_caches::mongodb::{mongodb_client, MongodbConfig};

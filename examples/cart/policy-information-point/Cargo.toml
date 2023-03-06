@@ -41,7 +41,7 @@ features = [
   "diesel-postgres",
   "extra-traits",
   "mongodb-tx-cache",
-  "opa-decision-maker",
+  "opa-authz-engine",
   "policy-information-point-server",
   "session-account-session",
   "session-redis-backend",

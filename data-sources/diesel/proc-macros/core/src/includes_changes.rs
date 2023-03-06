@@ -74,7 +74,7 @@ pub fn derive_includes_changes(tokens: TokenStream) -> Result<TokenStream, Error
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
 
     let tokens = quote! {
-        impl #impl_generics authzen::storage_backends::diesel::macros::IncludesChanges for #ident #ty_generics #where_clause {
+        impl #impl_generics authzen::data_sources::diesel::macros::IncludesChanges for #ident #ty_generics #where_clause {
             fn includes_changes(&self) -> bool {
                 #expr
             }

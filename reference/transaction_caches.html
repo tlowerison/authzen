@@ -1,0 +1,261 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Transaction Caches - Authzen</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../summary/introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../summary/design.html">Design</a></li><li class="chapter-item expanded affix "><a href="../summary/example.html">Example</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference Guide</li><li class="chapter-item expanded "><a href="../reference/primitives.html"><strong aria-hidden="true">1.</strong> Authorization Primitives</a></li><li class="chapter-item expanded "><a href="../reference/data_sources.html"><strong aria-hidden="true">2.</strong> Data Sources</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/data_sources/diesel.html"><strong aria-hidden="true">2.1.</strong> diesel</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.2.</strong> sqlx</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.3.</strong> seaql</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.</strong> mongodb</div></li></ol></li><li class="chapter-item expanded "><a href="../reference/authz_engines.html"><strong aria-hidden="true">3.</strong> Authorization Engines</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/authz_engines/opa.html"><strong aria-hidden="true">3.1.</strong> Open Policy Agent</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.2.</strong> Oso</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.3.</strong> Casbin</div></li></ol></li><li class="chapter-item expanded "><a href="../reference/transaction_caches.html" class="active"><strong aria-hidden="true">4.</strong> Transaction Caches</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> redis</div></li><li class="chapter-item expanded "><a href="../reference/transaction_caches/mongodb.html"><strong aria-hidden="true">4.2.</strong> mongodb</a></li></ol></li><li class="chapter-item expanded "><a href="../reference/contexts.html"><strong aria-hidden="true">5.</strong> Contexts</a></li><li class="chapter-item expanded "><a href="../reference/policy_information_points.html"><strong aria-hidden="true">6.</strong> Policy Information Points</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/policy_information_points/self_hosted.html"><strong aria-hidden="true">6.1.</strong> Self Hosted</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Authzen</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="transaction-caches"><a class="header" href="#transaction-caches">Transaction Caches</a></h1>
+<p>Transaction caches are transient json blob storages (i.e. every object inserted only lives for a short bit before being removed) which contain objects which have been mutated in the course of a transaction (only objects which we are concerned with authorizing).
+They are essential in ensuring that an authorization engine has accurate information in the case where it would not be able to view data which is specific to an ongoing transaction.</p>
+<p>For example, say we have the following architecture:</p>
+<ul>
+<li>a backend api using authzen for authorization enforcement</li>
+<li>a postgres database</li>
+<li>OPA as the authorization engine</li>
+<li>a policy information point which is essentially another api which OPA talks to in order to retrieve information about objects it is trying to make policy decisions on</li>
+<li>a transaction cache</li>
+</ul>
+<p>Then let's look at the following operations taking place in the backend api wrapped in a database transaction:</p>
+<ol>
+<li>Authorize then create an object <code>Foo { id: &quot;1&quot;, approved: true }</code>.</li>
+<li>Authorize then create two child objects <code>[Bar { id: &quot;1&quot;, foo_id: &quot;1&quot; }, Bar { id: &quot;1&quot;, foo_id: &quot;2&quot; }]</code>.</li>
+</ol>
+<p>Say our policies living in OPA look something like this:</p>
+<pre><code class="language-rego">import future.keywords.every
+
+allow {
+  input.action == &quot;create&quot;
+  input.object.type == &quot;foo&quot;
+}
+
+allow {
+  input.action == &quot;create&quot;
+  input.object.type == &quot;bar&quot;
+  every post in input.input {
+    allow_create_bar[post.id]
+  }
+}
+
+allow_create_bar[id] {
+  post := input.input[_]
+  id := post.id
+
+  # retrieve the Foos these Bars belong to
+  foos := http.send({
+    &quot;headers&quot;: {
+		  &quot;accept&quot;: &quot;application/json&quot;,
+		  &quot;content-type&quot;: &quot;application/json&quot;,
+		  &quot;x-transaction-id&quot;: input.transaction_id,
+    },
+		&quot;method&quot;: &quot;POST&quot;,
+		&quot;url&quot;: &quot;http://localhost:9191&quot;, # policy information point url
+		&quot;body&quot;: {
+      &quot;service&quot;: &quot;my_service&quot;,
+      &quot;type&quot;: &quot;foo&quot;,
+      &quot;ids&quot;: {id | id := input.input[_].foo_id},
+    },
+  }).body
+
+  # policy will automatically fail if the parent foo does not exist
+  foo := foos[post.foo_id]
+
+  foo.approved == true
+}
+</code></pre>
+<p>Without a transaction cache to store transaction specific changes, the policy information point would
+have no clue that <code>Foo { id: &quot;1&quot; }</code> exists in the database and therefore this whole operation would fail.
+If we integrate the transaction cache into our policy information point to pull objects matching the
+given query (in this case, <code>{&quot;service&quot;:&quot;my_service&quot;,&quot;type&quot;:&quot;foo&quot;,&quot;ids&quot;:[&quot;1&quot;]}</code>) from both the database <em>and</em>
+the transaction cache, then the correct information will be returned for <code>Foo</code> with id <code>1</code> and the policy
+will correctly return that the action is acceptable.</p>
+<p>Integration of a transaction cache into a policy information point is very straightforward using authzen, see section on <a href="#policy-information-points">policy information points</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../reference/authz_engines/opa.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../reference/transaction_caches/mongodb.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../reference/authz_engines/opa.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../reference/transaction_caches/mongodb.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

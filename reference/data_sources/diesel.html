@@ -1,0 +1,422 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>diesel - Authzen</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../../favicon.svg">
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../summary/introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../../summary/design.html">Design</a></li><li class="chapter-item expanded affix "><a href="../../summary/example.html">Example</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference Guide</li><li class="chapter-item expanded "><a href="../../reference/primitives.html"><strong aria-hidden="true">1.</strong> Authorization Primitives</a></li><li class="chapter-item expanded "><a href="../../reference/data_sources.html"><strong aria-hidden="true">2.</strong> Data Sources</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../reference/data_sources/diesel.html" class="active"><strong aria-hidden="true">2.1.</strong> diesel</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.2.</strong> sqlx</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.3.</strong> seaql</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.</strong> mongodb</div></li></ol></li><li class="chapter-item expanded "><a href="../../reference/authz_engines.html"><strong aria-hidden="true">3.</strong> Authorization Engines</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../reference/authz_engines/opa.html"><strong aria-hidden="true">3.1.</strong> Open Policy Agent</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.2.</strong> Oso</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.3.</strong> Casbin</div></li></ol></li><li class="chapter-item expanded "><a href="../../reference/transaction_caches.html"><strong aria-hidden="true">4.</strong> Transaction Caches</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> redis</div></li><li class="chapter-item expanded "><a href="../../reference/transaction_caches/mongodb.html"><strong aria-hidden="true">4.2.</strong> mongodb</a></li></ol></li><li class="chapter-item expanded "><a href="../../reference/contexts.html"><strong aria-hidden="true">5.</strong> Contexts</a></li><li class="chapter-item expanded "><a href="../../reference/policy_information_points.html"><strong aria-hidden="true">6.</strong> Policy Information Points</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../reference/policy_information_points/self_hosted.html"><strong aria-hidden="true">6.1.</strong> Self Hosted</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Authzen</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="diesel"><a class="header" href="#diesel">diesel</a></h1>
+<p>Integration with diesel as a storage client is fully supported and comes with some features.
+The base export is <a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/trait.DbEntity.html">DbEntity</a>, which is automatically implemented for any type which
+implements <a href="https://docs.rs/diesel/latest/diesel/associations/trait.HasTable.html">diesel::associations::HasTable</a>. Of note, this includes all types which implement <a href="https://docs.rs/diesel/latest/diesel/trait.Insertable.html">diesel::Insertable</a>.
+Types which implement <code>DbEntity</code> can then implement the following operation traits:</p>
+<ul>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html">DbGet</a> provides utility methods for retrieving records
+<ul>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get">get</a>: given a collection of ids for this <code>DbEntity</code>, retrieve the corresponding records</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get_one">get_one</a>: given an id for this <code>DbEntity</code>, retrieve the corresponding record</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get_by_column">get_by_column</a>: given a column belonging to this <code>DbEntity</code>'s table and a collection of values which
+match the sql type of that column, get all corresponding records</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get_page">get_page</a>: given a <a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/paginate/struct.Page.html">Page</a>, return
+a collection of records that match the specified page; currently Page only supports (index, count) matching but a goal is to also support cursor based pagination in the future</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get_pages">get_pages</a>: given a collection of pages, return records matching any of the pages; note that this method only
+makes one database query :)</li>
+</ul>
+</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbInsert.html">DbInsert</a>
+<ul>
+<li><a href="https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbInsert.html#associatedtype.Post">DbInsert::Post</a>:
+the data type which will actually be used to insert the record -- for any type <code>T</code> which implements <code>Insertable</code>, <code>T</code> will automatically implement <code>DbInsert&lt;Post = T&gt;</code></li>
+<li><a href="https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbInsert.html#associatedtype.PostHelper">DbInsert::PostHelper</a>:
+the data type which will be passed to <code>insert</code>; this defaults to <code>DbInsert::Post</code>, however if you have a data type which you want to use to represent database records
+but which cannot directly implement <code>Insertable</code>, <code>PostHelper</code> can be set to that type and then at the time of insert it will be converted to the <code>DbInsert::Post</code> type</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbInsert.html#method.insert">insert</a>: given a collection of <code>DbInsert::PostHelper</code> types, insert them into the database;
+note that if this type implementing <code>DbInsert</code> also implements <a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/audit/trait.Audit.html">Audit</a>, then audit records will be automatically
+inserted for all records inserted as well</li>
+</ul>
+</li>
+<li><a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbUpdate.html">DbUpdate</a>
+<ul>
+<li><a href="https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.Patch">DbUpdate::Patch</a>:
+the data type which will actually be used to update the record -- for any type <code>T</code> which implements <code>Changeset</code>, <code>T</code> will automatically implement <code>DbUpdate&lt;Patch = T&gt;</code></li>
+<li><a href="https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.PatchHelper">DbUpdate::PatchHelper</a>:
+the data type which will be passed to <code>insert</code>; this defaults to <code>DbUpdate::Patch</code>, however if you have a data type which you want to use to represent database records
+but which cannot directly implement <code>Insertable</code>, <code>PatchHelper</code> can be set to that type and then at the time of insert it will be converted to the <code>DbUpdate::Patch</code> type</li>
+</ul>
+</li>
+</ul>
+<h3 id="example"><a class="header" href="#example">Example</a></h3>
+<p>The PostHelper/PatchHelper terminology in DbInsert/DbUpdate can be a little confusing without an example. The major win from this design is the ability to represent discriminated unions in tables easily and safely.
+As an example, let's take a case where an <code>item</code> table can either be an inventory item or a general item. General items have no count, while inventory items do have a count of how many are owned and how many are needed.
+A typical representation of this table with a diesel model would just use an option for the two counts, and we will use that as a &quot;raw&quot; model, but the type we'd rather work with in service code is one which makes the
+distinction between the two item types with an enum.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use authzen::data_sources::diesel::prelude::*;
+use diesel::prelude::*;
+use uuid::Uuid;
+
+#[derive(Clone, Debug)]
+pub struct DbItem {
+    pub id: Uuid,
+    pub item_type: ItemType,
+}
+
+#[derive(Clone, Debug)]
+pub enum ItemType {
+    General,
+    Inventory {
+        owned: i32,
+        needed: i32,
+    },
+}
+
+/// raw diesel model
+/// note that this type automatically implements DbInsert&lt;Post&lt;'v&gt; = _DbItem, PostHelper&lt;'v&gt; = _DbItem&gt;
+#[derive(Clone, Debug, Identifiable, Insertable, Queryable)]
+#[diesel(table_name = item)]
+pub struct _DbItem {
+    pub id: Uuid,
+    pub is_inventory_type: bool,
+    pub owned: Option&lt;i32&gt;,
+    pub needed: Option&lt;i32&gt;,
+}
+
+/// for DbItem to implement DbInsert&lt;Post&lt;'v&gt; = _DbItem, PostHelper&lt;'v&gt; = DbItem&gt;, DbItem must implement Into&lt;_DbItem&gt;
+impl From&lt;DbItem&gt; for _DbItem {
+    fn from(value: DbItem) -&gt; Self {
+        let (is_inventory_type, owned, needed) = match value.item_type {
+            ItemType::General =&gt; (false, None, None),
+            ItemType::Inventory { owned, needed } =&gt; (true, Some(owned), Some(needed)),
+        };
+        Self { id: value.id, is_inventory_type, owned, needed }
+    }
+}
+
+/// to be able to call &lt;DbItem as DbInsert&gt;::insert, _DbItem must implement TryInto&lt;DbItem&gt;
+impl TryFrom&lt;_DbItem&gt; for DbItem {
+    type Error = anyhow::Error;
+    fn try_from(value: _DbItem) -&gt; Result&lt;Self, Self::Error&gt; {
+      let item_type = match (value.is_inventory_type, value.owned, value.needed) {
+          (false, None, None) =&gt; ItemType::General,
+          (true, Some(owned), Some(needed)) =&gt; ItemType::InventoryType { owned, needed },
+          (is_inventory_type, owned, needed) =&gt; return Err(anyhow::Error::msg(format!(
+            &quot;unexpected inventory type found in database record: is_inventory_type = {is_inventory_type}, owned = {owned:#?}, needed = {needed:#?}&quot;,
+          ))),
+      };
+      Ok(Self { id: value.id, item_type })
+    }
+}
+
+
+impl DbInsert for DbItem {
+    type Post&lt;'v&gt; = _DbItem;
+}
+
+/// service code
+///
+/// the Db trait here is imported in the authzen diesel prelude
+/// it is a wrapper type for various types which allow us to
+/// asynchronously get a diesel connection, i.e. it's implemented
+/// for diesel_async::AsyncPgConnection as well as various connection pools
+pub fn insert_an_item&lt;D: Db&gt;(db: &amp;D, db_item: DbItem) -&gt; Result&lt;DbItem, DbEntityError&lt;anyhow::Error&gt;&gt; {
+    DbItem::insert_one(db, db_item).await
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Adding in updates would look like this:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Clone, Debug)]
+pub struct DbItemPatch {
+    pub id: Uuid,
+    pub item_type: Option&lt;ItemTypePatch&gt;,
+}
+
+#[derive(Clone, Debug)]
+pub enum ItemTypePatch {
+    General,
+    Inventory {
+        owned: Option&lt;i32&gt;,
+        needed: Option&lt;i32&gt;,
+    },
+}
+
+#[derive(AsChangeset, Clone, Debug, Changeset, Identifiable, IncludesChanges)]
+pub struct _DbItemPatch {
+    pub id: Uuid,
+    pub is_inventory_type: Option&lt;bool&gt;,
+    pub owned: Option&lt;Option&lt;i32&gt;&gt;,
+    pub needed: Option&lt;Option&lt;i32&gt;&gt;,
+}
+
+/// for DbItem to implement DbUpdate&lt;Patch&lt;'v&gt; = _DbItemPatch, PatchHelper&lt;'v&gt; = DbItemPatch&gt;,
+/// DbItemPatch must implement Into&lt;_DbItemPatch&gt;
+impl From&lt;DbItemPatch&gt; for _DbItemPatch {
+    fn from(value: DbItemPatch) -&gt; Self {
+        let (is_inventory_type, owned, needed) = match value.item_type {
+            None =&gt; (None, None, None),
+            Some(ItemTypePatch::General) =&gt; (Some(false), Some(None), Some(None)),
+            Some(ItemTypePatch::InventoryType { owned, needed }) =&gt; (Some(true), Some(owned), Some(needed)),
+        };
+        Self { id: value.id, is_inventory_type, owned, needed }
+    }
+}
+
+impl DbUpdate for DbItem {
+    type Patch&lt;'v&gt; = _DbItemPatch;
+    type PatchHelper&lt;'v&gt; = DbItemPatch;
+}
+
+/// service code
+pub fn update_an_item&lt;D: Db&gt;(db: &amp;D, db_item_patch: DbItemPatch) -&gt; Result&lt;DbItem, DbEntityError&lt;anyhow::Error&gt;&gt; {
+    DbItem::update_one(db, db_item_patch).await
+}
+<span class="boring">}</span></code></pre></pre>
+<p>If you also want to create a record in a separate table <code>item_audit</code> any time a new record is inserted to or updated in the <code>item</code> table,
+this can be achieved automatically any time <code>DbInsert::insert</code> or <code>DbUpdate::update</code> are called by deriving <a href="https://docs.rs/authzen-diesel/latest/authzen_diesel/audit/trait.Audit.html">Audit</a>
+on <code>_DbItem</code>. This example assumes the table <code>item_audit</code> is defined like this</p>
+<pre><code class="language-sql">create table if not exists item_audit (
+    id                 uuid     primary key,
+    item_id            uuid     not null,
+    is_inventory_type  boolean  not null,
+    owned              int,
+    needed             int,
+    foreign key (item_id) references item (id)
+);
+</code></pre>
+<p>Note that the placement of <code>item_id</code> as the second column in the table <em>is required</em>, otherwise, there is a chance that
+the diesel table model will still compile but with the ids swapped for example if the <code>id</code> and <code>item_id</code> columns are swapped in the sql table definition.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Audit, Clone, Debug, Identifiable, Insertable, Queryable)]
+#[audit(foreign_key = item_id)]
+#[diesel(table_name = item)]
+pub struct _DbItem {
+    pub id: Uuid,
+    pub is_inventory_type: bool,
+    pub owned: Option&lt;i32&gt;,
+    pub needed: Option&lt;i32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The inclusion of <code>#[audit(foreign_key = item_id)]</code> is only necessary if the audit foreign key back to the original table does not follow the naming scheme <code>{original_table_name}_id</code>.
+So the above example could be reduced as below since the foreign key's name is <code>item_id</code> which follows the expected audit foreign key naming scheme.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Audit, Clone, Debug, Identifiable, Insertable, Queryable)]
+#[diesel(table_name = item)]
+pub struct _DbItem {
+    pub id: Uuid,
+    pub is_inventory_type: bool,
+    pub owned: Option&lt;i32&gt;,
+    pub needed: Option&lt;i32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Soft deletes are also supported out of the box:</p>
+<ul>
+<li>queries used in any of the <code>DbGet</code> methods will omit records for which the soft delete column is not null</li>
+<li>deletions will update the soft deleted column to the current timestamp rather than deleting the record from the database</li>
+</ul>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[derive(Audit, Clone, Debug, Identifiable, Insertable, Queryable, SoftDelete)]
+#[audit(foreign_key = item_id)]
+#[diesel(table_name = item)]
+#[soft_delete(db_entity = DbAccount, deleted_at = deleted_at)]
+pub struct _DbAccount {
+    pub id: Uuid,
+    pub deleted_at: Option&lt;chrono::NaiveDateTime&gt;,
+    pub is_inventory_type: bool,
+    pub owned: Option&lt;i32&gt;,
+    pub needed: Option&lt;i32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Note that updates can be still made on records which have already been soft deleted (not sure yet if this behavior is desirable; at the very least, it gives the ability to un-delete easily).</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../reference/data_sources.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../../reference/authz_engines.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../reference/data_sources.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../../reference/authz_engines.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js"></script>
+        <script src="../../mark.min.js"></script>
+        <script src="../../searcher.js"></script>
+
+        <script src="../../clipboard.min.js"></script>
+        <script src="../../highlight.js"></script>
+        <script src="../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

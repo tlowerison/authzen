@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Authorization Primitives - Authzen</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../summary/introduction.html">Introduction</a></li><li class="chapter-item expanded affix "><a href="../summary/design.html">Design</a></li><li class="chapter-item expanded affix "><a href="../summary/example.html">Example</a></li><li class="chapter-item expanded affix "><li class="part-title">Reference Guide</li><li class="chapter-item expanded "><a href="../reference/primitives.html" class="active"><strong aria-hidden="true">1.</strong> Authorization Primitives</a></li><li class="chapter-item expanded "><a href="../reference/data_sources.html"><strong aria-hidden="true">2.</strong> Data Sources</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/data_sources/diesel.html"><strong aria-hidden="true">2.1.</strong> diesel</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.2.</strong> sqlx</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.3.</strong> seaql</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">2.4.</strong> mongodb</div></li></ol></li><li class="chapter-item expanded "><a href="../reference/authz_engines.html"><strong aria-hidden="true">3.</strong> Authorization Engines</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/authz_engines/opa.html"><strong aria-hidden="true">3.1.</strong> Open Policy Agent</a></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.2.</strong> Oso</div></li><li class="chapter-item expanded "><div><strong aria-hidden="true">3.3.</strong> Casbin</div></li></ol></li><li class="chapter-item expanded "><a href="../reference/transaction_caches.html"><strong aria-hidden="true">4.</strong> Transaction Caches</a></li><li><ol class="section"><li class="chapter-item expanded "><div><strong aria-hidden="true">4.1.</strong> redis</div></li><li class="chapter-item expanded "><a href="../reference/transaction_caches/mongodb.html"><strong aria-hidden="true">4.2.</strong> mongodb</a></li></ol></li><li class="chapter-item expanded "><a href="../reference/contexts.html"><strong aria-hidden="true">5.</strong> Contexts</a></li><li class="chapter-item expanded "><a href="../reference/policy_information_points.html"><strong aria-hidden="true">6.</strong> Policy Information Points</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../reference/policy_information_points/self_hosted.html"><strong aria-hidden="true">6.1.</strong> Self Hosted</a></li></ol></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Authzen</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="authorization-primitives"><a class="header" href="#authorization-primitives">Authorization Primitives</a></h1>
+<p>Authzen provides the following core abstractions to be used when describing a policy and its components</p>
+<ul>
+<li><a href="https://docs.rs/authzen/latest/authzen/trait.ActionType.html">ActionType</a>: denote the type of an action, will be used to identify the action in authorization engines</li>
+<li><a href="https://docs.rs/authzen/latest/authzen/trait.ObjectType.html">ObjectType</a>: denote the type and originating service of an object, will be used to identify the object in authorization engines</li>
+<li><a href="https://docs.rs/authzen/latest/authzen/derive.AuthzObject.html">AuthzObject</a>:
+<ul>
+<li>derive macro used to implement <code>ObjectType</code> for a wrapper struct which should contain
+a representation of the object which can be persisted to a specific data source</li>
+<li>for example, if you have a struct <code>DbFoo</code> which can be persisted to a database, then <code>AuthzObject</code> should be derived on some other struct <code>pub struct Foo&lt;'a&gt;(pub Cow&lt;'a, DbFoo&gt;);</code>. The use of a newtype with Cow
+is actually necessary to derive <code>AuthzObject</code> (the compiler will let you know if you forget), because there are certain cases where we want to construct an <code>ObjectType</code> with a reference and not an owned value</li>
+</ul>
+</li>
+<li><a href="https://docs.rs/authzen/latest/authzen/enum.ActionError.html">ActionError</a>: an error type encapsulating the different ways an action authorization+performance can fail</li>
+<li><a href="https://docs.rs/authzen/latest/authzen/struct.Event.html">Event</a>: collection of all identifying information which will be used as input for an authorization decision; it is generic over the following parameters
+<ul>
+<li>Subject: who is performing the action; can be any type</li>
+<li>Action: what the action is; must implement <code>ActionType</code></li>
+<li>Object:
+<ul>
+<li>the object being acted upon; must implement <code>ObjectType</code>, which should typically be derived using <a href="https://docs.rs/authzen/latest/authzen/derive.AuthzObject.html">AuthzObject</a></li>
+<li>see here for an <a href="https://github.com/tlowerison/authzen/blob/main/examples/cart/app/src/authz/account.rs#L5-L7">example</a> usage</li>
+<li>note that this parameter <em>only</em> represents the information about the object
+which can be derived from <code>ObjectType</code>, i.e. object type and object service</li>
+</ul>
+</li>
+<li>Input:
+<ul>
+<li>the actual data representing the object being acted upon, this can take many different forms and is dependent on which data source(s) this object lives in</li>
+<li>for example, if trying to create a <code>Foo</code>, an expected input could be a vec of <code>Foo</code>s which the authorization engine can then use to determine if they the action is acceptable or not</li>
+<li>as another example, if trying to read a <code>Foo</code>, an expected could be a vec of <code>Foo</code> ids</li>
+</ul>
+</li>
+<li>Context: any additional information which may be needed by the authorization engine to make an unambiguous decision; typically the type of the Context provided should be the same
+across all events since the policy enforcer (the server/application) shouldn't need to know what context a specific action requires, that is up to the authorization engine</li>
+</ul>
+</li>
+<li><code>Try*</code> traits:
+<ul>
+<li>this is a class of traits which are automatically derived for valid <code>ObjectType</code> types (see the section on StorageAction for more details)</li>
+<li><code>*</code> here can be replaced with the name of an action, for example
+<a href="https://docs.rs/authzen/latest/authzen/actions/trait.TryCreate.html">TryCreate</a>,
+<a href="https://docs.rs/authzen/latest/authzen/actions/trait.TryDelete.html">TryDelete</a>,
+<a href="https://docs.rs/authzen/latest/authzen/actions/trait.TryRead.html">TryRead</a>, and
+<a href="https://docs.rs/authzen/latest/authzen/actions/trait.TryUpdate.html">TryUpdate</a></li>
+<li>each <code>Try*</code> trait contains two methods: <code>can_*</code> and <code>try_*</code>, the former only authorizes an action, while the latter both authorizes and then, if allowed, performs an action
+<ul>
+<li>these two methods are the primary export of authzen, meaning that they are the points of authorization enforcement and provide considerable value and code</li>
+</ul>
+</li>
+<li>the <code>Try*</code> traits are generated using the <a href="https://docs.rs/authzen/latest/authzen/macro.action.html">action</a> macro</li>
+</ul>
+</li>
+<li><a href="https://docs.rs/authzen/latest/authzen/macro.action.html">action</a>: given an action name (and optionally an action type string if one wants to explicitly set it), will produce:
+<ul>
+<li>a type which implements <code>ActionType</code>; it is generic over the object type it is acting upon</li>
+<li>the <code>Try*</code> traits mentioned above and implementations of them for any type <code>O</code> implementing <code>ObjectType</code> for which the action implements <code>StorageAction&lt;O&gt;</code></li>
+</ul>
+</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../summary/example.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../reference/data_sources.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../summary/example.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../reference/data_sources.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

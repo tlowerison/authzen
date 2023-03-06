@@ -46,6 +46,11 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
     let ty = ty.unwrap_or_else(|| snake_name.clone());
 
     let source_mod = if internal { quote!() } else { quote!(authzen::) };
+    let data_sources_source_mod = if internal {
+        quote!(authzen_data_sources::)
+    } else {
+        quote!(authzen::data_sources::)
+    };
 
     let can_fn_name = format_ident!("can_{snake_name}");
 
@@ -113,7 +118,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                Self: #source_mod AsStorage<<DS as #data_sources_source_mod DataSource>::Backend>,
                 AE: #source_mod AuthzEngine<
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
@@ -122,7 +127,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
                         DS::TransactionId,
                     > + Sync,
-                DS: #source_mod DataSource + Send + Sync,
+                DS: #data_sources_source_mod DataSource + Send + Sync,
                 TC: Send + Sync + #source_mod TransactionCache,
                 Ctx: #source_mod AuthorizationContext<AE, DS, TC>,
                 I: Send + Sync,
@@ -170,7 +175,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                Self: #source_mod AsStorage<<DS as #data_sources_source_mod DataSource>::Backend>,
                 AE: #source_mod AuthzEngine<
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
@@ -179,7 +184,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
                         DS::TransactionId,
                     > + Sync,
-                DS: #source_mod DataSource + Send + Sync,
+                DS: #data_sources_source_mod DataSource + Send + Sync,
                 TC: Send + Sync
                     + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction<#name<Self>, DS, I>,
@@ -232,7 +237,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                 >,
             > + Send + 'async_trait>>
             where
-                Self: #source_mod AsStorage<<DS as DataSource>::Backend>,
+                Self: #source_mod AsStorage<<DS as #data_sources_source_mod DataSource>::Backend>,
                 AE: #source_mod AuthzEngine<
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Subject<'subject>,
                         #name<Self>,
@@ -241,7 +246,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                         <Ctx as #source_mod AuthorizationContext<AE, DS, TC>>::Context<'context>,
                         DS::TransactionId,
                     > + Sync,
-                DS: #source_mod DataSource + Send + Sync,
+                DS: #data_sources_source_mod DataSource + Send + Sync,
                 TC: Send + Sync
                     + #source_mod TransactionCache
                     + #source_mod TransactionCacheAction<#name<Self>, DS, [I; 1]>,
@@ -277,7 +282,7 @@ pub fn action(item: TokenStream) -> Result<TokenStream, Error> {
                     event.try_act(ctx.authz_engine(), ctx.data_source(), ctx.transaction_cache())
                         .and_then(|ok| {
                             let mut iter = ok.into_iter();
-                            ready(iter.next().ok_or_else(|| ActionError::storage(<#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Error::not_found())))
+                            ready(iter.next().ok_or_else(|| #source_mod ActionError::DataSource(<#name<Self> as #source_mod StorageAction<DS, [I; 1]>>::Error::not_found())))
                         })
                 )
             }

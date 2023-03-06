@@ -1,6 +1,6 @@
 [package]
 name = "authzen"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = "A framework for easily integrating authorization into backend services."
 authors.workspace = true
 edition.workspace = true
@@ -18,13 +18,13 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-diesel = { path = "../data-sources/diesel", version = "0.1.0-alpha.0", optional = true }
-authzen-opa = { path = "../authz-engines/opa", version = "0.1.0-alpha.0", optional = true }
-authzen-core = { path = "../core", version = "0.1.0-alpha.0" }
-authzen-proc-macros = { path = "../proc-macros", version = "0.1.0-alpha.0" }
-authzen-proc-macro-util = { path = "../proc-macro-util", version = "0.1.0-alpha.0", optional = true }
-authzen-service-util = { path = "../service-util", version = "0.1.0-alpha.0", optional = true }
-authzen-session = { path = "../session", version = "0.1.0-alpha.0", optional = true }
+authzen-data-sources = { path = "../data-sources", version = "0.1.0-alpha.1" }
+authzen-opa = { path = "../authz-engines/opa", version = "0.1.0-alpha.1", optional = true }
+authzen-core = { path = "../core", version = "0.1.0-alpha.1" }
+authzen-proc-macros = { path = "../proc-macros", version = "0.1.0-alpha.1" }
+authzen-proc-macro-util = { path = "../proc-macro-util", version = "0.1.0-alpha.1", optional = true }
+authzen-service-util = { path = "../service-util", version = "0.1.0-alpha.1", optional = true }
+authzen-session = { path = "../session", version = "0.1.0-alpha.1", optional = true }
 
 cfg-if.workspace = true
 derivative.workspace = true
@@ -34,12 +34,12 @@ dotenv = { workspace = true, optional = true }
 tokio = { workspace = true, optional = true }
 
 [features]
-diesel-data-source = ["authzen-diesel", "authzen-core/diesel-data-source"]
-diesel-mysql = ["diesel-data-source", "authzen-core/diesel-mysql", "authzen-diesel/mysql"]
-diesel-postgres = ["diesel-data-source", "authzen-core/diesel-postgres", "authzen-diesel/postgres"]
-diesel-bb8 = ["diesel-data-source", "authzen-diesel/bb8"]
-diesel-deadpool = ["diesel-data-source", "authzen-diesel/deadpool"]
-diesel-mobc = ["diesel-data-source", "authzen-diesel/mobc"]
+diesel-data-source = ["authzen-data-sources/diesel", "authzen-core/diesel-data-source", "authzen-service-util/diesel"]
+diesel-mysql = ["diesel-data-source", "authzen-core/diesel-mysql", "authzen-data-sources/diesel-mysql"]
+diesel-postgres = ["diesel-data-source", "authzen-core/diesel-postgres", "authzen-data-sources/diesel-postgres"]
+diesel-bb8 = ["diesel-data-source", "authzen-data-sources/diesel-bb8"]
+diesel-deadpool = ["diesel-data-source", "authzen-data-sources/diesel-deadpool"]
+diesel-mobc = ["diesel-data-source", "authzen-data-sources/diesel-mobc"]
 
 extra-traits = ["authzen-core/extra-traits"]
 
@@ -56,7 +56,7 @@ service-util = ["authzen-service-util"]
 service-util-axum-05 = ["service-util", "authzen-service-util/axum-05"]
 service-util-axum-06 = ["service-util", "authzen-service-util/axum-06"]
 service-util-client = ["service-util", "authzen-service-util/client"]
-service-util-db = ["service-util", "authzen-service-util/db"]
+service-util-diesel = ["service-util", "authzen-service-util/diesel"]
 service-util-graphql = ["service-util", "authzen-service-util/graphql"]
 service-util-grpc = ["service-util", "authzen-service-util/grpc"]
 service-util-http1 = ["service-util", "authzen-service-util/http1"]

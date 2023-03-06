@@ -1,0 +1,32 @@
+[package]
+name = "authzen-data-sources-proc-macros"
+version = "0.1.0-alpha.1"
+description = "Proc macro utilities used in authzen data sources."
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[dependencies]
+authzen-data-sources-proc-macros-core = { path = "core", version = "0.1.0-alpha.1" }
+cfg-if.workspace = true
+proc-macro2.workspace = true
+syn.workspace = true
+
+[features]
+diesel = ["authzen-data-sources-proc-macros-core/diesel"]
+diesel-mysql = ["diesel", "authzen-data-sources-proc-macros-core/diesel-mysql"]
+diesel-postgres = ["diesel", "authzen-data-sources-proc-macros-core/diesel-postgres"]
+
+[lib]
+proc-macro = true

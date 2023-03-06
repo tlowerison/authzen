@@ -1,8 +1,8 @@
 use crate::db::schema::*;
-use authzen::data_sources::diesel::prelude::*;
-use chrono::{NaiveDateTime, Utc};
-use diesel::prelude::*;
-use uuid::Uuid;
+use ::authzen::prelude::*;
+use ::chrono::{NaiveDateTime, Utc};
+use ::diesel::prelude::*;
+use ::uuid::Uuid;
 
 #[derive(Audit, Clone, Debug, Deserialize, Identifiable, Insertable, Queryable, Serialize)]
 #[audit(foreign_key = item_id_arbitrary_foreign_key_name)]

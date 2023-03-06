@@ -274,16 +274,16 @@ impl From<hyper::Response<Vec<u8>>> for Error {
     }
 }
 
-#[cfg(feature = "db")]
+#[cfg(feature = "diesel")]
 pub use db::*;
-#[cfg(feature = "db")]
+#[cfg(feature = "diesel")]
 mod db {
     use super::*;
 
-    use async_backtrace::{backtrace, Location};
-    use authzen_diesel::prelude::{DbEntityError, TxCleanupError};
-    use diesel::result::DatabaseErrorKind;
-    use std::fmt::{Debug, Display};
+    use ::async_backtrace::{backtrace, Location};
+    use ::authzen_data_sources::{diesel::DbEntityError, TxCleanupError};
+    use ::diesel::result::DatabaseErrorKind;
+    use ::std::fmt::{Debug, Display};
 
     /// DbError is a simplified representation of a diesel Error
     /// It largely exists to make service code handling db errors
@@ -294,10 +294,10 @@ mod db {
     #[derivative(Debug)]
     pub enum DbError {
         #[error("db error: application error: {0}")]
-        Application(anyhow::Error, #[derivative(Debug = "ignore")] Option<Box<[Location]>>),
+        Application(::anyhow::Error, #[derivative(Debug = "ignore")] Option<Box<[Location]>>),
         #[error("db error: database could not process request: {0}")]
         BadRequest(
-            diesel::result::Error,
+            ::diesel::result::Error,
             #[derivative(Debug = "ignore")] Option<Box<[Location]>>,
         ),
         #[error("db error: bad request: {0}")]
@@ -306,17 +306,17 @@ mod db {
         InvalidDbState(anyhow::Error, #[derivative(Debug = "ignore")] Option<Box<[Location]>>),
         #[error("db error: network error while communiciating with database: {0}")]
         Network(
-            diesel::result::Error,
+            ::diesel::result::Error,
             #[derivative(Debug = "ignore")] Option<Box<[Location]>>,
         ),
         #[error("db error: {0}")]
         Other(
-            diesel::result::Error,
+            ::diesel::result::Error,
             #[derivative(Debug = "ignore")] Option<Box<[Location]>>,
         ),
         #[error("db error: application performed an invalid db operation: {0}")]
         Server(
-            diesel::result::Error,
+            ::diesel::result::Error,
             #[derivative(Debug = "ignore")] Option<Box<[Location]>>,
         ),
         #[error("db error: could not commit transaction, another concurrent has locked affected rows")]
@@ -346,12 +346,12 @@ mod db {
         }
     }
 
-    impl From<diesel::result::Error> for DbError {
+    impl From<::diesel::result::Error> for DbError {
         #[framed]
-        fn from(error: diesel::result::Error) -> Self {
+        fn from(error: ::diesel::result::Error) -> Self {
             match &error {
-                diesel::result::Error::InvalidCString(_) => DbError::BadRequest(error, backtrace()),
-                diesel::result::Error::DatabaseError(kind, _) => match kind {
+                ::diesel::result::Error::InvalidCString(_) => DbError::BadRequest(error, backtrace()),
+                ::diesel::result::Error::DatabaseError(kind, _) => match kind {
                     DatabaseErrorKind::UniqueViolation => DbError::BadRequest(error, backtrace()),
                     DatabaseErrorKind::ForeignKeyViolation => DbError::BadRequest(error, backtrace()),
                     DatabaseErrorKind::UnableToSendCommand => DbError::BadRequest(error, backtrace()),
@@ -363,18 +363,18 @@ mod db {
                     // of a raised exception implying a bad request
                     _ => DbError::BadRequest(error, backtrace()),
                 },
-                diesel::result::Error::NotFound => DbError::BadRequest(error, backtrace()),
-                diesel::result::Error::QueryBuilderError(_) => DbError::Server(error, backtrace()),
-                diesel::result::Error::DeserializationError(_) => DbError::Server(error, backtrace()),
-                diesel::result::Error::SerializationError(_) => DbError::Server(error, backtrace()),
-                diesel::result::Error::AlreadyInTransaction => DbError::Server(error, backtrace()),
-                diesel::result::Error::NotInTransaction => DbError::Server(error, backtrace()),
+                ::diesel::result::Error::NotFound => DbError::BadRequest(error, backtrace()),
+                ::diesel::result::Error::QueryBuilderError(_) => DbError::Server(error, backtrace()),
+                ::diesel::result::Error::DeserializationError(_) => DbError::Server(error, backtrace()),
+                ::diesel::result::Error::SerializationError(_) => DbError::Server(error, backtrace()),
+                ::diesel::result::Error::AlreadyInTransaction => DbError::Server(error, backtrace()),
+                ::diesel::result::Error::NotInTransaction => DbError::Server(error, backtrace()),
                 _ => DbError::Other(error, backtrace()),
             }
         }
     }
 
-    impl From<DbError> for Option<diesel::result::Error> {
+    impl From<DbError> for Option<::diesel::result::Error> {
         fn from(db_error: DbError) -> Self {
             match db_error {
                 DbError::Application(_, _) => None,
@@ -421,9 +421,9 @@ mod db {
         }
     }
 
-    impl From<diesel::result::Error> for Error {
+    impl From<::diesel::result::Error> for Error {
         #[framed]
-        fn from(err: diesel::result::Error) -> Self {
+        fn from(err: ::diesel::result::Error) -> Self {
             Error::init(StatusCode::INTERNAL_SERVER_ERROR, None, format!("{err}"))
         }
     }
@@ -444,7 +444,7 @@ mod db {
         #[framed]
         fn from(err: Error) -> Self {
             Self {
-                source: anyhow::Error::msg(err),
+                source: ::anyhow::Error::msg(err),
                 backtrace: backtrace(),
             }
         }

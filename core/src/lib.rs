@@ -26,6 +26,7 @@ pub mod transaction_caches;
 #[cfg(feature = "extra-traits")]
 mod extra_traits;
 
+use ::authzen_data_sources::*;
 use ::derive_getters::{Dissolve, Getters};
 use ::serde::{de::DeserializeOwned, Deserialize, Serialize};
 use ::std::borrow::Borrow;
@@ -81,17 +82,12 @@ where
     {
         let event = self.into();
         authz_engine
-            .can_act(
-                event.subject,
-                &event.input,
-                event.context,
-                data_source.transaction_id(),
-            )
+            .can_act(event.subject, &event.input, event.context, data_source.transaction_id())
             .await
             .map_err(ActionError::authz)?;
         let ok = Self::Action::act(data_source, event.input)
             .await
-            .map_err(ActionError::storage)?;
+            .map_err(ActionError::DataSource)?;
         transaction_cache
             .handle_success(data_source, &ok)
             .await
@@ -178,26 +174,6 @@ where
     A: ActionType,
 {
     const TYPE: &'static str = A::TYPE;
-}
-
-/// Represents a unique backend on which actions are performed. An example would be postgres,
-/// mysql, or your own custom implementation of an API.
-pub trait StorageBackend {}
-
-/// A client for communicating with a data source. Typically this should be implemented for
-/// connection or client implementations for that backend, e.g. [`diesel_async::AsyncPgConnection`](https://docs.rs/diesel-async/latest/diesel_async/pg/struct.AsyncPgConnection.html).
-pub trait DataSource {
-    /// The backend this client will act upon.
-    type Backend: StorageBackend;
-    /// The type for ids associated with transactions used by this client.
-    /// If this client does not support transactions just set this value to `()`.
-    type TransactionId: Clone + Eq + Hash + Send + Serialize + Sync;
-
-    /// Returns the current transaction id if there is one available
-    /// for this client. Must return Some for clients which expect
-    /// to use a transaction cache to assist an authorization engine. If
-    /// this client does not support transactions just return `None`.
-    fn transaction_id(&self) -> Option<Self::TransactionId>;
 }
 
 /// Connects an object with its backend representation for a specific backend.
@@ -654,7 +630,7 @@ pub enum ActionError<E1, E2, E3> {
     /// perform an action but there an error occurs while actually performing the error. Examples
     /// of this include network errors while communicating with an api or database, unique
     /// constraint violations raised by a database, etc.
-    Storage(E2),
+    DataSource(E2),
     /// Wraps an error returned from a [`TransactionCache`] when updating the transaction
     /// cache after a successful performance of the action.
     TransactionCache(E3),
@@ -664,8 +640,8 @@ impl<E1, E2, E3> ActionError<E1, E2, E3> {
     pub fn authz(err: E1) -> Self {
         Self::Authz(err)
     }
-    pub fn storage(err: E2) -> Self {
-        Self::Storage(err)
+    pub fn data_source(err: E2) -> Self {
+        Self::DataSource(err)
     }
     pub fn transaction_cache(err: E3) -> Self {
         Self::TransactionCache(err)

@@ -1,5 +1,5 @@
 use crate::env;
-use authzen::data_sources::diesel::connection::Db as _Db;
+use authzen::data_sources::{diesel::connection::Db as _Db, TransactionalDataSource};
 use diesel::pg::Pg;
 use diesel_async::{pooled_connection as pc, AsyncPgConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};

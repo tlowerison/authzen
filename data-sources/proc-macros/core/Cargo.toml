@@ -1,0 +1,57 @@
+[package]
+name = "authzen-data-sources-proc-macros-core"
+version = "0.1.0-alpha.1"
+description = "Core diesel proc macro functions used in authzen."
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[dependencies]
+authzen-proc-macro-util = { workspace = true, version = "0.1.0-alpha.1" }
+
+convert_case.workspace = true
+derive_more.workspace = true
+either.workspace = true
+itertools.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+syn.workspace = true
+uuid.workspace = true
+
+# re-exports
+async-trait = { workspace = true }
+scoped-futures = { workspace = true }
+
+anyhow = { workspace = true, optional = true }
+chrono = { workspace = true, optional = true }
+derivative = { workspace = true, optional = true }
+diesel = { workspace = true, optional = true }
+diesel-async = { workspace = true, optional = true }
+lazy_static = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
+
+[features]
+diesel = [
+  "dep:anyhow",
+  "dep:chrono",
+  "dep:derivative",
+  "dep:diesel",
+  "dep:diesel-async",
+  "dep:lazy_static",
+  "dep:serde_json",
+  "dep:tokio",
+]
+diesel-mysql = ["diesel", "diesel/mysql"]
+diesel-postgres = ["diesel", "diesel/postgres"]

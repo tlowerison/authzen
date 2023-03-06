@@ -1,4 +1,5 @@
 use authzen::data_sources::diesel::prelude::*;
+use authzen::data_sources::DataSource;
 use authzen::transaction_caches::mongodb::*;
 use authzen::*;
 use diesel::backend::Backend;
@@ -8,7 +9,7 @@ use diesel::query_source::QuerySource;
 use diesel::sql_types::SqlType;
 use diesel::{query_builder::*, Identifiable};
 use diesel::{Insertable, Table};
-use diesel_async::methods::*;
+use diesel_async::{methods::*, AsyncConnection};
 use futures::future::BoxFuture;
 use std::fmt::Debug;
 
@@ -22,7 +23,7 @@ action!(CreateThenDelete);
 
 /// note: the bounds on this trait look super freaky,
 /// but they're all copied (mostly) directly from the authzen
-/// implementation of `authzen::StorageAction<C, I>`
+/// implementation of `authzen::DataSourceAction<C, I>`
 /// for `authzen::Create` and `authzen::Delete`
 ///
 /// in general, if you're implementing StorageActions
@@ -36,6 +37,7 @@ where
     B: Backend,
     I: IntoIterator<Item = E::PostHelper<'v>> + Send,
     C: authzen::data_sources::diesel::connection::Db<Backend = B>,
+    C::AsyncConnection: AsyncConnection<Backend = B>,
 
     // DbEntity bounds
     <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,

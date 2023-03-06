@@ -1,8 +1,8 @@
 use crate::db::schema::*;
-use authzen::data_sources::diesel::prelude::*;
-use chrono::{NaiveDateTime, Utc};
-use diesel::prelude::*;
-use uuid::Uuid;
+use ::authzen::prelude::*;
+use ::chrono::{NaiveDateTime, Utc};
+use ::diesel::prelude::*;
+use ::uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, TypedBuilder)]
 pub struct DbAccount {

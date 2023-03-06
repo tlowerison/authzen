@@ -10,7 +10,7 @@ where
     fn from(value: ActionError<AuthzEngineError, StorageError, TransactionCacheError>) -> Self {
         match value {
             ActionError::Authz(err) => Self::bad_request_details(err),
-            ActionError::Storage(err) => err.into(),
+            ActionError::DataSource(err) => err.into(),
             ActionError::TransactionCache(err) => err.into(),
         }
     }

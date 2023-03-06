@@ -30,15 +30,6 @@ cfg_if! {
     }
 }
 cfg_if! {
-    if #[cfg(feature = "db")] {
-        mod paginate;
-        pub use paginate::*;
-    } else if #[cfg(feature = "graphql")] {
-        mod paginate;
-        pub use paginate::*;
-    }
-}
-cfg_if! {
     if #[cfg(feature = "server")] {
         mod server;
         pub use server::*;

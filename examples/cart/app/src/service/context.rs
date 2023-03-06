@@ -1,19 +1,18 @@
 use authzen::authz_engines::opa::OPAClient;
-use authzen::data_sources::diesel::*;
+use authzen::prelude::*;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 use uuid::Uuid;
 
 pub type AccountId = Uuid;
 pub type AccountSession = authzen::session::AccountSession<AccountId, ()>;
 
-#[derive(authzen::Context, Clone, Copy, Derivative, Db)]
+#[derive(authzen::Context, Clone, Copy, Derivative, TransactionalDataSource)]
 #[derivative(Debug)]
 pub struct Context<D, S, C, M> {
     #[subject]
     pub session: S,
-    #[db]
-    #[derivative(Debug = "ignore")]
     #[data_source]
+    #[derivative(Debug = "ignore")]
     pub db: D,
     #[authz_engine]
     #[derivative(Debug = "ignore")]

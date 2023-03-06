@@ -1,6 +1,6 @@
 [package]
 name = "authzen-core"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = "Core authorization primatives and service integrations used in authzen."
 authors.workspace = true
 edition.workspace = true
@@ -18,10 +18,10 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-diesel = { workspace = true, version = "0.1.0-alpha.0", optional = true }
-authzen-opa = { workspace = true, version = "0.1.0-alpha.0", optional = true }
-authzen-proc-macros = { workspace = true, version = "0.1.0-alpha.0" }
-authzen-service-util = { workspace = true, version = "0.1.0-alpha.0", optional = true }
+authzen-data-sources = { workspace = true, version = "0.1.0-alpha.1" }
+authzen-opa = { workspace = true, version = "0.1.0-alpha.1", optional = true }
+authzen-proc-macros = { workspace = true, version = "0.1.0-alpha.1" }
+authzen-service-util = { workspace = true, version = "0.1.0-alpha.1", optional = true }
 
 async-trait.workspace = true
 cfg-if.workspace = true
@@ -52,9 +52,9 @@ url = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 
 [features]
-diesel-data-source = ["authzen-diesel", "diesel", "diesel-async", "uuid"]
-diesel-mysql = ["diesel-data-source", "diesel/mysql", "diesel-async/mysql", "authzen-diesel/mysql"]
-diesel-postgres = ["diesel-data-source", "diesel/postgres", "diesel-async/postgres", "authzen-diesel/postgres"]
+diesel-data-source = ["authzen-data-sources/diesel", "diesel", "diesel-async"]
+diesel-mysql = ["diesel-data-source", "diesel/mysql", "diesel-async/mysql", "authzen-data-sources/diesel-mysql"]
+diesel-postgres = ["diesel-data-source", "diesel/postgres", "diesel-async/postgres", "authzen-data-sources/diesel-postgres"]
 extra-traits = ["authzen-service-util"]
 mongodb-tx-cache = ["anyhow", "chrono", "log", "mongodb", "authzen-service-util/client", "url"]
 opa-authz-engine = ["authzen-opa", "hyper", "serde_json", "authzen-service-util/trace"]

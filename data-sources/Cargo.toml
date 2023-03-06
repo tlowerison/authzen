@@ -1,0 +1,90 @@
+[package]
+name = "authzen-data-sources"
+version = "0.1.0-alpha.1"
+description = "Data source utilities used in authzen."
+authors.workspace = true
+edition.workspace = true
+categories.workspace = true
+keywords.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[build-dependencies]
+rustc_version.workspace = true
+
+[dependencies]
+authzen-data-sources-proc-macros = { path = "proc-macros", version = "0.1.0-alpha.1" }
+authzen-data-sources-proc-macros-core = { path = "proc-macros/core", version = "0.1.0-alpha.1" }
+
+anyhow.workspace = true
+async-backtrace.workspace = true
+async-trait.workspace = true
+cfg-if.workspace = true
+derivative.workspace = true
+derive_more.workspace = true
+futures.workspace = true
+log.workspace = true
+serde.workspace = true
+scoped-futures.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+diesel = { workspace = true, optional = true }
+diesel-async = { workspace = true, optional = true }
+either = { workspace = true, optional = true }
+itertools = { workspace = true, optional = true }
+lazy_static = { workspace = true, optional = true }
+mobc = { version = "^0.7", optional = true }
+serde_json = { workspace = true, optional = true }
+sqlx = { workspace = true, optional = true }
+
+[features]
+diesel = [
+  "authzen-data-sources-proc-macros/diesel",
+  "authzen-data-sources-proc-macros-core/diesel",
+  "diesel-async",
+  "dep:diesel",
+  "dep:either",
+  "dep:itertools",
+  "dep:lazy_static",
+  "dep:serde_json",
+]
+diesel-bb8 = [
+  "diesel",
+  "diesel-async/bb8",
+]
+diesel-deadpool = [
+  "diesel",
+  "diesel-async/deadpool",
+]
+diesel-mobc = [
+  "diesel",
+  "diesel-async/mobc",
+  "dep:mobc",
+]
+diesel-mysql = [
+  "authzen-data-sources-proc-macros/diesel-mysql",
+  "authzen-data-sources-proc-macros-core/diesel-mysql",
+  "diesel",
+  "diesel/mysql",
+  "diesel-async/mysql",
+]
+diesel-postgres = [
+  "authzen-data-sources-proc-macros/diesel-postgres",
+  "authzen-data-sources-proc-macros-core/diesel-postgres",
+  "diesel",
+  "diesel/postgres",
+  "diesel-async/postgres",
+]
+
+sqlx = ["dep:sqlx"]
+sqlx-mysql = ["sqlx", "sqlx/mysql"]
+sqlx-postgres = ["sqlx", "sqlx/postgres"]
+sqlx-sqlite = ["sqlx", "sqlx/sqlite"]

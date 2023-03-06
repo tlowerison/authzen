@@ -27,11 +27,8 @@ pub mod authz_engines {
 }
 
 /// Implementations of common data source clients.
-pub mod data_sources {
-    #[cfg(feature = "diesel-data-source")]
-    #[doc(alias = "authzen_diesel")]
-    pub use authzen_diesel as diesel;
-}
+#[doc(alias = "authzen_data_sources")]
+pub use authzen_data_sources as data_sources;
 
 #[doc(hidden)]
 pub use derivative;
@@ -47,4 +44,9 @@ cfg_if! {
         #[doc(hidden)]
         pub use tokio;
     }
+}
+
+pub mod prelude {
+    pub use crate::*;
+    pub use data_sources::prelude::*;
 }

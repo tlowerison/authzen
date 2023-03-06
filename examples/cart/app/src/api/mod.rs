@@ -89,14 +89,14 @@ async fn sign_up(
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename = "camelCase")]
+#[serde(rename_all = "camelCase")]
 struct CreateItemPost {
     pub name: String,
     pub description: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename = "camelCase")]
+#[serde(rename_all = "camelCase")]
 struct Item {
     pub id: Uuid,
     pub name: String,
@@ -118,7 +118,7 @@ async fn create_item(
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename = "camelCase")]
+#[serde(rename_all = "camelCase")]
 struct CartItemPost {
     pub item_id: Uuid,
 }

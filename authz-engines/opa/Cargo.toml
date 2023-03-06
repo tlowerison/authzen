@@ -1,6 +1,6 @@
 [package]
 name = "authzen-opa"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = "Open Policy Agent rest client and endpoints used in authzen."
 authors.workspace = true
 edition.workspace = true
@@ -18,7 +18,7 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-service-util = { workspace = true, version = "0.1.0-alpha.0", features = ["client"] }
+authzen-service-util = { workspace = true, version = "0.1.0-alpha.1", features = ["client"] }
 
 anyhow.workspace = true
 async-backtrace.workspace = true

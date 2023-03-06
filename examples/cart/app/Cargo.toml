@@ -7,7 +7,6 @@ authors = ["Trey Lowerison"]
 [dependencies]
 anyhow = "1"
 async-trait = "0"
-authzen = { path = "../../../authzen", features = ["diesel-bb8", "diesel-postgres", "extra-traits", "mongodb-tx-cache", "opa-authz-engine", "service-util-axum-06", "service-util-db", "service-util-server", "session-account-session", "session-redis-backend"] }
 axum = "0.6"
 axum-macros = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
@@ -35,3 +34,18 @@ tracing = "0.1"
 typed-builder = "0.11.0"
 url = "2.3"
 uuid = { version = "1", features = ["serde", "v4"] }
+
+[dependencies.authzen]
+path = "../../../authzen"
+features = [
+  "diesel-bb8",
+  "diesel-postgres",
+  "extra-traits",
+  "mongodb-tx-cache",
+  "opa-authz-engine",
+  "service-util-axum-06",
+  "service-util-server",
+  "session-account-session",
+  "session-redis-backend",
+]
+

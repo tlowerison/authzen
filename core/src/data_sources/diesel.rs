@@ -1,5 +1,5 @@
 use crate::*;
-use ::authzen_diesel::{connection::Db, prelude::*};
+use ::authzen_data_sources::diesel::{connection::Db, prelude::*};
 use ::diesel::associations::HasTable;
 use ::diesel::backend::Backend;
 use ::diesel::expression::Expression;
@@ -11,12 +11,10 @@ use ::diesel::sql_types::SqlType;
 use ::diesel::{query_builder::*, Identifiable};
 use ::diesel::{Insertable, Table};
 use ::diesel_async::methods::*;
+use ::diesel_async::AsyncConnection;
 use ::serde::{de::DeserializeOwned, Serialize};
 use ::std::fmt::Debug;
 use ::std::hash::Hash;
-use ::uuid::Uuid;
-
-impl<B> StorageBackend for B where B: Backend {}
 
 impl<E, B> StorageObject<B> for E
 where
@@ -25,7 +23,7 @@ where
 {
 }
 
-impl StorageError for diesel::result::Error {
+impl StorageError for ::diesel::result::Error {
     fn not_found() -> Self {
         Self::NotFound
     }
@@ -33,16 +31,7 @@ impl StorageError for diesel::result::Error {
 
 impl<E> StorageError for DbEntityError<E> {
     fn not_found() -> Self {
-        Self::Db(diesel::result::Error::NotFound)
-    }
-}
-
-impl<C: Db> DataSource for C {
-    type Backend = <C as Db>::Backend;
-    type TransactionId = Uuid;
-
-    fn transaction_id(&self) -> Option<Self::TransactionId> {
-        self.tx_id()
+        Self::Db(::diesel::result::Error::NotFound)
     }
 }
 
@@ -66,6 +55,7 @@ where
     B: Backend,
     I: IntoIterator<Item = E::PostHelper<'v>> + Send,
     C: Db<Backend = B>,
+    <C as TransactionalDataSource>::AsyncConnection: AsyncConnection<Backend = B>,
 
     // DbEntity bounds
     <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
@@ -105,6 +95,7 @@ where
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
     C: Db<Backend = B> + 'query,
+    <C as TransactionalDataSource>::AsyncConnection: AsyncConnection<Backend = B>,
 
     // DbEntity bounds
     <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
@@ -136,6 +127,7 @@ where
     B: Backend,
     I: IntoIterator<Item = E::Id> + Send,
     C: Db<Backend = B>,
+    <C as TransactionalDataSource>::AsyncConnection: AsyncConnection<Backend = B>,
 
     // DbEntity bounds
     <<E::Table as Table>::PrimaryKey as Expression>::SqlType: SqlType,
@@ -168,6 +160,7 @@ where
     B: Backend,
     I: IntoIterator<Item = E::PatchHelper<'v>> + Send + 'v,
     C: Db<Backend = B> + 'query,
+    <C as TransactionalDataSource>::AsyncConnection: AsyncConnection<Backend = B>,
 
     'v: 'query,
 

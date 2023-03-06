@@ -13,18 +13,18 @@ Types which implement `DbEntity` can then implement the following operation trai
   - [get_pages](https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbGet.html#method.get_pages): given a collection of pages, return records matching any of the pages; note that this method only
     makes one database query :)
 - [DbInsert](https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbInsert.html)
-  - [DbInsert::Post](https://docs.rs/authzen-diesel/0.1.0-alpha.0/authzen_diesel/operations/trait.DbInsert.html#associatedtype.Post):
+  - [DbInsert::Post](https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbInsert.html#associatedtype.Post):
       the data type which will actually be used to insert the record -- for any type `T` which implements `Insertable`, `T` will automatically implement `DbInsert<Post = T>`
-  - [DbInsert::PostHelper](https://docs.rs/authzen-diesel/0.1.0-alpha.0/authzen_diesel/operations/trait.DbInsert.html#associatedtype.PostHelper):
+  - [DbInsert::PostHelper](https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbInsert.html#associatedtype.PostHelper):
       the data type which will be passed to `insert`; this defaults to `DbInsert::Post`, however if you have a data type which you want to use to represent database records
       but which cannot directly implement `Insertable`, `PostHelper` can be set to that type and then at the time of insert it will be converted to the `DbInsert::Post` type
   - [insert](https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbInsert.html#method.insert): given a collection of `DbInsert::PostHelper` types, insert them into the database;
     note that if this type implementing `DbInsert` also implements [Audit](https://docs.rs/authzen-diesel/latest/authzen_diesel/audit/trait.Audit.html), then audit records will be automatically
     inserted for all records inserted as well
 - [DbUpdate](https://docs.rs/authzen-diesel/latest/authzen_diesel/operations/trait.DbUpdate.html)
-  - [DbUpdate::Patch](https://docs.rs/authzen-diesel/0.1.0-alpha.0/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.Patch):
+  - [DbUpdate::Patch](https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.Patch):
       the data type which will actually be used to update the record -- for any type `T` which implements `Changeset`, `T` will automatically implement `DbUpdate<Patch = T>`
-  - [DbUpdate::PatchHelper](https://docs.rs/authzen-diesel/0.1.0-alpha.0/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.PatchHelper):
+  - [DbUpdate::PatchHelper](https://docs.rs/authzen-diesel/0.1.0-alpha.1/authzen_diesel/operations/trait.DbUpdate.html#associatedtype.PatchHelper):
       the data type which will be passed to `insert`; this defaults to `DbUpdate::Patch`, however if you have a data type which you want to use to represent database records
       but which cannot directly implement `Insertable`, `PatchHelper` can be set to that type and then at the time of insert it will be converted to the `DbUpdate::Patch` type
 ### Example

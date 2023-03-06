@@ -14,6 +14,7 @@ mod prelude;
 use examples_cart::*;
 
 use crate::prelude::*;
+use authzen::data_sources::DataSource;
 use authzen::transaction_caches::mongodb::MongodbTxCollection;
 
 #[derive(Clone, Derivative)]

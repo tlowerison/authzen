@@ -1,6 +1,6 @@
 [package]
 name = "authzen-proc-macros"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = "Proc macros used in authzen."
 authors.workspace = true
 edition.workspace = true
@@ -18,8 +18,8 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-proc-macro-util = { workspace = true, version = "0.1.0-alpha.0" }
-authzen-proc-macros-core = { path = "core", version = "0.1.0-alpha.0" }
+authzen-proc-macro-util = { workspace = true, version = "0.1.0-alpha.1" }
+authzen-proc-macros-core = { path = "core", version = "0.1.0-alpha.1" }
 
 doc-comment.workspace = true
 

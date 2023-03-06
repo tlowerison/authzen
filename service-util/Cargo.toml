@@ -1,6 +1,6 @@
 [package]
 name = "authzen-service-util"
-version = "0.1.0-alpha.0"
+version = "0.1.0-alpha.1"
 description = "Backend service utilities."
 authors.workspace = true
 edition.workspace = true
@@ -18,8 +18,8 @@ all-features = true
 rustc_version.workspace = true
 
 [dependencies]
-authzen-diesel = { workspace = true, version = "0.1.0-alpha.0", optional = true }
-authzen-session = { workspace = true, version = "0.1.0-alpha.0", features = ["account-session"], optional = true }
+authzen-data-sources = { workspace = true, version = "0.1.0-alpha.1", optional = true }
+authzen-session = { workspace = true, version = "0.1.0-alpha.1", features = ["account-session"], optional = true }
 
 anyhow.workspace = true
 async-backtrace.workspace = true
@@ -69,8 +69,8 @@ default = ["http1", "max-allowed-request-body-size-medium"]
 axum-05 = ["dep:axum-05", "dep:headers", "authzen-session/axum-core-02"]
 axum-06 = ["dep:axum-06", "dep:headers", "authzen-session/axum-core-03"]
 client = ["async-trait", "concat-string", "futures", "hyper/client", "serde", "serde_json", "serde_qs", "trace"]
-db = ["authzen-diesel", "diesel", "serde"]
-graphql = ["async-graphql", "authzen-diesel", "diesel", "serde"]
+diesel = ["authzen-data-sources/diesel", "dep:diesel"]
+graphql = ["async-graphql", "serde"]
 grpc = ["tonic"]
 http1 = ["hyper/http1"]
 http2 = ["hyper/http2"]

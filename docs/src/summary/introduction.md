@@ -28,7 +28,7 @@ the order of operations looks something like this:
 - authzen then places the inserted `PostTag` into a "transaction cache" which stores all of the objects inserted/updated/deleted as a part of
   this database transaction as a json blob
 
-The transaction cache step is the *crucial use case* for authzen: if your authorization engine requires up to date information to make accurate and unambiguous
+The transaction cache step is the *crucial motivation* for authzen: if your authorization engine requires up to date information to make accurate and unambiguous
 policy decisions, then changes to your database over the course of a transaction must be visible to your authorization engine. Because the
 component of the authorization engine which retrieves data information typically runs in a different process with different
 database connections from the transaction, it may not be able to see the changes from the transaction! The transaction cache is a
